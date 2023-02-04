@@ -37,10 +37,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "access-group-messaging-app/node_modules/.bin/react-app-rewired start",
-    "build": "access-group-messaging-app/node_modules/.bin/react-app-rewired build",
-    "test": "access-group-messaging-app/node_modules/.bin/react-app-rewired test",
-    "eject": "access-group-messaging-app/node_modules/.bin/react-app-rewired eject"
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
     "extends": [
