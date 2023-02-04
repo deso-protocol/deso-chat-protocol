@@ -1,0 +1,77 @@
+{
+  "name": "deso-chat-protocol",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@headlessui/react": "^1.7.7",
+    "@material-tailwind/react": "^1.2.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.11",
+    "@types/react": "^18.0.27",
+    "@types/react-dom": "^18.0.10",
+    "assert": "^2.0.0",
+    "axios": "^1.2.3",
+    "bignumber.js": "^9.1.1",
+    "buffer": "^6.0.3",
+    "crypto-browserify": "^3.12.0",
+    "deso-protocol": "^0.7.35",
+    "deso-protocol-types": "^0.5.7",
+    "elliptic": "^6.5.4",
+    "ethers": "^5.7.2",
+    "hdkey": "github:deso-protocol/hdkey",
+    "lodash": "^4.17.21",
+    "material-color-hash": "^0.1.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-infinite-scroll-component": "^6.1.0",
+    "react-scripts": "^5.0.1",
+    "react-spinners": "^0.13.7",
+    "react-toastify": "^9.1.1",
+    "sha256": "^0.2.0",
+    "stream-browserify": "^3.0.0",
+    "tslib": "^2.4.1",
+    "typescript": "4.5.5",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "access-group-messaging-app/node_modules/.bin/react-app-rewired start",
+    "build": "access-group-messaging-app/node_modules/.bin/react-app-rewired build",
+    "test": "access-group-messaging-app/node_modules/.bin/react-app-rewired test",
+    "eject": "access-group-messaging-app/node_modules/.bin/react-app-rewired eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/line-clamp": "^0.4.2",
+    "@tailwindcss/typography": "^0.5.9",
+    "@types/elliptic": "^6.4.14",
+    "@types/hdkey": "^2.0.1",
+    "@types/lodash": "^4.14.191",
+    "@types/sha256": "^0.2.0",
+    "postcss": "^8.4.21",
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
+    "tailwindcss": "^3.2.4"
+  }
+}

@@ -1,0 +1,100 @@
+/* Tailwind base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --app-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+* Fixing weird behavior for height: 100vh on Safari Mobile
+* https://stackoverflow.com/questions/37112218/css3-100vh-not-constant-in-mobile-browser
+ */
+html, body, .App {
+  height: 100vh;
+  height: var(--app-height);
+  -webkit-overflow-scrolling : touch !important;
+}
+
+@media not all and (hover:hover) {
+  html, body, .App {
+    height: var(--app-height);
+  }
+}
+
+body, .App {
+  width: 100vw;
+  background-color: #050e1d;
+  overflow: hidden;
+}
+
+.App {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0.4rem;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(5, 24, 61, 0.4);
+  border: 1px solid lightgray;
+  border-radius: 4px;
+}
+
+/* React Toastify */
+.Toastify__toast {
+  text-align: left;
+}
+
+.Toastify__toast-container {
+  z-index: 99999 !important;
+}
+
+/* Material Tailwind */
+[role="listbox"] {
+  z-index: 100;
+}
+
+[role="tablist"] {
+  border-radius: 0 !important;
+}
+
+[role="tabpanel"] {
+  padding: 0 !important;
+}
+
+[role="tooltip"] {
+  z-index: 9999;
+}
+
+button:not(:disabled) {
+  opacity: 1 !important;
+}
+
+.break-words {
+  word-break: break-word;
+}
+
+textarea:not(:focus) ~ label::before,
+textarea:not(:focus) ~ label::after {
+  border: none;
+}

@@ -1,0 +1,15 @@
+{
+  "short_name": "DeSo Chat Protocol",
+  "name": "DeSo Chat Protocol",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "96x96",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
