@@ -89,7 +89,7 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-auto");
     }
 
-    if (isMobile || element.scrollTop !== 0) {
+    if (isMobile && element.scrollTop !== 0) {
       /*
       * Always scroll to the last message on mobile, desktop browsers update scroller
       * properly if it's staying on the very end
@@ -162,7 +162,7 @@ export const MessagingBubblesAndAvatar: FC<{
 
   return (
     <div
-      className={`h-full flex flex-col-reverse custom-scrollbar px-2 md:px-4 md:overflow-y-auto'}`}
+      className="h-full flex flex-col-reverse custom-scrollbar px-2 md:px-4 md:overflow-y-auto"
       ref={messageAreaRef}
       id="scrollableArea"
     >
