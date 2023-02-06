@@ -19,6 +19,7 @@ function App() {
   });
   const [hasSetupAccount, setHasSetupAccount] = useState(false);
   const [loggedInPublicKey, setLoggedInPublicKey] = useState("");
+  const [lockRefresh, setLockRefresh] = useState(false);
 
   return (
     <DesoContext.Provider
@@ -28,6 +29,8 @@ function App() {
         setHasSetupAccount,
         loggedInPublicKey,
         setLoggedInPublicKey,
+        lockRefresh,
+        setLockRefresh
       }}
     >
       <div className="App">

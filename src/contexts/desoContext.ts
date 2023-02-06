@@ -7,6 +7,8 @@ type IDesoContext = {
   setHasSetupAccount: (state: boolean) => void;
   loggedInPublicKey: string,
   setLoggedInPublicKey: (state: string) => void;
+  lockRefresh: boolean,
+  setLockRefresh: (state: boolean) => void;
 };
 
 export const DesoContext = createContext<IDesoContext>({
@@ -15,4 +17,6 @@ export const DesoContext = createContext<IDesoContext>({
   setHasSetupAccount: () => {},
   loggedInPublicKey: "",
   setLoggedInPublicKey: () => {},
+  lockRefresh: false,
+  setLockRefresh: () => {},
 });

@@ -24,7 +24,8 @@ import {
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
   PUBLIC_KEY_LENGTH,
-  PUBLIC_KEY_PREFIX
+  PUBLIC_KEY_PREFIX,
+  REFRESH_MESSAGES_INTERVAL_MS
 } from "../utils/constants";
 import difference from "lodash/difference";
 import { toast } from "react-toastify";
@@ -33,9 +34,10 @@ import { Conversation, ConversationMap } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { useMobile } from "../hooks/useMobile";
 import { shortenLongWord } from "./search-users";
+import { useInterval } from 'hooks/useInterval';
 
 export const MessagingApp: FC = () => {
-  const { deso, hasSetupAccount, setHasSetupAccount, setLoggedInPublicKey } = useContext(DesoContext);
+  const { deso, hasSetupAccount, setHasSetupAccount, setLoggedInPublicKey, lockRefresh } = useContext(DesoContext);
 
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] = useState<{ [key: string]: string }>({});
   const [derivedResponse, setDerivedResponse] = useState<Partial<DerivedPrivateUserInfo>>({});
@@ -74,14 +76,33 @@ export const MessagingApp: FC = () => {
       const chatName = getChatNameFromConversation(conversations[selectedConversationPublicKey], usernameByPublicKeyBase58Check);
 
       if (chatName) {
-        document.title = ([chatName, "DeSo Chat Protocol"].join(" · "));
+        document.title = ([chatName, "Chat Demo", "DeSo"].join(" · "));
       }
     }
 
     return () => {
-      document.title = "DeSo Chat Protocol";
+      document.title = ["Chat Demo", "DeSo"].join(" · ");
     }
   }, [selectedConversationPublicKey, conversations, usernameByPublicKeyBase58Check]);
+
+  useInterval(async () => {
+    const keyToUse = deso.identity.getUserKey();
+
+    if (!keyToUse || loading || lockRefresh) {
+      return;
+    }
+
+    const [res] = await getConversations(deso, getDerivedKeyResponse(keyToUse));
+    await getConversation(
+      selectedConversationPublicKey,
+      {
+        ...res,
+        [selectedConversationPublicKey]:
+          conversations[selectedConversationPublicKey],
+      },
+      true
+    );
+  }, REFRESH_MESSAGES_INTERVAL_MS);
 
   const fetchUsersStateless = async (newPublicKeysToGet: Array<string>) => {
     const diff = difference(newPublicKeysToGet, Object.keys(usernameByPublicKeyBase58Check))

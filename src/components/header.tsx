@@ -8,7 +8,7 @@ import { shortenLongWord } from "./search-users";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
 
 export const Header = () => {
-  const { deso, hasSetupAccount, loggedInPublicKey } = useContext(DesoContext);
+  const { deso, hasSetupAccount, loggedInPublicKey, setLockRefresh } = useContext(DesoContext);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -109,8 +109,14 @@ export const Header = () => {
               <MenuItem
                 className="flex items-center"
                 onClick={async () => {
-                  await deso.identity.login('1');
-                  await window.location.reload();
+                  setLockRefresh(true);
+
+                  try {
+                    await deso.identity.login('1');
+                    await window.location.reload();
+                  } finally {
+                    setLockRefresh(false);
+                  }
                 }}
               >
                 <img src="/assets/change-user.png" width={20} className="mr-2" alt="switch-user" />
@@ -124,9 +130,16 @@ export const Header = () => {
                 className="flex items-center"
                 onClick={async () => {
                   if (!userKey) return;
-                  await deso.identity.logout(userKey);
-                  clearAllState(userKey);
-                  await window.location.reload();
+
+                  setLockRefresh(true);
+
+                  try {
+                    await deso.identity.logout(userKey);
+                    clearAllState(userKey);
+                    await window.location.reload();
+                  } finally {
+                    setLockRefresh(false);
+                  }
                 }}
               >
                 <img src="/assets/logout.png" width={20} className="mr-2" alt="logout" />
