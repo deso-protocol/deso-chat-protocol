@@ -15,7 +15,6 @@ import { toast } from "react-toastify";
 import {
   encryptAccessGroupPrivateKeyToMemberDefaultKey,
   encryptAndSendNewMessage,
-  getAccessGroupStandardDerivation
 } from "../services/crypto-utils.service";
 import { DerivedPrivateUserInfo } from "deso-protocol-types";
 import uniq from "lodash/uniq";
@@ -73,7 +72,7 @@ export const StartGroupChat = ({ deso, onSuccess, derivedResponse }: StartGroupC
     setLoading(true);
 
     try {
-      const accessGroupDerivation = getAccessGroupStandardDerivation(derivedResponse.messagingPublicKeyBase58Check as string, groupName);
+      const accessGroupDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPrivateKey as string, groupName);
 
 
       const constructCreateAccessGroupPromise = deso.accessGroup.CreateAccessGroup({

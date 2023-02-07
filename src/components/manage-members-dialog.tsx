@@ -71,7 +71,7 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
 
   const addMembers = async (groupName: string, memberKeys: Array<string>) => {
     return updateMembers(groupName, memberKeys, async(groupEntries?: Array<AccessGroupEntryResponse>) => {
-      const accessGroupDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPublicKeyBase58Check as string, groupName);
+      const accessGroupDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPrivateKey as string, groupName);
 
       const { SubmitTransactionResponse } = await constructSignAndSubmitWithDerived(
         deso,
