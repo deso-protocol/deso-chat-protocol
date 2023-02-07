@@ -44,13 +44,15 @@ export const getUserBalanceNanos = async(deso: Deso, key?: string) => {
 }
 
 export const pollUserBalanceNanos = (deso: Deso, setBalance: (balance: number) => void, timeout: number = 3000): number => {
+  let balance: number = 0;
   return window.setInterval(async() => {
+    if (balance) return;
     const key = deso.identity.getUserKey();
     if (!key) {
       return;
     }
 
-    const balance = await getUserBalanceNanos(deso, key);
+    balance = await getUserBalanceNanos(deso, key);
     setBalance(balance);
   }, timeout);
 }
