@@ -14,6 +14,7 @@ function App() {
     identityConfig: {
       uri: process.env.REACT_APP_IDENTITY_URL,
       network: DESO_NETWORK,
+      skipIdentityEmbed: true,
     },
   });
   const [hasSetupAccount, setHasSetupAccount] = useState(false);
