@@ -78,10 +78,11 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-hidden");
     }
 
-    setVisibleMessages(conversation.messages);
-  }, [conversations, conversationPublicKey]);
+    const hasUnreadMessages = JSON.stringify(visibleMessages[0]) !== JSON.stringify(conversation.messages[0]);
+    const isLastMessageFromMe = conversation.messages[0].IsSender;
 
-  useEffect(() => {
+    setVisibleMessages(conversation.messages);
+
     const element = messageAreaRef.current!;
 
     if (isMobile) {
@@ -89,17 +90,14 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-auto");
     }
 
-    if (isMobile && element.scrollTop !== 0) {
-      /*
-      * Always scroll to the last message on mobile, desktop browsers update scroller
-      * properly if it's staying on the very end
-       */
+    if (hasUnreadMessages && isLastMessageFromMe && (isMobile || element.scrollTop !== 0)) {
+      // Always scroll to the last message if it's a new message from the current user
       const scrollerStub = element.querySelector(".scroller-end-stub");
       scrollerStub && scrollerStub.scrollIntoView({
         behavior: "smooth",
       });
     }
-  }, [visibleMessages]);
+  }, [conversations, conversationPublicKey]);
 
   if (Object.keys(conversations).length === 0 || conversationPublicKey === '') {
     return <div></div>;

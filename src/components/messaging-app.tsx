@@ -19,13 +19,15 @@ import { ManageMembersDialog } from "./manage-members-dialog";
 import { Card, CardBody } from "@material-tailwind/react";
 import { DesoContext } from "../contexts/desoContext";
 import {
+  BASE_TITLE,
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
   PUBLIC_KEY_LENGTH,
   PUBLIC_KEY_PREFIX,
-  REFRESH_MESSAGES_INTERVAL_MS
+  REFRESH_MESSAGES_INTERVAL_MS,
+  TITLE_DIVIDER
 } from "../utils/constants";
 import difference from "lodash/difference";
 import { toast } from "react-toastify";
@@ -76,12 +78,12 @@ export const MessagingApp: FC = () => {
       const chatName = getChatNameFromConversation(conversations[selectedConversationPublicKey], usernameByPublicKeyBase58Check);
 
       if (chatName) {
-        document.title = ([chatName, "Chat Demo", "DeSo"].join(" · "));
+        document.title = ([chatName, BASE_TITLE].join(TITLE_DIVIDER));
       }
     }
 
     return () => {
-      document.title = ["Chat Demo", "DeSo"].join(" · ");
+      document.title = BASE_TITLE;
     }
   }, [selectedConversationPublicKey, conversations, usernameByPublicKeyBase58Check]);
 
@@ -97,8 +99,7 @@ export const MessagingApp: FC = () => {
       selectedConversationPublicKey,
       {
         ...res,
-        [selectedConversationPublicKey]:
-          conversations[selectedConversationPublicKey],
+        [selectedConversationPublicKey]: conversations[selectedConversationPublicKey],
       },
       true
     );

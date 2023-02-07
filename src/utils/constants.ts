@@ -47,3 +47,5 @@ export const MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN = 4;
 export const MAX_MEMBERS_TO_REQUEST_IN_GROUP = 50;
 export const MOBILE_WIDTH_BREAKPOINT = 768;
 export const REFRESH_MESSAGES_INTERVAL_MS = 5000;
+export const BASE_TITLE = "DeSo Chat Protocol";
+export const TITLE_DIVIDER = " · ";
