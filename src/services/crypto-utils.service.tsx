@@ -1,14 +1,20 @@
-import * as sha256 from 'sha256';
-import * as bs58check from 'bs58check';
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from 'crypto';
-import { ec } from 'elliptic';
-import Deso from 'deso-protocol';
+import * as sha256 from "sha256";
+import * as bs58check from "bs58check";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  randomBytes,
+} from "crypto";
+import { ec } from "elliptic";
+import Deso from "deso-protocol";
 import {
   AccessGroupEntryResponse,
   ChatType,
   DecryptedMessageEntryResponse,
   NewMessageEntryResponse,
-} from 'deso-protocol-types';
+} from "deso-protocol-types";
 import { DESO_NETWORK } from "../utils/constants";
 import { constructSignAndSubmitWithDerived } from "./backend.service";
 
@@ -25,32 +31,32 @@ export const PUBLIC_KEY_PREFIXES = {
 
 export const privateKeyToDeSoPublicKey = (privateKey: ec.KeyPair): string => {
   const prefix = PUBLIC_KEY_PREFIXES[DESO_NETWORK].deso;
-  const key = privateKey.getPublic().encode('array', true);
+  const key = privateKey.getPublic().encode("array", true);
   const prefixAndKey = Uint8Array.from([...prefix, ...key]);
   return bs58check.encode(prefixAndKey);
 };
 
 export const seedHexToPrivateKey = (seedHex: string): ec.KeyPair => {
-  const EC = new ec('secp256k1');
+  const EC = new ec("secp256k1");
   return EC.keyFromPrivate(seedHex);
 };
 
 function publicKeyToECBuffer(publicKey: string): Buffer {
   const publicKeyEC = publicKeyToECKeyPair(publicKey);
 
-  return new Buffer(publicKeyEC.getPublic('array'));
+  return new Buffer(publicKeyEC.getPublic("array"));
 }
 
 function publicKeyToECKeyPair(publicKey: string): ec.KeyPair {
   // Sanity check similar to Base58CheckDecodePrefix from core/lib/base58.go
   if (publicKey.length < 5) {
-    throw new Error('Failed to decode public key');
+    throw new Error("Failed to decode public key");
   }
   const decoded = bs58check.decode(publicKey);
   const payload = Uint8Array.from(decoded).slice(3);
 
-  const EC = new ec('secp256k1');
-  return EC.keyFromPublic(payload, 'array');
+  const EC = new ec("secp256k1");
+  return EC.keyFromPublic(payload, "array");
 }
 
 export const encryptShared = function (
@@ -69,12 +75,12 @@ export const encryptShared = function (
 };
 
 export const derive = function (privateKeyA: Buffer, publicKeyB: Buffer) {
-  assert(Buffer.isBuffer(privateKeyA), 'Bad input');
-  assert(Buffer.isBuffer(publicKeyB), 'Bad input');
-  assert(privateKeyA.length === 32, 'Bad private key');
-  assert(publicKeyB.length === 65, 'Bad public key');
-  assert(publicKeyB[0] === 4, 'Bad public key');
-  const EC = new ec('secp256k1');
+  assert(Buffer.isBuffer(privateKeyA), "Bad input");
+  assert(Buffer.isBuffer(publicKeyB), "Bad input");
+  assert(privateKeyA.length === 32, "Bad private key");
+  assert(publicKeyB.length === 65, "Bad public key");
+  assert(publicKeyB[0] === 4, "Bad public key");
+  const EC = new ec("secp256k1");
   const keyA = EC.keyFromPrivate(privateKeyA);
   const keyB = EC.keyFromPublic(publicKeyB);
   const Px = keyA.derive(keyB.getPublic()); // BN instance
@@ -83,17 +89,17 @@ export const derive = function (privateKeyA: Buffer, publicKeyB: Buffer) {
 
 function assert(condition: boolean, message: string | undefined) {
   if (!condition) {
-    throw new Error(message || 'Assertion failed');
+    throw new Error(message || "Assertion failed");
   }
 }
 
 export const kdf = function (secret: Buffer, outputLength: number) {
   let ctr = 1;
   let written = 0;
-  let result = Buffer.from('');
+  let result = Buffer.from("");
   while (written < outputLength) {
     const ctrs = Buffer.from([ctr >> 24, ctr >> 16, ctr >> 8, ctr]);
-    const hashResult = createHash('sha256')
+    const hashResult = createHash("sha256")
       .update(Buffer.concat([ctrs, secret]))
       .digest();
     result = Buffer.concat([result, hashResult]);
@@ -104,9 +110,9 @@ export const kdf = function (secret: Buffer, outputLength: number) {
 };
 
 export const getPublic = function (privateKey: Buffer): Buffer {
-  assert(privateKey.length === 32, 'Bad private key');
-  const EC = new ec('secp256k1');
-  return new Buffer(EC.keyFromPrivate(privateKey).getPublic('array'));
+  assert(privateKey.length === 32, "Bad private key");
+  const EC = new ec("secp256k1");
+  return new Buffer(EC.keyFromPrivate(privateKey).getPublic("array"));
 };
 
 export const encrypt = function (
@@ -124,7 +130,7 @@ export const encrypt = function (
   const encryptionKey = hash.slice(0, 16);
 
   // Generate hmac
-  const macKey = createHash('sha256').update(hash.slice(16)).digest();
+  const macKey = createHash("sha256").update(hash.slice(16)).digest();
 
   let ciphertext;
   if (opts.legacy) {
@@ -144,18 +150,18 @@ const aesCtrEncryptLegacy = function (
   key: Buffer,
   data: string
 ) {
-  const cipher = createCipheriv('aes-128-ctr', key, counter);
+  const cipher = createCipheriv("aes-128-ctr", key, counter);
   return cipher.update(data).toString();
 };
 const aesCtrEncrypt = function (counter: Buffer, key: Buffer, data: string) {
-  const cipher = createCipheriv('aes-128-ctr', key, counter);
+  const cipher = createCipheriv("aes-128-ctr", key, counter);
   const firstChunk = cipher.update(data);
   const secondChunk = cipher.final();
   return Buffer.concat([firstChunk, secondChunk]);
 };
 
 function hmacSha256Sign(key: Buffer, msg: Buffer) {
-  return createHmac('sha256', key).update(msg).digest();
+  return createHmac("sha256", key).update(msg).digest();
 }
 
 // TODO: better typing
@@ -166,13 +172,13 @@ export const decryptAccessGroupMessages = (
   options?: { decryptedKey: string }
 ): DecryptedMessageEntryResponse[] => {
   return (messages || []).map((m) =>
-      decryptAccessGroupMessage(
-        userPublicKeyBase58Check,
-        m,
-        accessGroups,
-        options
-      )
+    decryptAccessGroupMessage(
+      userPublicKeyBase58Check,
+      m,
+      accessGroups,
+      options
     )
+  );
 };
 
 export const decryptAccessGroupMessage = (
@@ -185,7 +191,7 @@ export const decryptAccessGroupMessage = (
   // Well now we're assuming that if you're messaging with base key or default key, you're the sender.
   const IsSender =
     message.SenderInfo.OwnerPublicKeyBase58Check === userPublicKeyBase58Check &&
-    (message.SenderInfo.AccessGroupKeyName === 'default-key' ||
+    (message.SenderInfo.AccessGroupKeyName === "default-key" ||
       !message.SenderInfo.AccessGroupKeyName);
 
   const myAccessGroupInfo = IsSender
@@ -196,7 +202,12 @@ export const decryptAccessGroupMessage = (
   if (!options?.decryptedKey) {
     return {
       ...message,
-      ...{ DecryptedMessage: '', IsSender, error: 'must provide decrypted private messaging key in options for now' },
+      ...{
+        DecryptedMessage: "",
+        IsSender,
+        error:
+          "must provide decrypted private messaging key in options for now",
+      },
     };
   }
 
@@ -204,11 +215,11 @@ export const decryptAccessGroupMessage = (
   if (message.ChatType === ChatType.DM) {
     if (
       message?.MessageInfo?.ExtraData &&
-      message.MessageInfo.ExtraData['unencrypted']
+      message.MessageInfo.ExtraData["unencrypted"]
     ) {
       DecryptedMessage = Buffer.from(
         message.MessageInfo.EncryptedText,
-        'hex'
+        "hex"
       ).toString();
     } else {
       try {
@@ -223,7 +234,7 @@ export const decryptAccessGroupMessage = (
       } catch (e) {
         return {
           ...message,
-          ...{ DecryptedMessage: '', IsSender, error: (e as any).toString() },
+          ...{ DecryptedMessage: "", IsSender, error: (e as any).toString() },
         };
       }
     }
@@ -232,9 +243,9 @@ export const decryptAccessGroupMessage = (
     const accessGroup = accessGroups.find((accessGroup) => {
       return (
         accessGroup.AccessGroupKeyName ===
-        message.RecipientInfo.AccessGroupKeyName &&
+          message.RecipientInfo.AccessGroupKeyName &&
         accessGroup.AccessGroupOwnerPublicKeyBase58Check ===
-        message.RecipientInfo.OwnerPublicKeyBase58Check &&
+          message.RecipientInfo.OwnerPublicKeyBase58Check &&
         accessGroup.AccessGroupMemberEntryResponse
       );
     });
@@ -242,13 +253,13 @@ export const decryptAccessGroupMessage = (
       !accessGroup ||
       !accessGroup.AccessGroupMemberEntryResponse?.EncryptedKey
     ) {
-      console.error('access group not found');
+      console.error("access group not found");
       return {
         ...message,
         ...{
-          DecryptedMessage: '',
+          DecryptedMessage: "",
           IsSender,
-          error: 'access group member entry not found',
+          error: "access group member entry not found",
         },
       };
     }
@@ -256,15 +267,15 @@ export const decryptAccessGroupMessage = (
       accessGroup.AccessGroupMemberEntryResponse.EncryptedKey;
     try {
       const decryptedKey = decryptAccessGroupPrivateKeyToMemberDefaultKey(
-        Buffer.from(options.decryptedKey, 'hex'),
-        Buffer.from(encryptedKey, 'hex')
+        Buffer.from(options.decryptedKey, "hex"),
+        Buffer.from(encryptedKey, "hex")
       );
       const privateEncryptionKey = decryptedKey
         .getPrivate()
         .toArrayLike(Buffer, undefined, 32);
       const decryptedMessageBuffer =
         decryptAccessGroupMessageFromPrivateMessagingKey(
-          privateEncryptionKey.toString('hex'),
+          privateEncryptionKey.toString("hex"),
           userPublicKeyBase58Check,
           accessGroup.AccessGroupKeyName,
           message
@@ -274,12 +285,12 @@ export const decryptAccessGroupMessage = (
       console.error(e);
       return {
         ...message,
-        ...{ DecryptedMessage: '', IsSender, error: (e as any).toString() },
+        ...{ DecryptedMessage: "", IsSender, error: (e as any).toString() },
       };
     }
   }
 
-  return { ...message, ...{ DecryptedMessage, IsSender, error: '' } };
+  return { ...message, ...{ DecryptedMessage, IsSender, error: "" } };
 };
 
 export function decryptAccessGroupMessageFromPrivateMessagingKey(
@@ -295,19 +306,19 @@ export function decryptAccessGroupMessageFromPrivateMessagingKey(
     .toArrayLike(Buffer, undefined, 32);
   const isRecipient =
     message.RecipientInfo.OwnerPublicKeyBase58Check ===
-    userPublicKeyBase58Check &&
+      userPublicKeyBase58Check &&
     message.RecipientInfo.AccessGroupKeyName === userMessagingKeyName;
   const publicEncryptionKey = publicKeyToECBuffer(
     message.ChatType === ChatType.GROUPCHAT
       ? message.SenderInfo.AccessGroupPublicKeyBase58Check
       : isRecipient
-        ? (message.SenderInfo.AccessGroupPublicKeyBase58Check as string)
-        : (message.RecipientInfo.AccessGroupPublicKeyBase58Check as string)
+      ? (message.SenderInfo.AccessGroupPublicKeyBase58Check as string)
+      : (message.RecipientInfo.AccessGroupPublicKeyBase58Check as string)
   );
   return decryptShared(
     groupPrivateEncryptionKeyBuffer,
     publicEncryptionKey,
-    Buffer.from(message.MessageInfo.EncryptedText, 'hex')
+    Buffer.from(message.MessageInfo.EncryptedText, "hex")
   );
 }
 
@@ -334,9 +345,9 @@ export const decrypt = function (
   const metaLength = 1 + 64 + 16 + 32;
   assert(
     encrypted.length > metaLength,
-    'Invalid Ciphertext. Data is too small'
+    "Invalid Ciphertext. Data is too small"
   );
-  assert(encrypted[0] >= 2 && encrypted[0] <= 4, 'Not valid ciphertext.');
+  assert(encrypted[0] >= 2 && encrypted[0] <= 4, "Not valid ciphertext.");
 
   // deserialize
   const ephemPublicKey = encrypted.slice(0, 65);
@@ -350,10 +361,10 @@ export const decrypt = function (
   const px = derive(privateKey, ephemPublicKey);
   const hash = kdf(px, 32);
   const encryptionKey = hash.slice(0, 16);
-  const macKey = createHash('sha256').update(hash.slice(16)).digest();
+  const macKey = createHash("sha256").update(hash.slice(16)).digest();
   const dataToMac = Buffer.from(cipherAndIv);
   const hmacGood = hmacSha256Sign(macKey, dataToMac);
-  assert(hmacGood.equals(msgMac), 'Incorrect MAC');
+  assert(hmacGood.equals(msgMac), "Incorrect MAC");
 
   // decrypt message
   if (opts.legacy) {
@@ -368,12 +379,12 @@ const aesCtrDecryptLegacy = function (
   key: Buffer,
   data: Buffer
 ) {
-  const cipher = createDecipheriv('aes-128-ctr', key, counter);
+  const cipher = createDecipheriv("aes-128-ctr", key, counter);
   return cipher.update(data).toString();
 };
 
 const aesCtrDecrypt = function (counter: Buffer, key: Buffer, data: Buffer) {
-  const cipher = createDecipheriv('aes-128-ctr', key, counter);
+  const cipher = createDecipheriv("aes-128-ctr", key, counter);
   const firstChunk = cipher.update(data);
   const secondChunk = cipher.final();
   return Buffer.concat([firstChunk, secondChunk]);
@@ -386,15 +397,15 @@ export const encryptAndSendNewMessage = async (
   messagingPrivateKey: string,
   RecipientPublicKeyBase58Check: string,
   isDerived: boolean,
-  RecipientMessagingKeyName = 'default-key',
-  SenderMessagingKeyName = 'default-key'
+  RecipientMessagingKeyName = "default-key",
+  SenderMessagingKeyName = "default-key"
 ): Promise<string> => {
   if (!messagingPrivateKey) {
-    return Promise.reject('messagingPrivateKey is undefined');
+    return Promise.reject("messagingPrivateKey is undefined");
   }
 
-  if (SenderMessagingKeyName !== 'default-key') {
-    return Promise.reject('sender must use default key for now');
+  if (SenderMessagingKeyName !== "default-key") {
+    return Promise.reject("sender must use default key for now");
   }
 
   const response = await deso.accessGroup.CheckPartyAccessGroups({
@@ -405,7 +416,7 @@ export const encryptAndSendNewMessage = async (
   });
 
   if (!response.SenderAccessGroupKeyName) {
-    return Promise.reject('SenderAccessGroupKeyName is undefined');
+    return Promise.reject("SenderAccessGroupKeyName is undefined");
   }
 
   let message: string;
@@ -417,11 +428,11 @@ export const encryptAndSendNewMessage = async (
       response.RecipientAccessGroupPublicKeyBase58Check,
       messageToSend
     );
-    message = encryptedMessage.toString('hex');
+    message = encryptedMessage.toString("hex");
   } else {
-    message = Buffer.from(messageToSend).toString('hex');
+    message = Buffer.from(messageToSend).toString("hex");
     isUnencrypted = true;
-    ExtraData['unencrypted'] = 'true';
+    ExtraData["unencrypted"] = "true";
   }
 
   // TODO: we can kill this later, but it's nice to ensure that we can actually decrypt the
@@ -455,17 +466,17 @@ export const encryptAndSendNewMessage = async (
   // }
 
   if (!message) {
-    return Promise.reject('error encrypting message');
+    return Promise.reject("error encrypting message");
   }
 
   const requestBody = {
     SenderAccessGroupOwnerPublicKeyBase58Check:
       deso.identity.getUserKey() as string,
     SenderAccessGroupPublicKeyBase58Check:
-    response.SenderAccessGroupPublicKeyBase58Check,
+      response.SenderAccessGroupPublicKeyBase58Check,
     SenderAccessGroupKeyName: SenderMessagingKeyName,
     RecipientAccessGroupOwnerPublicKeyBase58Check:
-    RecipientPublicKeyBase58Check,
+      RecipientPublicKeyBase58Check,
     RecipientAccessGroupPublicKeyBase58Check: isUnencrypted
       ? response.RecipientPublicKeyBase58Check
       : response.RecipientAccessGroupPublicKeyBase58Check,
@@ -475,14 +486,15 @@ export const encryptAndSendNewMessage = async (
     MinFeeRateNanosPerKB: 1000,
   };
 
-  const {
-    SubmitTransactionResponse
-  } = await constructSignAndSubmitWithDerived(
+  const { SubmitTransactionResponse } = await constructSignAndSubmitWithDerived(
     deso,
-    !RecipientMessagingKeyName || RecipientMessagingKeyName === 'default-key' ?
-      deso.accessGroup.SendDmMessage(requestBody, { broadcast: false }) :
-      deso.accessGroup.SendGroupChatMessage(requestBody, { broadcast: false }),
-    derivedSeedHex);
+    !RecipientMessagingKeyName || RecipientMessagingKeyName === "default-key"
+      ? deso.accessGroup.SendDmMessage(requestBody, { broadcast: false })
+      : deso.accessGroup.SendGroupChatMessage(requestBody, {
+          broadcast: false,
+        }),
+    derivedSeedHex
+  );
 
   return SubmitTransactionResponse.TxnHashHex;
 };
@@ -515,30 +527,32 @@ export function deriveAccessGroupKey(
   groupKeyName: string
 ): Buffer {
   const secretHash = new Buffer(
-    sha256.x2(new Buffer(defaultKeyPrivateKeyHex, 'hex')),
-    'hex'
+    sha256.x2(new Buffer(defaultKeyPrivateKeyHex, "hex")),
+    "hex"
   );
   const keyNameHash = new Buffer(
-    sha256.x2(new Buffer(groupKeyName, 'utf8')),
-    'hex'
+    sha256.x2(new Buffer(groupKeyName, "utf8")),
+    "hex"
   );
-  return new Buffer(sha256.x2(Buffer.concat([secretHash, keyNameHash])), 'hex');
+  return new Buffer(sha256.x2(Buffer.concat([secretHash, keyNameHash])), "hex");
 }
 
 export function getAccessGroupStandardDerivation(
   defaultKeyPrivateKeyHex: string,
-  newGroupKeyName: string,
+  newGroupKeyName: string
 ): AccessGroupPrivateInfo {
   const accessGroupPrivateKeyBuff = deriveAccessGroupKey(
     defaultKeyPrivateKeyHex,
     newGroupKeyName
   );
-  const EC = new ec('secp256k1');
+  const EC = new ec("secp256k1");
 
   const accessGroupPrivateKey = EC.keyFromPrivate(accessGroupPrivateKeyBuff);
   return {
-    AccessGroupPublicKeyBase58Check: privateKeyToDeSoPublicKey(accessGroupPrivateKey),
-    AccessGroupPrivateKeyHex: accessGroupPrivateKeyBuff.toString('hex'),
+    AccessGroupPublicKeyBase58Check: privateKeyToDeSoPublicKey(
+      accessGroupPrivateKey
+    ),
+    AccessGroupPrivateKeyHex: accessGroupPrivateKeyBuff.toString("hex"),
     AccessGroupKeyName: newGroupKeyName,
   };
 }
@@ -551,11 +565,11 @@ export function encryptAccessGroupPrivateKeyToMemberDefaultKey(
     memberDefaultKeyPublicKeyBase58Check
   );
   const accessGroupPkBuffer = new Buffer(
-    memberDefaultKeyAccessGroupKeyPair.getPublic('array')
+    memberDefaultKeyAccessGroupKeyPair.getPublic("array")
   );
   return encrypt(accessGroupPkBuffer, accessGroupPrivateKeyHex, {
     legacy: false,
-  }).toString('hex');
+  }).toString("hex");
 }
 
 export function decryptAccessGroupPrivateKeyToMemberDefaultKey(
@@ -567,6 +581,6 @@ export function decryptAccessGroupPrivateKeyToMemberDefaultKey(
     encryptedAccessGroupPrivateKey,
     { legacy: false }
   ).toString();
-  const EC = new ec('secp256k1');
+  const EC = new ec("secp256k1");
   return EC.keyFromPrivate(memberAccessPriv);
 }

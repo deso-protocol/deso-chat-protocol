@@ -1,18 +1,30 @@
-import { DerivedPrivateUserInfo } from 'deso-protocol-types';
-import { FC, useContext, useEffect, useState } from 'react';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { DerivedPrivateUserInfo } from "deso-protocol-types";
+import { FC, useContext, useEffect, useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 import { Button } from "@material-tailwind/react";
 import { toast } from "react-toastify";
 import { SendFundsDialog } from "./send-funds-dialog";
 import { DesoContext } from "../contexts/desoContext";
-import { authorizeDerivedKey, generateDefaultKey, requestDerivedKey } from "../services/derived-keys.service";
-import { getDerivedKeyResponse, setDefaultKey, setDerivedKeyResponse } from "../utils/store";
-import { getUserBalanceNanos, pollUserBalanceNanos } from "../services/backend.service";
+import {
+  authorizeDerivedKey,
+  generateDefaultKey,
+  requestDerivedKey,
+} from "../services/derived-keys.service";
+import {
+  getDerivedKeyResponse,
+  setDefaultKey,
+  setDerivedKeyResponse,
+} from "../utils/store";
+import {
+  getUserBalanceNanos,
+  pollUserBalanceNanos,
+} from "../services/backend.service";
 
 export const MessagingSetupButton: FC<{
-  setDerivedResponse: (d: Partial<DerivedPrivateUserInfo>) => void,
+  setDerivedResponse: (d: Partial<DerivedPrivateUserInfo>) => void;
 }> = ({ setDerivedResponse }) => {
-  const { deso, setHasSetupAccount, setLoggedInPublicKey } = useContext(DesoContext);
+  const { deso, setHasSetupAccount, setLoggedInPublicKey } =
+    useContext(DesoContext);
 
   const [isSending, setIsSending] = useState<boolean>(false);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
@@ -46,7 +58,7 @@ export const MessagingSetupButton: FC<{
       const res = await deso.identity.login();
       const key = res.key;
       if (!key) {
-        toast.error('Failed to login');
+        toast.error("Failed to login");
         return false;
       }
       setLoggedInPublicKey(key);
@@ -59,12 +71,14 @@ export const MessagingSetupButton: FC<{
     } finally {
       setIsLoggingIn(false);
     }
-  }
+  };
 
-  const setupMessaging = async (): Promise<false | Partial<DerivedPrivateUserInfo>> => {
-    let key = deso.identity.getUserKey();
+  const setupMessaging = async (): Promise<
+    false | Partial<DerivedPrivateUserInfo>
+  > => {
+    const key = deso.identity.getUserKey();
     if (!key) {
-      toast.error('You need to login first');
+      toast.error("You need to login first");
       return false;
     }
 
@@ -75,7 +89,7 @@ export const MessagingSetupButton: FC<{
       derivedResponse = await requestDerivedKey(deso);
     }
     if (!derivedResponse.derivedPublicKeyBase58Check) {
-      toast.error('Failed to authorize derive key');
+      toast.error("Failed to authorize derive key");
       return false;
     }
     setDerivedKeyResponse(derivedResponse, key);
@@ -94,63 +108,69 @@ export const MessagingSetupButton: FC<{
 
   return (
     <div>
-      {
-        !loadedBalance
-          ? <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
-          : !deso.identity.getUserKey()
-            ? (
-              <Button
-                size="lg"
-                className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                onClick={login}
-              >
-                {isLoggingIn ? (
-                  <ClipLoader color={'#6d4800'} loading={true} size={28} className="mx-2" />
-                ) : (
-                  <div className="mx-2">Secure Login</div>
-                )}
-              </Button>
-            )
-            : balance
-              ? (
-                <Button
-                  size="lg"
-                  className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                  onClick={async () => {
-                    setIsSending(true);
+      {!loadedBalance ? (
+        <ClipLoader
+          color={"#6d4800"}
+          loading={true}
+          size={44}
+          className="mt-4"
+        />
+      ) : !deso.identity.getUserKey() ? (
+        <Button
+          size="lg"
+          className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
+          onClick={login}
+        >
+          {isLoggingIn ? (
+            <ClipLoader
+              color={"#6d4800"}
+              loading={true}
+              size={28}
+              className="mx-2"
+            />
+          ) : (
+            <div className="mx-2">Secure Login</div>
+          )}
+        </Button>
+      ) : balance ? (
+        <Button
+          size="lg"
+          className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
+          onClick={async () => {
+            setIsSending(true);
 
-                    try {
-                      await setupMessaging();
-                    } catch (e: any) {
-                      toast.error('Something went wrong when setting up the account');
-                      console.error(e);
-                    } finally {
-                      setIsSending(false);
-                    }
-                  }}
-                >
-                  <div className="flex justify-center">
-                    {isSending ? (
-                      <ClipLoader color={'#6d4800'} loading={true} size={28} className="mx-2" />
-                    ) : (
-                      <div className="mx-2">Setup account for messaging</div>
-                    )}
-                  </div>
-                </Button>
-              )
-              : (
-                <Button
-                  size="lg"
-                  className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                  onClick={() => setOpenDialog(true)}
-                >
-                  <div className="mx-2">
-                    Get $DESO to get started
-                  </div>
-                </Button>
-              )
-      }
-
+            try {
+              await setupMessaging();
+            } catch (e: any) {
+              toast.error("Something went wrong when setting up the account");
+              console.error(e);
+            } finally {
+              setIsSending(false);
+            }
+          }}
+        >
+          <div className="flex justify-center">
+            {isSending ? (
+              <ClipLoader
+                color={"#6d4800"}
+                loading={true}
+                size={28}
+                className="mx-2"
+              />
+            ) : (
+              <div className="mx-2">Setup account for messaging</div>
+            )}
+          </div>
+        </Button>
+      ) : (
+        <Button
+          size="lg"
+          className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
+          onClick={() => setOpenDialog(true)}
+        >
+          <div className="mx-2">Get $DESO to get started</div>
+        </Button>
+      )}
 
       {openDialog && (
         <SendFundsDialog

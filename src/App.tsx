@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { MessagingApp } from "./components/messaging-app";
 import Deso from "deso-protocol";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { Header } from "./components/header";
 import { DesoContext } from "./contexts/desoContext";
 import * as process from "process";

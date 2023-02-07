@@ -17,7 +17,7 @@ import { pollUserBalanceNanos } from "../services/backend.service";
 
 export interface StartGroupChatProps {
   onClose: () => void;
-  onSubmit: () => void,
+  onSubmit: () => void;
 }
 
 export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
@@ -39,7 +39,7 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     const intervalId = pollUserBalanceNanos(deso, setBalanceNanos);
@@ -50,15 +50,20 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
 
   return (
     <Fragment>
-      <Dialog open={true} handler={onClose} className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]">
-        <DialogHeader className="text-blue-100">Get $DESO to get started</DialogHeader>
+      <Dialog
+        open={true}
+        handler={onClose}
+        className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
+      >
+        <DialogHeader className="text-blue-100">
+          Get $DESO to get started
+        </DialogHeader>
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
             <AlertNotification type="info">
               <div className="break-words text-black text-center">
                 No deso funds found for your address:
-
                 <div>
                   <div className="bg-gray-700 text-white px-4 py-2 mt-1 rounded mx-auto inline-block">
                     <SaveToClipboard text={deso.identity.getUserKey() || ""}>
@@ -66,28 +71,38 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
                     </SaveToClipboard>
                   </div>
                 </div>
-
-                <br/>Click "Get $DESO" button below to add some through phone verification. Otherwise you can send $DESO from another account.
+                <br />
+                Click &quot;Get $DESO&quot; button below to add some through
+                phone verification. Otherwise you can send $DESO from another
+                account.
               </div>
             </AlertNotification>
 
             <div className="text-[24px] text-center my-8 text-white">
-              <span>Your Balance: <b>{desoNanosToDeso(balanceNanos)} $DESO</b></span>
+              <span>
+                Your Balance: <b>{desoNanosToDeso(balanceNanos)} $DESO</b>
+              </span>
 
-              <div className="text-sm italic">We refresh your balance every 3 seconds.</div>
+              <div className="text-sm italic">
+                We refresh your balance every 3 seconds.
+              </div>
 
               <div className="mt-2">
-                <Button size="sm" variant="gradient" onClick={async () => {
-                  const key = deso.identity.getUserKey();
+                <Button
+                  size="sm"
+                  variant="gradient"
+                  onClick={async () => {
+                    const key = deso.identity.getUserKey();
 
-                  if (!key) {
-                    return;
-                  }
+                    if (!key) {
+                      return;
+                    }
 
-                  await deso.identity.phoneVerification('4', undefined, {
-                    publicKey: key,
-                  });
-                }}>
+                    await deso.identity.phoneVerification("4", undefined, {
+                      publicKey: key,
+                    });
+                  }}
+                >
                   Get $DESO
                 </Button>
               </div>
@@ -111,9 +126,14 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
               className="flex items-center"
               disabled={loading || balanceNanos === 0}
             >
-              {
-                loading && <ClipLoader color="white" loading={true} size={20} className="mr-2" />
-              }
+              {loading && (
+                <ClipLoader
+                  color="white"
+                  loading={true}
+                  size={20}
+                  className="mr-2"
+                />
+              )}
               <span>Setup Account</span>
             </Button>
           </DialogFooter>
@@ -121,4 +141,4 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
       </Dialog>
     </Fragment>
   );
-}
+};

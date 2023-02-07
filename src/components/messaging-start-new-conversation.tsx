@@ -1,10 +1,10 @@
-import { FC, useContext } from 'react';
+import { FC, useContext } from "react";
 import { SearchUsers } from "./search-users";
 import { DesoContext } from "../contexts/desoContext";
 
 export const MessagingStartNewConversation: FC<{
   rehydrateConversation: (publicKey: string, autoScroll?: boolean) => void;
-}> = ({ rehydrateConversation, }) => {
+}> = ({ rehydrateConversation }) => {
   const { deso } = useContext(DesoContext);
 
   return (

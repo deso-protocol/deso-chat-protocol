@@ -6,7 +6,11 @@ import Deso from "deso-protocol";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { ethers } from "ethers";
 import { DESO_NETWORK } from "../utils/constants";
-import { isMaybeDeSoPublicKey, isMaybeENSName, isMaybeETHAddress } from "../utils/helpers";
+import {
+  isMaybeDeSoPublicKey,
+  isMaybeENSName,
+  isMaybeETHAddress,
+} from "../utils/helpers";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 
@@ -52,16 +56,16 @@ interface SearchUsersProps {
 }
 
 export const SearchUsers = ({
-                              deso,
-                              placeholder = "Search for users",
-                              hasPersistentDisplayValue = false,
-                              initialValue = "",
-                              onSelected,
-                              onFocus,
-                              onBlur,
-                              onTyping,
-                              className = "",
-                            }: SearchUsersProps) => {
+  deso,
+  placeholder = "Search for users",
+  hasPersistentDisplayValue = false,
+  initialValue = "",
+  onSelected,
+  onFocus,
+  onBlur,
+  onTyping,
+  className = "",
+}: SearchUsersProps) => {
   const [menuItems, setMenuItems] = useState<SearchMenuItem[]>();
   const [inputValue, setInputValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
@@ -71,13 +75,13 @@ export const SearchUsers = ({
     setInputValue(initialValue);
   }, [initialValue]);
 
-  const searchForPublicKey = async (publicKey: string): Promise<SearchMenuItem> => {
-    const res = await deso.user.getSingleProfile(
-      {
-        PublicKeyBase58Check: publicKey,
-        NoErrorOnMissing: true,
-      }
-    );
+  const searchForPublicKey = async (
+    publicKey: string
+  ): Promise<SearchMenuItem> => {
+    const res = await deso.user.getSingleProfile({
+      PublicKeyBase58Check: publicKey,
+      NoErrorOnMissing: true,
+    });
     const item = {
       id: publicKey,
       profile: res.Profile ?? undefined,
@@ -87,7 +91,7 @@ export const SearchUsers = ({
     setInputValue("");
     setMenuItems([]);
     return item;
-  }
+  };
 
   const recoverETHAddress = async (ethAddress: string): Promise<string> => {
     const network = DESO_NETWORK;
@@ -95,17 +99,27 @@ export const SearchUsers = ({
     let desoPublicKey: string;
     try {
       // We try to recover from mainnet first.
-      desoPublicKey = await deso.ethereum.ethAddressToDeSoPublicKey(ethAddress, network, 'homestead')
+      desoPublicKey = await deso.ethereum.ethAddressToDeSoPublicKey(
+        ethAddress,
+        network,
+        "homestead"
+      );
     } catch (e) {
       try {
         // If it fails on mainnet, we try goerli
-        desoPublicKey = await deso.ethereum.ethAddressToDeSoPublicKey(ethAddress, network, 'goerli');
+        desoPublicKey = await deso.ethereum.ethAddressToDeSoPublicKey(
+          ethAddress,
+          network,
+          "goerli"
+        );
       } catch (err) {
-        return Promise.reject(`unable to recover DeSo public key from ETH address ${ethAddress}`);
+        return Promise.reject(
+          `unable to recover DeSo public key from ETH address ${ethAddress}`
+        );
       }
     }
     return desoPublicKey;
-  }
+  };
 
   const getProfiles = async (query: string) => {
     // TODO: find way to not pound infura API.
@@ -138,11 +152,13 @@ export const SearchUsers = ({
       AddGlobalFeedBool: false,
     });
 
-    setMenuItems((res.ProfilesFound || []).map((p) => ({
-      id: p.PublicKeyBase58Check,
-      profile: p,
-      text: nameOrFormattedKey(p, p.PublicKeyBase58Check),
-    })));
+    setMenuItems(
+      (res.ProfilesFound || []).map((p) => ({
+        id: p.PublicKeyBase58Check,
+        profile: p,
+        text: nameOrFormattedKey(p, p.PublicKeyBase58Check),
+      }))
+    );
   };
 
   const getProfilesDebounced = debounce(async (q: string) => {
@@ -152,7 +168,7 @@ export const SearchUsers = ({
         console.error(e);
         toast.error(e);
       })
-    .finally(() => setLoading(false));
+      .finally(() => setLoading(false));
   }, 500);
   const shownItems = menuItems || [];
 
@@ -207,38 +223,50 @@ export const SearchUsers = ({
           />
         </div>
         <Combobox.Options
-          className={`absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100`}
+          className={
+            "absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100"
+          }
         >
-          <Combobox.Option value={false} className="pointer-events-none bg-blue-900 text-blue-100">
-            {
-              loading &&
-                <div className="flex justify-center">
-                  <ClipLoader color={'white'} loading={loading} size={28} className="my-4" />
-                </div>
-            }
+          <Combobox.Option
+            value={false}
+            className="pointer-events-none bg-blue-900 text-blue-100"
+          >
+            {loading && (
+              <div className="flex justify-center">
+                <ClipLoader
+                  color={"white"}
+                  loading={loading}
+                  size={28}
+                  className="my-4"
+                />
+              </div>
+            )}
           </Combobox.Option>
-          {!loading && shownItems.map(({ id, profile, text }) => (
-            <Combobox.Option key={id} value={id} as={Fragment}>
-              {({ active }) => (
-                <li
-                  className={`bg-blue-900 text-blue-100 hover:bg-blue-800 ${active && id ? "bg-gray-faint" : ""}`}
-                >
-                  <div className="flex p-2 items-center cursor-pointer">
-                    {profile && (
-                      <MessagingDisplayAvatar
-                        publicKey={profile.PublicKeyBase58Check}
-                        diameter={50}
-                        classNames="mx-0"
-                      />
-                    )}
-                    <span className="ml-4">{text}</span>
-                  </div>
-                </li>
-              )}
-            </Combobox.Option>
-          ))}
+          {!loading &&
+            shownItems.map(({ id, profile, text }) => (
+              <Combobox.Option key={id} value={id} as={Fragment}>
+                {({ active }) => (
+                  <li
+                    className={`bg-blue-900 text-blue-100 hover:bg-blue-800 ${
+                      active && id ? "bg-gray-faint" : ""
+                    }`}
+                  >
+                    <div className="flex p-2 items-center cursor-pointer">
+                      {profile && (
+                        <MessagingDisplayAvatar
+                          publicKey={profile.PublicKeyBase58Check}
+                          diameter={50}
+                          classNames="mx-0"
+                        />
+                      )}
+                      <span className="ml-4">{text}</span>
+                    </div>
+                  </li>
+                )}
+              </Combobox.Option>
+            ))}
         </Combobox.Options>
       </Combobox>
     </div>
   );
-}
+};

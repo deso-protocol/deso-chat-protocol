@@ -1,8 +1,18 @@
-import Deso from 'deso-protocol';
-import { AccessGroupEntryResponse, DerivedPrivateUserInfo, } from 'deso-protocol-types';
+import Deso from "deso-protocol";
+import {
+  AccessGroupEntryResponse,
+  DerivedPrivateUserInfo,
+} from "deso-protocol-types";
 import { toast } from "react-toastify";
-import { DEFAULT_KEY_MESSAGING_GROUP_NAME, getTransactionSpendingLimits, LIMIT } from "../utils/constants";
-import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "./backend.service";
+import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  getTransactionSpendingLimits,
+  LIMIT,
+} from "../utils/constants";
+import {
+  checkTransactionCompleted,
+  constructSignAndSubmitWithDerived,
+} from "./backend.service";
 
 export const requestDerivedKey = async (
   deso: Deso
@@ -16,15 +26,19 @@ export const requestDerivedKey = async (
     messagingPublicKeyBase58Check,
     messagingPrivateKey,
     messagingKeyName,
-  } = await deso.identity.derive({
-    publicKey: deso.identity.getUserKey() || undefined,
-    transactionSpendingLimitResponse: getTransactionSpendingLimits(deso.identity.getUserKey() as string),
-    deleteKey: false,
-    expirationDays: LIMIT,
-  }).catch((e) => {
-    toast.error(e);
-    throw Error(e);
-  });
+  } = await deso.identity
+    .derive({
+      publicKey: deso.identity.getUserKey() || undefined,
+      transactionSpendingLimitResponse: getTransactionSpendingLimits(
+        deso.identity.getUserKey() as string
+      ),
+      deleteKey: false,
+      expirationDays: LIMIT,
+    })
+    .catch((e) => {
+      toast.error(e);
+      throw Error(e);
+    });
 
   return {
     derivedPublicKeyBase58Check,
@@ -50,7 +64,7 @@ export const authorizeDerivedKey = async (
     expirationBlock,
   } = derivedKeyResponse;
   if (!derivedPublicKeyBase58Check) {
-    toast.error('need to create derived key first');
+    toast.error("need to create derived key first");
     return;
   }
 
@@ -58,7 +72,7 @@ export const authorizeDerivedKey = async (
     deso.user.authorizeDerivedKeyWithoutIdentity({
       OwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
       DerivedPublicKeyBase58Check: derivedPublicKeyBase58Check,
-      AppName: 'AppName',
+      AppName: "AppName",
       ExpirationBlock: expirationBlock,
       MinFeeRateNanosPerKB: 1000,
       TransactionSpendingLimitHex: transactionSpendingLimitHex,
@@ -71,7 +85,10 @@ export const authorizeDerivedKey = async (
     derivedSeedHex as string
   );
 
-  return await checkTransactionCompleted(deso, SubmitTransactionResponse.TxnHashHex);
+  return await checkTransactionCompleted(
+    deso,
+    SubmitTransactionResponse.TxnHashHex
+  );
 };
 
 export const generateDefaultKey = async (
@@ -92,19 +109,23 @@ export const generateDefaultKey = async (
   }
 
   const constructCreateAccessGroupPromise = deso.accessGroup.CreateAccessGroup(
-        {
-          AccessGroupOwnerPublicKeyBase58Check:
-            deso.identity.getUserKey() as string,
-          AccessGroupPublicKeyBase58Check: messagingPublicKeyBase58Check,
-          AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          MinFeeRateNanosPerKB: 1000,
-        },
-        {
-          broadcast: false,
-        }
-      );
+    {
+      AccessGroupOwnerPublicKeyBase58Check:
+        deso.identity.getUserKey() as string,
+      AccessGroupPublicKeyBase58Check: messagingPublicKeyBase58Check,
+      AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+      MinFeeRateNanosPerKB: 1000,
+    },
+    {
+      broadcast: false,
+    }
+  );
 
-  await constructSignAndSubmitWithDerived(deso, constructCreateAccessGroupPromise, derivedSeedHex as string);
+  await constructSignAndSubmitWithDerived(
+    deso,
+    constructCreateAccessGroupPromise,
+    derivedSeedHex as string
+  );
 
   accessGroups = await deso.accessGroup.GetAllUserAccessGroupsOwned({
     PublicKeyBase58Check: deso.identity.getUserKey() as string,
@@ -113,4 +134,3 @@ export const generateDefaultKey = async (
   defaultKey = accessGroups?.AccessGroupsOwned?.find(isDefaultKeyGroup);
   return defaultKey;
 };
-

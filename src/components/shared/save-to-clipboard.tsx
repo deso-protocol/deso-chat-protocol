@@ -13,7 +13,13 @@ interface ClipboardCopyProps {
   className?: string;
 }
 
-export const SaveToClipboard = ({ text, children, copyIcon, copiedIcon, className = "" }: ClipboardCopyProps) => {
+export const SaveToClipboard = ({
+  text,
+  children,
+  copyIcon,
+  copiedIcon,
+  className = "",
+}: ClipboardCopyProps) => {
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopyClick = (event: any) => {
@@ -46,16 +52,17 @@ export const SaveToClipboard = ({ text, children, copyIcon, copiedIcon, classNam
 
   return (
     <Tooltip content="Copied" open={isCopied}>
-      <div className={`flex items-center ${className}`} onClick={handleCopyClick}>
+      <div
+        className={`flex items-center ${className}`}
+        onClick={handleCopyClick}
+      >
         <div className="cursor-pointer">
           {isCopied
-            ? (copiedIcon || copyIcon || defaultFilledCopyIcon)
-            : (copyIcon || defaultCopyIcon)}
+            ? copiedIcon || copyIcon || defaultFilledCopyIcon
+            : copyIcon || defaultCopyIcon}
         </div>
 
-        <div className="ml-2 cursor-pointer">
-          {children}
-        </div>
+        <div className="ml-2 cursor-pointer">{children}</div>
       </div>
     </Tooltip>
   );

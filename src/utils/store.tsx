@@ -1,8 +1,12 @@
 import {
   AccessGroupEntryResponse,
   DerivedPrivateUserInfo,
-} from 'deso-protocol-types';
-import { DEFAULT_KEY_IDENTITY_MESSAGING_OPERATION, DERIVED_SEED_HEX, localStorageKeys } from "./constants";
+} from "deso-protocol-types";
+import {
+  DEFAULT_KEY_IDENTITY_MESSAGING_OPERATION,
+  DERIVED_SEED_HEX,
+  localStorageKeys,
+} from "./constants";
 
 //derive
 export const setDerivedKeyResponse = (
@@ -21,13 +25,13 @@ export const getDerivedKeyResponse = (
     JSON.parse(
       localStorage.getItem(`${DERIVED_SEED_HEX}_${ownerPublicKey}`) as string
     ) ?? {
-      derivedPublicKeyBase58Check: '',
-      derivedSeedHex: '',
-      transactionSpendingLimitHex: '',
-      accessSignature: '',
-      messagingPublicKeyBase58Check: '',
-      messagingPrivateKey: '',
-      messagingKeyName: '',
+      derivedPublicKeyBase58Check: "",
+      derivedSeedHex: "",
+      transactionSpendingLimitHex: "",
+      accessSignature: "",
+      messagingPublicKeyBase58Check: "",
+      messagingPrivateKey: "",
+      messagingKeyName: "",
     }
   );
 };
@@ -38,7 +42,7 @@ export const setDefaultKey = (defaultKey: AccessGroupEntryResponse) => {
     DEFAULT_KEY_IDENTITY_MESSAGING_OPERATION,
     JSON.stringify(defaultKey)
   );
-}
+};
 
 export const clearAllState = (userKey: string) => {
   // lazy way of waiting for useStates to finish first

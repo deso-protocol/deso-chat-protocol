@@ -1,12 +1,19 @@
 import Deso from "deso-protocol";
 import { reject } from "lodash";
 import { toast } from "react-toastify";
-import { ConstructAndSubmitResponse, TransactionConstructionResponse } from "../utils/types";
+import {
+  ConstructAndSubmitResponse,
+  TransactionConstructionResponse,
+} from "../utils/types";
 
-export const checkTransactionCompleted = (deso: Deso, hashHex: string): Promise<void> => {
+export const checkTransactionCompleted = (
+  deso: Deso,
+  hashHex: string
+): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(async () => {
-      deso.transaction.getTransaction(hashHex)
+      deso.transaction
+        .getTransaction(hashHex)
         .then(({ TxnFound }) => {
           if (TxnFound) {
             resolve();
@@ -17,13 +24,13 @@ export const checkTransactionCompleted = (deso: Deso, hashHex: string): Promise<
         .catch(() => reject("Error when getting transaction"));
     }, 150);
   });
-}
+};
 
-export const getUserBalanceNanos = async(deso: Deso, key?: string) => {
+export const getUserBalanceNanos = async (deso: Deso, key?: string) => {
   const userKey = key || deso.identity.getUserKey();
 
   if (!userKey) {
-    toast.error('User has no public key registered');
+    toast.error("User has no public key registered");
     return Promise.resolve(0);
   }
 
@@ -36,15 +43,19 @@ export const getUserBalanceNanos = async(deso: Deso, key?: string) => {
   const user = userResponse?.UserList?.[0];
 
   if (!user) {
-    toast.error('Unable to find user');
+    toast.error("Unable to find user");
     return Promise.reject();
   }
 
   return user.BalanceNanos;
-}
+};
 
-export const pollUserBalanceNanos = (deso: Deso, setBalance: (balance: number) => void, timeout: number = 3000): number => {
-  return window.setInterval(async() => {
+export const pollUserBalanceNanos = (
+  deso: Deso,
+  setBalance: (balance: number) => void,
+  timeout = 3000
+): number => {
+  return window.setInterval(async () => {
     const key = deso.identity.getUserKey();
     if (!key) {
       return;
@@ -53,7 +64,7 @@ export const pollUserBalanceNanos = (deso: Deso, setBalance: (balance: number) =
     const balance = await getUserBalanceNanos(deso, key);
     setBalance(balance);
   }, timeout);
-}
+};
 
 export const constructSignAndSubmitWithDerived = async (
   deso: Deso,
@@ -63,15 +74,21 @@ export const constructSignAndSubmitWithDerived = async (
   const transactionConstructionResponse = await txnConstructionPromise;
   const transactionHex = transactionConstructionResponse.TransactionHex;
   if (!transactionHex) {
-    return Promise.reject('Transaction construction failed');
+    return Promise.reject("Transaction construction failed");
   }
 
-  const signedTransactionHex = deso.utils.signTransaction(derivedSeedHex, transactionHex, true);
+  const signedTransactionHex = deso.utils.signTransaction(
+    derivedSeedHex,
+    transactionHex,
+    true
+  );
 
-  const submitTransactionResponse = await deso.transaction.submitTransaction(signedTransactionHex);
+  const submitTransactionResponse = await deso.transaction.submitTransaction(
+    signedTransactionHex
+  );
 
   return {
     TransactionConstructionResponse: transactionConstructionResponse,
     SubmitTransactionResponse: submitTransactionResponse,
-  }
-}
+  };
+};
