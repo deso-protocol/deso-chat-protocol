@@ -22,6 +22,7 @@ import {
 import { useMembers } from "../hooks/useMembers";
 import { Conversation } from "../utils/types";
 import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "../services/backend.service";
+import { useMobile } from "../hooks/useMobile";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void,
@@ -43,6 +44,7 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
     currentMemberKeys
   } = useMembers(setLoading, open, conversation);
   const membersAreaRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useMobile();
 
   const handleOpen = () => setOpen(!open);
   const groupName = conversation.messages[0].RecipientInfo.AccessGroupKeyName
@@ -203,7 +205,7 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
             <div className="mb-4">
-              <div className="mb-8">
+              <div className="mb-4 md:mb-8">
                 <div className="mb-2 text-blue-100">
                   Chat:{" "}
                   <span className="font-semibold">{groupName}</span>
@@ -247,11 +249,11 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
                           <MessagingDisplayAvatar
                             username={member.text}
                             publicKey={member.id}
-                            diameter={50}
+                            diameter={isMobile ? 40 : 50}
                             classNames="mx-0"
                           />
                           <div className="flex justify-between align-center flex-1">
-                            <div className="ml-4">
+                            <div className="ml-2 md:ml-4">
                               <div className="font-medium">{member.text}</div>
                               {
                                 currentMemberKeys.includes(member.id) && (

@@ -16,7 +16,7 @@ export const shortenLongWord = (
   startSecondPartAfter = 6,
   separator = "..."
 ) => {
-  if (!key || key.length <= endFirstPartAfter + startSecondPartAfter) {
+  if (!key || key.length <= endFirstPartAfter + startSecondPartAfter + separator.length) {
     return key || "";
   }
 
