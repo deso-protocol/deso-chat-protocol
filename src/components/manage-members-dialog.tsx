@@ -187,11 +187,6 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
       .catch(() => toast.error("Something went wrong while submitting the transaction"));
   }
 
-  const rotateGroupToNewPublicKey = async (
-  ) => {
-
-  }
-
   return (
     <Fragment>
       <Button
