@@ -21,6 +21,7 @@ import uniq from "lodash/uniq";
 import ClipLoader from "react-spinners/ClipLoader";
 import { useMembers } from "../hooks/useMembers";
 import { constructSignAndSubmitWithDerived } from "../services/backend.service";
+import { useMobile } from "../hooks/useMobile";
 
 export interface StartGroupChatProps {
   deso: Deso,
@@ -34,6 +35,7 @@ export const StartGroupChat = ({ deso, onSuccess, derivedResponse }: StartGroupC
   const [chatName, setChatName] = useState<string>("");
   const { members, addMember, removeMember, onPairMissing } = useMembers(setLoading, open);
   const membersAreaRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useMobile();
 
   const handleOpen = () => setOpen(!open);
 
@@ -166,7 +168,7 @@ export const StartGroupChat = ({ deso, onSuccess, derivedResponse }: StartGroupC
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
-            <div className="mb-8">
+            <div className="mb-4 md:mb-8">
               <div className="text-lg font-semibold mb-2 text-blue-100">
                 Chat details
               </div>
@@ -198,11 +200,11 @@ export const StartGroupChat = ({ deso, onSuccess, derivedResponse }: StartGroupC
                     <MessagingDisplayAvatar
                       username={member.text}
                       publicKey={member.id}
-                      diameter={50}
+                      diameter={isMobile ? 40 : 50}
                       classNames="mx-0"
                     />
                     <div className="flex justify-between align-center flex-1 text-blue-100">
-                      <span className="ml-4 font-medium">{member.text}</span>
+                      <span className="ml-2 md:ml-4 font-medium">{member.text}</span>
                       <Button size="sm" color="red" onClick={() => removeMember(member.id)}>Remove</Button>
                     </div>
                   </div>

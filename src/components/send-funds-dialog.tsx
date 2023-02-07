@@ -71,12 +71,12 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
               </div>
             </AlertNotification>
 
-            <div className="text-[24px] text-center my-8 text-white">
+            <div className="text-[24px] text-center my-2 md:my-8 text-white">
               <span>Your Balance: <b>{desoNanosToDeso(balanceNanos)} $DESO</b></span>
 
               <div className="text-sm italic">We refresh your balance every 3 seconds.</div>
 
-              <div className="mt-2">
+              <div className="mt-1 md:mt-2">
                 <Button size="sm" variant="gradient" onClick={async () => {
                   const key = deso.identity.getUserKey();
 
