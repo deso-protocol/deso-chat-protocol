@@ -16,12 +16,12 @@ import ClipLoader from 'react-spinners/ClipLoader';
 import difference from "lodash/difference";
 import {
   decryptAccessGroupPrivateKeyToMemberDefaultKey,
-  encryptAccessGroupPrivateKeyToMemberDefaultKey, privateKeyToDeSoPublicKey
+  encryptAccessGroupPrivateKeyToMemberDefaultKey,
+  privateKeyToDeSoPublicKey
 } from "../services/crypto-utils.service";
 import { useMembers } from "../hooks/useMembers";
 import { Conversation } from "../utils/types";
 import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "../services/backend.service";
-import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void,
