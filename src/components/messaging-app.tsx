@@ -1,139 +1,164 @@
-import { FC, useContext, useEffect, useState } from 'react';
-import { getDerivedKeyResponse } from '../utils/store';
-import { SendMessageButtonAndInput } from './send-message-button-and-input';
-import { getConversations } from '../services/conversations.service';
-import { MessagingSetupButton } from './messaging-setup-button';
-import { MessagingConversationButton } from './messaging-conversation-button';
-import { MessagingConversationAccount, MessagingGroupMembers } from './messaging-conversation-accounts';
-import { MessagingBubblesAndAvatar } from './messaging-bubbles';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { PrimaryDerivedKeyInfo } from "@deso-core/identity";
+import { Card, CardBody } from "@material-tailwind/react";
+import { UserContext } from "contexts/UserContext";
 import {
   ChatType,
-  DerivedPrivateUserInfo,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
-} from 'deso-protocol-types';
-import { decryptAccessGroupMessages, encryptAndSendNewMessage } from "../services/crypto-utils.service";
-import { ManageMembersDialog } from "./manage-members-dialog";
-import { Card, CardBody } from "@material-tailwind/react";
-import { DesoContext } from "../contexts/desoContext";
+} from "deso-protocol-types";
+import difference from "lodash/difference";
+import { FC, useContext, useEffect, useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
+import { toast } from "react-toastify";
+import { desoAPI } from "services/deso.service";
+import { useMobile } from "../hooks/useMobile";
+import { getConversations } from "../services/conversations.service";
+import {
+  decryptAccessGroupMessages,
+  encryptAndSendNewMessage,
+} from "../services/crypto.service";
 import {
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
   PUBLIC_KEY_LENGTH,
-  PUBLIC_KEY_PREFIX
+  PUBLIC_KEY_PREFIX,
 } from "../utils/constants";
-import difference from "lodash/difference";
-import { toast } from "react-toastify";
-import { getChatNameFromConversation, scrollContainerToElement } from "../utils/helpers";
+import {
+  getChatNameFromConversation,
+  hasSetupMessaging,
+  scrollContainerToElement,
+} from "../utils/helpers";
 import { Conversation, ConversationMap } from "../utils/types";
+import { ManageMembersDialog } from "./manage-members-dialog";
+import { MessagingBubblesAndAvatar } from "./messaging-bubbles";
+import {
+  MessagingConversationAccount,
+  MessagingGroupMembers,
+} from "./messaging-conversation-accounts";
+import { MessagingConversationButton } from "./messaging-conversation-button";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { useMobile } from "../hooks/useMobile";
+import { MessagingSetupButton } from "./messaging-setup-button";
 import { shortenLongWord } from "./search-users";
+import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
-  const { deso, hasSetupAccount, setHasSetupAccount, setLoggedInPublicKey } = useContext(DesoContext);
-
-  const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] = useState<{ [key: string]: string }>({});
-  const [derivedResponse, setDerivedResponse] = useState<Partial<DerivedPrivateUserInfo>>({});
+  const { appUser } = useContext(UserContext);
+  const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
+    useState<{ [key: string]: string }>({});
+  const [derivedResponse, setDerivedResponse] =
+    useState<PrimaryDerivedKeyInfo>();
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
   const [pubKeyPlusGroupName, setPubKeyPlusGroupName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedConversationPublicKey, setSelectedConversationPublicKey] = useState('');
+  const [selectedConversationPublicKey, setSelectedConversationPublicKey] =
+    useState("");
   const [conversations, setConversations] = useState<ConversationMap>({});
-  const [membersByGroupKey, setMembersByGroupKey] = useState<{ [groupKey: string]: PublicKeyToProfileEntryResponseMap }>({});
+  const [membersByGroupKey, setMembersByGroupKey] = useState<{
+    [groupKey: string]: PublicKeyToProfileEntryResponseMap;
+  }>({});
   const { isMobile } = useMobile();
 
   useEffect(() => {
-    const init = async () => {
-      const key = deso.identity.getUserKey();
-
-      if (key) {
-        const derivedResponse = getDerivedKeyResponse(key); //have they set a derived key before?
-        const hasSetupMessagingAlready = !!derivedResponse.derivedPublicKeyBase58Check;
-        setHasSetupAccount(hasSetupMessagingAlready);
-        setLoggedInPublicKey(key);
-        if (hasSetupMessagingAlready) {
-          setAutoFetchConversations(true);
-          setDerivedResponse(derivedResponse);
-          await rehydrateConversation(undefined, false, !isMobile);
-        }
-      }
-    };
-
-    init();
-  }, []);
+    if (!appUser) return;
+    setDerivedResponse(appUser.primaryDerivedKey);
+    if (hasSetupMessaging(appUser)) {
+      rehydrateConversation("", false, !isMobile);
+    }
+  }, [appUser, isMobile]);
 
   useEffect(() => {
     if (conversations[selectedConversationPublicKey]) {
-      const chatName = getChatNameFromConversation(conversations[selectedConversationPublicKey], usernameByPublicKeyBase58Check);
+      const chatName = getChatNameFromConversation(
+        conversations[selectedConversationPublicKey],
+        usernameByPublicKeyBase58Check
+      );
 
       if (chatName) {
-        document.title = ([chatName, "DeSo Chat Protocol"].join(" · "));
+        document.title = [chatName, "DeSo Chat Protocol"].join(" · ");
       }
     }
 
     return () => {
       document.title = "DeSo Chat Protocol";
-    }
-  }, [selectedConversationPublicKey, conversations, usernameByPublicKeyBase58Check]);
+    };
+  }, [
+    selectedConversationPublicKey,
+    conversations,
+    usernameByPublicKeyBase58Check,
+  ]);
 
   const fetchUsersStateless = async (newPublicKeysToGet: Array<string>) => {
-    const diff = difference(newPublicKeysToGet, Object.keys(usernameByPublicKeyBase58Check))
+    const diff = difference(
+      newPublicKeysToGet,
+      Object.keys(usernameByPublicKeyBase58Check)
+    );
 
     if (diff.length === 0) {
       return Promise.resolve(usernameByPublicKeyBase58Check);
     }
 
-    return await deso.user.getUsersStateless({
-      PublicKeysBase58Check: Array.from(newPublicKeysToGet),
-      SkipForLeaderboard: true,
-    })
+    return await desoAPI.user
+      .getUsersStateless({
+        PublicKeysBase58Check: Array.from(newPublicKeysToGet),
+        SkipForLeaderboard: true,
+      })
       .then((usersStatelessResponse) => {
         const newPublicKeyToUsernames: { [k: string]: string } = {};
 
         (usersStatelessResponse.UserList || []).forEach((u) => {
           if (u.ProfileEntryResponse?.Username) {
-            newPublicKeyToUsernames[u.PublicKeyBase58Check] = u.ProfileEntryResponse.Username;
+            newPublicKeyToUsernames[u.PublicKeyBase58Check] =
+              u.ProfileEntryResponse.Username;
           }
         });
 
-        setUsernameByPublicKeyBase58Check(state => ({
+        setUsernameByPublicKeyBase58Check((state) => ({
           ...state,
-          ...newPublicKeyToUsernames
+          ...newPublicKeyToUsernames,
         }));
         return usernameByPublicKeyBase58Check;
-      })
-  }
+      });
+  };
 
   const fetchGroupMembers = async (conversation: Conversation) => {
     if (conversation.ChatType !== ChatType.GROUPCHAT) {
       return;
     }
 
-    const { AccessGroupKeyName, OwnerPublicKeyBase58Check } = conversation.messages[0].RecipientInfo;
+    const { AccessGroupKeyName, OwnerPublicKeyBase58Check } =
+      conversation.messages[0].RecipientInfo;
 
-    const { PublicKeyToProfileEntryResponse } = await deso.accessGroup.GetPaginatedAccessGroupMembers({
-      AccessGroupOwnerPublicKeyBase58Check: OwnerPublicKeyBase58Check,
-      AccessGroupKeyName,
-      MaxMembersToFetch: MAX_MEMBERS_TO_REQUEST_IN_GROUP + MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN
-    });
+    const { PublicKeyToProfileEntryResponse } =
+      await desoAPI.accessGroup.GetPaginatedAccessGroupMembers({
+        AccessGroupOwnerPublicKeyBase58Check: OwnerPublicKeyBase58Check,
+        AccessGroupKeyName,
+        MaxMembersToFetch:
+          MAX_MEMBERS_TO_REQUEST_IN_GROUP + MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
+      });
 
-    setMembersByGroupKey(state => ({
+    setMembersByGroupKey((state) => ({
       ...state,
-      [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]: PublicKeyToProfileEntryResponse
+      [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]:
+        PublicKeyToProfileEntryResponse,
     }));
 
     return PublicKeyToProfileEntryResponse;
-  }
+  };
 
-  const rehydrateConversation = async (selectedKey = '', autoScroll: boolean = false, selectConversation: boolean = true) => {
-    const key = deso.identity.getUserKey() as string;
+  const rehydrateConversation = async (
+    selectedKey = "",
+    autoScroll: boolean = false,
+    selectConversation: boolean = true
+  ) => {
+    if (!appUser) {
+      toast.error("You must be logged in to use this feature");
+      return;
+    }
+
     const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
-      // gives us all the conversations
-      deso,
-      getDerivedKeyResponse(key),
+      appUser.PublicKeyBase58Check,
+      appUser.primaryDerivedKey
     );
     let conversationsResponse = res || {};
     const keyToUse =
@@ -148,18 +173,35 @@ export const MessagingApp: FC = () => {
           firstMessagePublicKey: keyToUse.slice(0, PUBLIC_KEY_LENGTH),
           messages: [],
         },
-        ...conversationsResponse
-      }
+        ...conversationsResponse,
+      };
     }
 
-    const DMChats = Object.values(conversationsResponse).filter(e => e.ChatType === ChatType.DM);
-    const GroupChats = Object.values(conversationsResponse).filter(e => e.ChatType === ChatType.GROUPCHAT);
+    const DMChats = Object.values(conversationsResponse).filter(
+      (e) => e.ChatType === ChatType.DM
+    );
+    const GroupChats = Object.values(conversationsResponse).filter(
+      (e) => e.ChatType === ChatType.GROUPCHAT
+    );
 
     const publicKeyToUsername: { [k: string]: string } = {};
-    Object.entries(publicKeyToProfileEntryResponseMap).forEach(([publicKey, profileEntryResponse]) => publicKeyToUsername[publicKey] = profileEntryResponse?.Username || '');
-    setUsernameByPublicKeyBase58Check(state => ({ ...state, ...publicKeyToUsername }));
-    await Promise.all(DMChats.map(e => updateUsernameToPublicKeyMapFromMessages(e.messages, e.firstMessagePublicKey)));
-    await Promise.all(GroupChats.map(e => fetchGroupMembers(e)));
+    Object.entries(publicKeyToProfileEntryResponseMap).forEach(
+      ([publicKey, profileEntryResponse]) =>
+        (publicKeyToUsername[publicKey] = profileEntryResponse?.Username || "")
+    );
+    setUsernameByPublicKeyBase58Check((state) => ({
+      ...state,
+      ...publicKeyToUsername,
+    }));
+    await Promise.all(
+      DMChats.map((e) =>
+        updateUsernameToPublicKeyMapFromMessages(
+          e.messages,
+          e.firstMessagePublicKey
+        )
+      )
+    );
+    await Promise.all(GroupChats.map((e) => fetchGroupMembers(e)));
 
     if (selectConversation) {
       // This is mostly used to control "chats view" vs "messages view" on mobile
@@ -174,7 +216,10 @@ export const MessagingApp: FC = () => {
     }
   };
 
-  const updateUsernameToPublicKeyMapFromMessages = async (messages: NewMessageEntryResponse[], firstMessagePublicKey: string) => {
+  const updateUsernameToPublicKeyMapFromMessages = async (
+    messages: NewMessageEntryResponse[],
+    firstMessagePublicKey: string
+  ) => {
     const newPublicKeysToGet = new Set<string>([firstMessagePublicKey]);
 
     messages.forEach((m: NewMessageEntryResponse) => {
@@ -183,14 +228,19 @@ export const MessagingApp: FC = () => {
     });
 
     return await fetchUsersStateless(Array.from(newPublicKeysToGet));
-  }
+  };
 
   // TODO: add support pagination
   const getConversation = async (
     pubKeyPlusGroupName: string,
     currentConversations = conversations,
-    skipLoading: boolean = false,
+    skipLoading: boolean = false
   ) => {
+    if (!appUser) {
+      toast.error("You must be logged in to use this feature");
+      return;
+    }
+
     const currentConvo = currentConversations[pubKeyPlusGroupName];
     if (!currentConvo) {
       return;
@@ -198,37 +248,48 @@ export const MessagingApp: FC = () => {
     const convo = currentConvo.messages;
     setLoading(!skipLoading);
 
-    const myAccessGroups = await deso.accessGroup.GetAllUserAccessGroups({
-      PublicKeyBase58Check: deso.identity.getUserKey() as string,
-    })
-    const allMyAccessGroups = Array.from(new Set([...(myAccessGroups.AccessGroupsOwned || []), ...(myAccessGroups.AccessGroupsMember || [])]))
-    const derivedKeyResponse = getDerivedKeyResponse(deso.identity.getUserKey() as string);
+    const myAccessGroups = await desoAPI.accessGroup.GetAllUserAccessGroups({
+      PublicKeyBase58Check: appUser.PublicKeyBase58Check,
+    });
+    const allMyAccessGroups = Array.from(
+      new Set([
+        ...(myAccessGroups.AccessGroupsOwned || []),
+        ...(myAccessGroups.AccessGroupsMember || []),
+      ])
+    );
+    const derivedKeyResponse = appUser.primaryDerivedKey;
     if (currentConvo.ChatType === ChatType.DM) {
-      const messages = await deso.accessGroup.GetPaginatedMessagesForDmThread({
-        UserGroupOwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
-        UserGroupKeyName: 'default-key',
-        PartyGroupOwnerPublicKeyBase58Check: currentConvo.firstMessagePublicKey,
-        PartyGroupKeyName: 'default-key',
-        MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-        StartTimeStamp: new Date().valueOf() * 1e6,
-      });
+      const messages =
+        await desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
+          UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+          UserGroupKeyName: "default-key",
+          PartyGroupOwnerPublicKeyBase58Check:
+            currentConvo.firstMessagePublicKey,
+          PartyGroupKeyName: "default-key",
+          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+          StartTimeStamp: new Date().valueOf() * 1e6,
+        });
 
       const decrypted = decryptAccessGroupMessages(
-        deso.identity.getUserKey() as string,
+        appUser.PublicKeyBase58Check,
         messages.ThreadMessages,
         allMyAccessGroups,
-        { decryptedKey: derivedKeyResponse.messagingPrivateKey as string }
-      )
+        { decryptedKey: derivedKeyResponse.messagingPrivateKey }
+      );
 
       const updatedConversations = {
         ...currentConversations,
         ...{
           [pubKeyPlusGroupName]: {
-            firstMessagePublicKey: decrypted.length ? decrypted[0].IsSender ? decrypted[0].RecipientInfo.OwnerPublicKeyBase58Check : decrypted[0].SenderInfo.OwnerPublicKeyBase58Check : currentConvo.firstMessagePublicKey,
+            firstMessagePublicKey: decrypted.length
+              ? decrypted[0].IsSender
+                ? decrypted[0].RecipientInfo.OwnerPublicKeyBase58Check
+                : decrypted[0].SenderInfo.OwnerPublicKeyBase58Check
+              : currentConvo.firstMessagePublicKey,
             messages: decrypted,
             ChatType: ChatType.DM,
           },
-        }
+        },
       };
 
       setConversations(updatedConversations);
@@ -240,15 +301,17 @@ export const MessagingApp: FC = () => {
         return;
       }
       const firstMessage = convo[0];
-      const messages = await deso.accessGroup.GetPaginatedMessagesForGroupChatThread({
-        UserPublicKeyBase58Check: firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
-        AccessGroupKeyName: firstMessage.RecipientInfo.AccessGroupKeyName,
-        StartTimeStamp: firstMessage.MessageInfo.TimestampNanos * 10,
-        MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-      });
+      const messages =
+        await desoAPI.accessGroup.GetPaginatedMessagesForGroupChatThread({
+          UserPublicKeyBase58Check:
+            firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
+          AccessGroupKeyName: firstMessage.RecipientInfo.AccessGroupKeyName,
+          StartTimeStamp: firstMessage.MessageInfo.TimestampNanos * 10,
+          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+        });
 
       const decrypted = decryptAccessGroupMessages(
-        deso.identity.getUserKey() as string,
+        appUser.PublicKeyBase58Check,
         messages.GroupChatMessages,
         allMyAccessGroups,
         { decryptedKey: derivedKeyResponse.messagingPrivateKey as string }
@@ -258,11 +321,12 @@ export const MessagingApp: FC = () => {
         ...currentConversations,
         ...{
           [pubKeyPlusGroupName]: {
-            firstMessagePublicKey: firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
+            firstMessagePublicKey:
+              firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
             messages: decrypted,
             ChatType: ChatType.GROUPCHAT,
           },
-        }
+        },
       };
 
       setConversations(updatedConversations);
@@ -270,25 +334,41 @@ export const MessagingApp: FC = () => {
     }
 
     setLoading(false);
-  }
+  };
 
   const getCurrentChatName = () => {
     if (!selectedConversation || !Object.keys(activeChatUsersMap).length) {
       return "";
     }
 
-    const name = getChatNameFromConversation(selectedConversation, activeChatUsersMap);
-    return name || shortenLongWord(selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check) || "";
-  }
+    const name = getChatNameFromConversation(
+      selectedConversation,
+      activeChatUsersMap
+    );
+    return (
+      name ||
+      shortenLongWord(
+        selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check
+      ) ||
+      ""
+    );
+  };
 
   const conversationsReady = Object.keys(conversations).length > 0;
   const selectedConversation = conversations[selectedConversationPublicKey];
   const isGroupChat = selectedConversation?.ChatType === ChatType.GROUPCHAT;
-  const isChatOwner = isGroupChat && selectedConversation?.messages[0]?.RecipientInfo?.OwnerPublicKeyBase58Check === deso.identity.getUserKey() as string;
+  const isChatOwner =
+    isGroupChat &&
+    appUser &&
+    selectedConversation?.messages[0]?.RecipientInfo
+      ?.OwnerPublicKeyBase58Check === appUser.PublicKeyBase58Check;
   const isGroupOwner = isGroupChat && isChatOwner;
   const chatMembers = membersByGroupKey[selectedConversationPublicKey];
   const activeChatUsersMap = isGroupChat
-    ? Object.keys(chatMembers).reduce((acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }), {})
+    ? Object.keys(chatMembers).reduce(
+        (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
+        {}
+      )
     : usernameByPublicKeyBase58Check;
 
   return (
@@ -299,57 +379,64 @@ export const MessagingApp: FC = () => {
             <CardBody>
               {autoFetchConversations && (
                 <div className="text-center">
-                  <span className="font-bold text-white text-xl">Loading Your Chat Experience</span>
-                  <br /><ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
+                  <span className="font-bold text-white text-xl">
+                    Loading Your Chat Experience
+                  </span>
+                  <br />
+                  <ClipLoader
+                    color={"#6d4800"}
+                    loading={true}
+                    size={44}
+                    className="mt-4"
+                  />
                 </div>
               )}
-              {!autoFetchConversations && !hasSetupAccount && (
+              {!autoFetchConversations && hasSetupMessaging(appUser) && (
                 <>
                   <div>
-                    {
-                      deso.identity.getUserKey()
-                        ? (
-                          <div>
-                            <h2 className="text-2xl font-bold mb-3 text-white">Set up your account</h2>
-                            <p className="text-lg mb-5 text-blue-300/60">
-                              It seems like your account needs more configuration to be able to send messages.
-                              Press the button below to set it up automatically
-                            </p>
-                          </div>
-                        )
-                        : (
-                          <div>
-                            <h2 className="text-2xl font-bold mb-3 text-white">DeSo Chat Protocol</h2>
-                            <p className="text-lg mb-3 text-blue-300/60">
-                              Censorship-resistant and fully on-chain messaging
-                              protocol — with end-to-end encrypted messaging support for direct messages and group
-                              chats.
-                            </p>
-                            <p className="mb-5 text-lg text-blue-300/60">
-                              A truly <strong className="text-blue-200">first-of-its kind.</strong>
-                            </p>
-                          </div>
-                        )
-                    }
-
+                    {appUser ? (
+                      <div>
+                        <h2 className="text-2xl font-bold mb-3 text-white">
+                          Set up your account
+                        </h2>
+                        <p className="text-lg mb-5 text-blue-300/60">
+                          It seems like your account needs more configuration to
+                          be able to send messages. Press the button below to
+                          set it up automatically
+                        </p>
+                      </div>
+                    ) : (
+                      <div>
+                        <h2 className="text-2xl font-bold mb-3 text-white">
+                          DeSo Chat Protocol
+                        </h2>
+                        <p className="text-lg mb-3 text-blue-300/60">
+                          Censorship-resistant and fully on-chain messaging
+                          protocol — with end-to-end encrypted messaging support
+                          for direct messages and group chats.
+                        </p>
+                        <p className="mb-5 text-lg text-blue-300/60">
+                          A truly{" "}
+                          <strong className="text-blue-200">
+                            first-of-its kind.
+                          </strong>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
-                  <MessagingSetupButton
-                    setDerivedResponse={setDerivedResponse}
-                  />
+                  <MessagingSetupButton />
                 </>
               )}
 
-              {!autoFetchConversations && hasSetupAccount && (
-                <MessagingConversationButton
-                  onClick={rehydrateConversation}
-                />
+              {!autoFetchConversations && hasSetupMessaging(appUser) && (
+                <MessagingConversationButton onClick={rehydrateConversation} />
               )}
             </CardBody>
           </Card>
         </div>
       )}
-      {conversationsReady && (
+      {conversationsReady && derivedResponse && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount
@@ -359,101 +446,134 @@ export const MessagingApp: FC = () => {
                 await getConversation(key);
               }}
               membersByGroupKey={membersByGroupKey}
-              deso={deso}
+              deso={desoAPI}
               conversations={conversations}
-              getUsernameByPublicKeyBase58Check={
-                usernameByPublicKeyBase58Check
-              }
+              getUsernameByPublicKeyBase58Check={usernameByPublicKeyBase58Check}
               selectedConversationPublicKey={selectedConversationPublicKey}
               derivedResponse={derivedResponse}
             />
           </Card>
 
-          <div className={`w-full md:w-[calc(100vw-400px)] bg-[#050e1d] md:ml-0 md:z-auto ${selectedConversationPublicKey ? 'ml-[-100%] z-50' : ''}`}>
-
-            <header className={`flex justify-between items-center relative px-5 md:px-4 h-[69px] ${!isGroupOwner ? "md:hidden" : ""}`}>
-              <div className="cursor-pointer py-4 pl-0 pr-6 md:hidden" onClick={() => {
-                setSelectedConversationPublicKey("");
-              }}>
+          <div
+            className={`w-full md:w-[calc(100vw-400px)] bg-[#050e1d] md:ml-0 md:z-auto ${
+              selectedConversationPublicKey ? "ml-[-100%] z-50" : ""
+            }`}
+          >
+            <header
+              className={`flex justify-between items-center relative px-5 md:px-4 h-[69px] ${
+                !isGroupOwner ? "md:hidden" : ""
+              }`}
+            >
+              <div
+                className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
+                onClick={() => {
+                  setSelectedConversationPublicKey("");
+                }}
+              >
                 <img src="/assets/left-chevron.png" width={20} alt="back" />
               </div>
-              {
-                selectedConversation && selectedConversation.messages[0] && (
-                  <div className="text-white font-bold text-lg truncate px-2 md:hidden">
-                    {!isGroupChat && !getCurrentChatName().startsWith(PUBLIC_KEY_PREFIX) ? "@" : ""}{getCurrentChatName()}
-                  </div>
-                )
-              }
+              {selectedConversation && selectedConversation.messages[0] && (
+                <div className="text-white font-bold text-lg truncate px-2 md:hidden">
+                  {!isGroupChat &&
+                  !getCurrentChatName().startsWith(PUBLIC_KEY_PREFIX)
+                    ? "@"
+                    : ""}
+                  {getCurrentChatName()}
+                </div>
+              )}
               <div className="text-blue-300/70 hidden md:block">
-                You're the<b>{" "}owner of this group</b>
+                You're the<b> owner of this group</b>
               </div>
 
               <div className="flex justify-end">
-                {
-                  isGroupOwner
-                    ? (
-                      <ManageMembersDialog
-                        conversation={selectedConversation}
-                        derivedResponse={derivedResponse}
-                        onSuccess={rehydrateConversation}
-                      />
-                    )
-                    : (
-                      selectedConversation && isGroupChat
-                        ? (
-                          <MessagingGroupMembers
-                            membersMap={membersByGroupKey[selectedConversationPublicKey] || {}}
-                            maxMembersShown={2}
-                          />
-                        )
-                        : (selectedConversation && selectedConversation.messages[0] && (
-                          <MessagingDisplayAvatar
-                            username={activeChatUsersMap[selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check]}
-                            publicKey={selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check}
-                            diameter={40}
-                          />
-                        ))
-                    )
-                }
+                {isGroupOwner && derivedResponse ? (
+                  <ManageMembersDialog
+                    conversation={selectedConversation}
+                    derivedResponse={derivedResponse}
+                    onSuccess={rehydrateConversation}
+                  />
+                ) : selectedConversation && isGroupChat ? (
+                  <MessagingGroupMembers
+                    membersMap={
+                      membersByGroupKey[selectedConversationPublicKey] || {}
+                    }
+                    maxMembersShown={2}
+                  />
+                ) : (
+                  selectedConversation &&
+                  selectedConversation.messages[0] && (
+                    <MessagingDisplayAvatar
+                      username={
+                        activeChatUsersMap[
+                          selectedConversation.messages[0].RecipientInfo
+                            .OwnerPublicKeyBase58Check
+                        ]
+                      }
+                      publicKey={
+                        selectedConversation.messages[0].RecipientInfo
+                          .OwnerPublicKeyBase58Check
+                      }
+                      diameter={40}
+                    />
+                  )
+                )}
               </div>
             </header>
 
             <Card
-              className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${isGroupOwner ? '' : 'md:h-full'}`}>
+              className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
+                isGroupOwner ? "" : "md:h-full"
+              }`}
+            >
               <div className="border-none flex flex-col justify-between h-full">
                 <div className="max-h-[calc(100%-130px)] overflow-hidden">
-                  {
-                    loading
-                      ? <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
-                      : (
-                        <MessagingBubblesAndAvatar
-                          deso={deso}
-                          conversationPublicKey={pubKeyPlusGroupName}
-                          conversations={conversations}
-                          getUsernameByPublicKey={activeChatUsersMap}
-                        />
-                      )
-                  }
+                  {loading ? (
+                    <ClipLoader
+                      color={"#6d4800"}
+                      loading={true}
+                      size={44}
+                      className="mt-4"
+                    />
+                  ) : (
+                    <MessagingBubblesAndAvatar
+                      conversationPublicKey={pubKeyPlusGroupName}
+                      conversations={conversations}
+                      getUsernameByPublicKey={activeChatUsersMap}
+                    />
+                  )}
                 </div>
 
                 <SendMessageButtonAndInput
                   key={selectedConversationPublicKey}
                   onClick={async (messageToSend: string) => {
                     try {
+                      if (!derivedResponse.derivedSeedHex) {
+                        throw new Error("Derived seed is not available");
+                      }
+
                       // TODO: fix for group chat sends. need to use encrypted key
                       await encryptAndSendNewMessage(
-                        deso,
                         messageToSend,
-                        derivedResponse.derivedSeedHex as string,
-                        derivedResponse.messagingPrivateKey as string,
-                        selectedConversation.ChatType === ChatType.DM ? selectedConversation.firstMessagePublicKey : selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check,
-                        true,
-                        selectedConversation.ChatType === ChatType.DM ? 'default-key' : selectedConversation.messages[0].RecipientInfo.AccessGroupKeyName,
-                        'default-key',
+                        appUser,
+                        selectedConversation.ChatType === ChatType.DM
+                          ? selectedConversation.firstMessagePublicKey
+                          : selectedConversation.messages[0].RecipientInfo
+                              .OwnerPublicKeyBase58Check,
+                        selectedConversation.ChatType === ChatType.DM
+                          ? "default-key"
+                          : selectedConversation.messages[0].RecipientInfo
+                              .AccessGroupKeyName,
+                        "default-key"
                       );
-                      await getConversation(selectedConversationPublicKey, undefined, true);
+                      await getConversation(
+                        selectedConversationPublicKey,
+                        undefined,
+                        true
+                      );
                     } catch (e: any) {
-                      toast.error(`There is a problem happened during sending your message. Error: ${e.toString()}`);
+                      toast.error(
+                        `There is a problem happened during sending your message. Error: ${e.toString()}`
+                      );
                     }
                   }}
                 />

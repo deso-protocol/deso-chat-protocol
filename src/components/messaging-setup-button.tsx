@@ -1,163 +1,117 @@
-import { DerivedPrivateUserInfo } from 'deso-protocol-types';
-import { FC, useContext, useEffect, useState } from 'react';
-import ClipLoader from 'react-spinners/ClipLoader';
+import { identity } from "@deso-core/identity";
 import { Button } from "@material-tailwind/react";
+import { UserContext } from "contexts/UserContext";
+import { DerivedPrivateUserInfo } from "deso-protocol-types";
+import { FC, useContext, useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
+import { desoAPI } from "services/deso.service";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "utils/constants";
+import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";
-import { DesoContext } from "../contexts/desoContext";
-import { authorizeDerivedKey, generateDefaultKey, requestDerivedKey } from "../services/derived-keys.service";
-import { getDerivedKeyResponse, setDefaultKey, setDerivedKeyResponse } from "../utils/store";
-import { getUserBalanceNanos, pollUserBalanceNanos } from "../services/backend.service";
 
 export const MessagingSetupButton: FC<{
-  setDerivedResponse: (d: Partial<DerivedPrivateUserInfo>) => void,
+  setDerivedResponse: (d: Partial<DerivedPrivateUserInfo>) => void;
 }> = ({ setDerivedResponse }) => {
-  const { deso, setHasSetupAccount, setLoggedInPublicKey } = useContext(DesoContext);
-
-  const [isSending, setIsSending] = useState<boolean>(false);
-  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+  const { appUser, isLoadingUser, setAccessGroups } = useContext(UserContext);
+  const [isSettingUpMessage, setIsSettingUpMessaging] =
+    useState<boolean>(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
-  const [balance, setBalance] = useState<number>(0);
-  const [interval, setInterval] = useState<number>(0);
-  const [loadedBalance, setLoadedBalance] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!deso.identity.getUserKey()) {
-      setLoadedBalance(true);
-      return;
-    }
-    getUserBalanceNanos(deso)
-      .then((balance) => setBalance(balance))
-      .finally(() => setLoadedBalance(true));
-  }, [deso]);
-
-  useEffect(() => {
-    const intervalId = pollUserBalanceNanos(deso, setBalance);
-    setInterval(intervalId);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const login = async () => {
-    setIsLoggingIn(true);
-
-    try {
-      // are they already logged in? if not prompt them
-      const res = await deso.identity.login();
-      const key = res.key;
-      if (!key) {
-        toast.error('Failed to login');
-        return false;
-      }
-      setLoggedInPublicKey(key);
-      const newBalance = await getUserBalanceNanos(deso, key);
-      setBalance(newBalance);
-      if (newBalance === 0) {
-        setOpenDialog(true);
-        return false;
-      }
-    } finally {
-      setIsLoggingIn(false);
-    }
+  if (hasSetupMessaging(appUser)) {
+    // this *should* never happen, but just in case...
+    return <div>Something is wrong, your account is already set up.</div>;
   }
 
-  const setupMessaging = async (): Promise<false | Partial<DerivedPrivateUserInfo>> => {
-    let key = deso.identity.getUserKey();
-    if (!key) {
-      toast.error('You need to login first');
-      return false;
-    }
+  if (isLoadingUser) {
+    return (
+      <div className="flex justify-center">
+        <ClipLoader
+          color={"#6d4800"}
+          loading={true}
+          size={44}
+          className="mt-4"
+        />
+      </div>
+    );
+  }
 
-    let derivedResponse: Partial<DerivedPrivateUserInfo> =
-      getDerivedKeyResponse(key); // does the derived key exist in storage already?
-    if (!derivedResponse.derivedPublicKeyBase58Check) {
-      // if not request one
-      derivedResponse = await requestDerivedKey(deso);
-    }
-    if (!derivedResponse.derivedPublicKeyBase58Check) {
-      toast.error('Failed to authorize derive key');
-      return false;
-    }
-    setDerivedKeyResponse(derivedResponse, key);
+  if (!appUser) {
+    return (
+      <Button
+        size="lg"
+        className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
+        onClick={() => identity.login()}
+      >
+        Login
+      </Button>
+    );
+  }
 
-    await authorizeDerivedKey(deso, derivedResponse);
-
-    const defaultKeyGroup = await generateDefaultKey(deso, derivedResponse);
-    if (defaultKeyGroup) {
-      setDefaultKey(defaultKeyGroup);
-    }
-    setDerivedResponse(derivedResponse);
-    setHasSetupAccount(true);
-
-    return derivedResponse;
-  };
+  if (appUser.BalanceNanos === 0) {
+    return (
+      <>
+        <Button
+          size="lg"
+          variant="gradient"
+          onClick={() => setOpenDialog(true)}
+        >
+          Get $DESO to get started
+        </Button>
+        {openDialog && (
+          <SendFundsDialog
+            appUser={appUser}
+            onClose={() => setOpenDialog(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
-    <div>
-      {
-        !loadedBalance
-          ? <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
-          : !deso.identity.getUserKey()
-            ? (
-              <Button
-                size="lg"
-                className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                onClick={login}
-              >
-                {isLoggingIn ? (
-                  <ClipLoader color={'#6d4800'} loading={true} size={28} className="mx-2" />
-                ) : (
-                  <div className="mx-2">Secure Login</div>
-                )}
-              </Button>
-            )
-            : balance
-              ? (
-                <Button
-                  size="lg"
-                  className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                  onClick={async () => {
-                    setIsSending(true);
+    <Button
+      size="lg"
+      variant="gradient"
+      onClick={async () => {
+        setIsSettingUpMessaging(true);
+        try {
+          const tx = await desoAPI.accessGroup.CreateAccessGroup(
+            {
+              AccessGroupOwnerPublicKeyBase58Check:
+                appUser.PublicKeyBase58Check,
+              AccessGroupPublicKeyBase58Check:
+                appUser.primaryDerivedKey.messagingPublicKeyBase58Check,
+              AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+              MinFeeRateNanosPerKB: 1000,
+            },
+            {
+              broadcast: false,
+            }
+          );
 
-                    try {
-                      await setupMessaging();
-                    } catch (e: any) {
-                      toast.error('Something went wrong when setting up the account');
-                      console.error(e);
-                    } finally {
-                      setIsSending(false);
-                    }
-                  }}
-                >
-                  <div className="flex justify-center">
-                    {isSending ? (
-                      <ClipLoader color={'#6d4800'} loading={true} size={28} className="mx-2" />
-                    ) : (
-                      <div className="mx-2">Setup account for messaging</div>
-                    )}
-                  </div>
-                </Button>
-              )
-              : (
-                <Button
-                  size="lg"
-                  className='bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg'
-                  onClick={() => setOpenDialog(true)}
-                >
-                  <div className="mx-2">
-                    Get $DESO to get started
-                  </div>
-                </Button>
-              )
-      }
+          await identity.signAndSubmit(tx);
 
-
-      {openDialog && (
-        <SendFundsDialog
-          onClose={() => setOpenDialog(false)}
-          onSubmit={setupMessaging}
-        />
-      )}
-    </div>
+          const accessGroups =
+            await desoAPI.accessGroup.GetAllUserAccessGroupsOwned({
+              PublicKeyBase58Check: appUser.PublicKeyBase58Check,
+            });
+          if (accessGroups.AccessGroupsOwned) {
+            setAccessGroups(accessGroups.AccessGroupsOwned);
+          }
+        } catch (e: any) {
+          toast.error("Something went wrong when setting up the account");
+          console.error(e);
+        }
+        setIsSettingUpMessaging(false);
+      }}
+    >
+      <div className="flex justify-center">
+        {isSettingUpMessage ? (
+          <ClipLoader color={"white"} loading={true} size={20} />
+        ) : (
+          <div className="mr-2">Setup account for messaging</div>
+        )}
+      </div>{" "}
+    </Button>
   );
 };

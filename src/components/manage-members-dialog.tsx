@@ -1,47 +1,46 @@
-import React, { useContext, useRef } from "react";
-import { Fragment, useState } from "react";
+import { identity, PrimaryDerivedKeyInfo } from "@deso-core/identity";
 import {
   Button,
   Dialog,
-  DialogHeader,
   DialogBody,
   DialogFooter,
+  DialogHeader,
 } from "@material-tailwind/react";
-import { SearchUsers } from "./search-users";
-import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { toast } from "react-toastify";
-import { DesoContext } from "../contexts/desoContext";
-import { AccessGroupEntryResponse, DerivedPrivateUserInfo } from "deso-protocol-types";
-import ClipLoader from 'react-spinners/ClipLoader';
+import { UserContext } from "contexts/UserContext";
+import { AccessGroupEntryResponse } from "deso-protocol-types";
 import difference from "lodash/difference";
-import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto-utils.service";
+import React, { Fragment, useContext, useRef, useState } from "react";
+import ClipLoader from "react-spinners/ClipLoader";
+import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
+import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto.service";
+import { desoAPI } from "../services/deso.service";
+import { checkTransactionCompleted } from "../utils/helpers";
 import { Conversation } from "../utils/types";
-import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "../services/backend.service";
+import { MessagingDisplayAvatar } from "./messaging-display-avatar";
+import { SearchUsers } from "./search-users";
 
 export interface ManageMembersDialogProps {
-  onSuccess: () => void,
-  derivedResponse: Partial<DerivedPrivateUserInfo>,
+  onSuccess: () => void;
+  derivedResponse: PrimaryDerivedKeyInfo;
   conversation: Conversation;
 }
 
-export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }: ManageMembersDialogProps) => {
-  const { deso } = useContext(DesoContext);
-
+export const ManageMembersDialog = ({
+  onSuccess,
+  derivedResponse,
+  conversation,
+}: ManageMembersDialogProps) => {
+  const { appUser } = useContext(UserContext);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const {
-    members,
-    addMember,
-    removeMember,
-    onPairMissing,
-    currentMemberKeys
-  } = useMembers(setLoading, open, conversation);
+  const { members, addMember, removeMember, onPairMissing, currentMemberKeys } =
+    useMembers(setLoading, open, conversation);
   const membersAreaRef = useRef<HTMLDivElement>(null);
 
   const handleOpen = () => setOpen(!open);
-  const groupName = conversation.messages[0].RecipientInfo.AccessGroupKeyName
+  const groupName = conversation.messages[0].RecipientInfo.AccessGroupKeyName;
 
   const formSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -52,9 +51,11 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
       return;
     }
 
-    const memberKeys = members.map(e => e.id);
+    const memberKeys = members.map((e) => e.id);
     const memberKeysToAdd = difference(memberKeys, currentMemberKeys);
-    const memberKeysToRemove = currentMemberKeys.filter(e => !memberKeys.includes(e));
+    const memberKeysToRemove = currentMemberKeys.filter(
+      (e) => !memberKeys.includes(e)
+    );
 
     setUpdating(true);
 
@@ -67,98 +68,146 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
 
     onSuccess();
     handleOpen();
-  }
+  };
 
   const addMembers = async (groupName: string, memberKeys: Array<string>) => {
-    return updateMembers(groupName, memberKeys, async(groupEntries?: Array<AccessGroupEntryResponse>) => {
-      const accessGroupDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPublicKeyBase58Check as string, groupName);
+    if (!appUser) {
+      return Promise.reject(new Error("You are not logged in."));
+    }
 
-      const { SubmitTransactionResponse } = await constructSignAndSubmitWithDerived(
-        deso,
-        deso.accessGroup.AddAccessGroupMembers({
-          AccessGroupOwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
-          AccessGroupKeyName: groupName,
-          AccessGroupMemberList: (groupEntries || []).map((accessGroupEntry) => {
-            return {
-              AccessGroupMemberPublicKeyBase58Check: accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
-              AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-              EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
-                accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                accessGroupDerivation.AccessGroupPrivateKeyHex,
-              ),
-            }
-          }),
-          MinFeeRateNanosPerKB: 1000,
-        }, {
-          broadcast: false,
-        }),
-        derivedResponse.derivedSeedHex as string,
-      );
+    return updateMembers(
+      groupName,
+      memberKeys,
+      async (groupEntries?: Array<AccessGroupEntryResponse>) => {
+        const accessGroupDerivation =
+          desoAPI.utils.getAccessGroupStandardDerivation(
+            derivedResponse.messagingPublicKeyBase58Check as string,
+            groupName
+          );
 
-      return checkTransactionCompleted(deso, SubmitTransactionResponse.TxnHashHex);
-    });
-  }
+        const tx = await desoAPI.accessGroup.AddAccessGroupMembers(
+          {
+            AccessGroupOwnerPublicKeyBase58Check: appUser?.PublicKeyBase58Check,
+            AccessGroupKeyName: groupName,
+            AccessGroupMemberList: (groupEntries || []).map(
+              (accessGroupEntry) => {
+                return {
+                  AccessGroupMemberPublicKeyBase58Check:
+                    accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
+                  AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
+                  EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
+                    accessGroupEntry.AccessGroupPublicKeyBase58Check,
+                    accessGroupDerivation.AccessGroupPrivateKeyHex
+                  ),
+                };
+              }
+            ),
+            MinFeeRateNanosPerKB: 1000,
+          },
+          {
+            broadcast: false,
+          }
+        );
 
-  const removeMembers = async (groupName: string, memberKeys: Array<string>) => {
-    return updateMembers(groupName, memberKeys, async(groupEntries?: Array<AccessGroupEntryResponse>) => {
-      const { SubmitTransactionResponse } = await constructSignAndSubmitWithDerived(
-        deso,
-        deso.accessGroup.RemoveAccessGroupMembers({
-          AccessGroupOwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
-          AccessGroupKeyName: groupName,
-          AccessGroupMemberList: (groupEntries || []).map((accessGroupEntry) => {
-            return {
-              AccessGroupMemberPublicKeyBase58Check: accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
-              AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-              EncryptedKey: '',
-            }
-          }),
-          MinFeeRateNanosPerKB: 1000,
-        },{
-          broadcast: false,
-        }),
-        derivedResponse.derivedSeedHex as string
-      );
+        const signedTx = await identity.signAndSubmit(tx);
 
-      return checkTransactionCompleted(deso, SubmitTransactionResponse.TxnHashHex);
-    });
-  }
+        return checkTransactionCompleted(signedTx.TxnHashHex);
+      }
+    );
+  };
+
+  const removeMembers = async (
+    groupName: string,
+    memberKeys: Array<string>
+  ) => {
+    if (!appUser) {
+      toast.error("You are not logged in.");
+      return;
+    }
+
+    return updateMembers(
+      groupName,
+      memberKeys,
+      async (groupEntries?: Array<AccessGroupEntryResponse>) => {
+        const tx = await desoAPI.accessGroup.RemoveAccessGroupMembers(
+          {
+            AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+            AccessGroupKeyName: groupName,
+            AccessGroupMemberList: (groupEntries || []).map(
+              (accessGroupEntry) => {
+                return {
+                  AccessGroupMemberPublicKeyBase58Check:
+                    accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
+                  AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
+                  EncryptedKey: "",
+                };
+              }
+            ),
+            MinFeeRateNanosPerKB: 1000,
+          },
+          {
+            broadcast: false,
+          }
+        );
+
+        const signedTx = await identity.signAndSubmit(tx);
+
+        return checkTransactionCompleted(signedTx.TxnHashHex);
+      }
+    );
+  };
 
   const updateMembers = async (
     groupName: string,
     memberKeys: Array<string>,
-    updateAction: (AccessGroupEntries?: Array<AccessGroupEntryResponse>) => Promise<void>
+    updateAction: (
+      AccessGroupEntries?: Array<AccessGroupEntryResponse>
+    ) => Promise<void>
   ) => {
     if (memberKeys.length === 0) {
       return Promise.resolve();
     }
 
-    const { AccessGroupEntries, PairsNotFound } = await deso.accessGroup.GetBulkAccessGroupEntries({
-      GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
-        return { GroupOwnerPublicKeyBase58Check: pubKey, GroupKeyName: "default-key" }
-      })
-    });
+    const { AccessGroupEntries, PairsNotFound } =
+      await desoAPI.accessGroup.GetBulkAccessGroupEntries({
+        GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
+          return {
+            GroupOwnerPublicKeyBase58Check: pubKey,
+            GroupKeyName: "default-key",
+          };
+        }),
+      });
 
     if (PairsNotFound?.length) {
       onPairMissing();
       return;
     }
 
-    await updateAction(AccessGroupEntries)
-      .catch(() => toast.error("Something went wrong while submitting the transaction"));
-  }
+    await updateAction(AccessGroupEntries).catch(() =>
+      toast.error("Something went wrong while submitting the transaction")
+    );
+  };
 
   return (
     <Fragment>
       <Button
         onClick={handleOpen}
-        className='bg-blue-700/40 hover:bg-blue-700/70 relative z-10 text-white rounded-full hover:shadow-none normal-case text-xs shadow-none px-3 py-1 md:px-6 md:py-3'
+        className="bg-blue-700/40 hover:bg-blue-700/70 relative z-10 text-white rounded-full hover:shadow-none normal-case text-xs shadow-none px-3 py-1 md:px-6 md:py-3"
       >
         <span className="hidden md:block">Manage Members</span>
-        <img className="visible md:hidden" src="/assets/members.png" alt="manage-members" width={24} />
+        <img
+          className="visible md:hidden"
+          src="/assets/members.png"
+          alt="manage-members"
+          width={24}
+        />
       </Button>
 
-      <Dialog open={open} handler={handleOpen} className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]">
+      <Dialog
+        open={open}
+        handler={handleOpen}
+        className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
+      >
         <DialogHeader className="text-blue-100">Manage members</DialogHeader>
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
@@ -166,68 +215,79 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
             <div className="mb-4">
               <div className="mb-8">
                 <div className="mb-2 text-blue-100">
-                  Chat:{" "}
-                  <span className="font-semibold">{groupName}</span>
+                  Chat: <span className="font-semibold">{groupName}</span>
                 </div>
 
                 <div className="mb-2 text-blue-100">
                   Current participants:{" "}
                   <span className="font-semibold">
-                    {
-                      loading
-                        ? <ClipLoader color={'#6d4800'} loading={true} size={16} />
-                        : currentMemberKeys.length
-                    }
+                    {loading ? (
+                      <ClipLoader color={"#6d4800"} loading={true} size={16} />
+                    ) : (
+                      currentMemberKeys.length
+                    )}
                   </span>
                 </div>
               </div>
 
               <SearchUsers
-                deso={deso}
-                onSelected={member => addMember(member, () => {
-                  setTimeout(() => {
-                    membersAreaRef.current?.scrollTo(0, membersAreaRef.current.scrollHeight);
-                  }, 0);
-                })}
+                onSelected={(member) =>
+                  addMember(member, () => {
+                    setTimeout(() => {
+                      membersAreaRef.current?.scrollTo(
+                        0,
+                        membersAreaRef.current.scrollHeight
+                      );
+                    }, 0);
+                  })
+                }
               />
 
-              <div className="max-h-[240px] overflow-y-auto custom-scrollbar" ref={membersAreaRef}>
-                {
-                  loading
-                    ? (
-                      <div className="text-center">
-                        <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
-                      </div>
-                    )
-                    : (
-                      members.map((member) => (
-                        <div
-                          className="flex p-2 items-center cursor-pointer bg-blue-900/20 border text-white border-gray-400 rounded-md my-2"
-                          key={member.id}
-                        >
-                          <MessagingDisplayAvatar
-                            username={member.text}
-                            publicKey={member.id}
-                            diameter={50}
-                            classNames="mx-0"
-                          />
-                          <div className="flex justify-between align-center flex-1">
-                            <div className="ml-4">
-                              <div className="font-medium">{member.text}</div>
-                              {
-                                currentMemberKeys.includes(member.id) && (
-                                  <div className="text-xs">Already in the chat</div>
-                                )
-                              }
-                            </div>
-                            {member.id !== deso.identity.getUserKey() && (
-                              <Button size="sm" color="red" onClick={() => removeMember(member.id)}>Remove</Button>
-                            )}
-                          </div>
+              <div
+                className="max-h-[240px] overflow-y-auto custom-scrollbar"
+                ref={membersAreaRef}
+              >
+                {loading ? (
+                  <div className="text-center">
+                    <ClipLoader
+                      color={"#6d4800"}
+                      loading={true}
+                      size={44}
+                      className="mt-4"
+                    />
+                  </div>
+                ) : (
+                  members.map((member) => (
+                    <div
+                      className="flex p-2 items-center cursor-pointer bg-blue-900/20 border text-white border-gray-400 rounded-md my-2"
+                      key={member.id}
+                    >
+                      <MessagingDisplayAvatar
+                        username={member.text}
+                        publicKey={member.id}
+                        diameter={50}
+                        classNames="mx-0"
+                      />
+                      <div className="flex justify-between align-center flex-1">
+                        <div className="ml-4">
+                          <div className="font-medium">{member.text}</div>
+                          {currentMemberKeys.includes(member.id) && (
+                            <div className="text-xs">Already in the chat</div>
+                          )}
                         </div>
-                      ))
-                    )
-                }
+                        {member.id !== appUser?.PublicKeyBase58Check && (
+                          <Button
+                            size="sm"
+                            color="red"
+                            onClick={() => removeMember(member.id)}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </DialogBody>
@@ -241,10 +301,21 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
             >
               <span>Cancel</span>
             </Button>
-            <Button variant="gradient" color="green" type="submit" className="flex items-center" disabled={updating}>
-              {
-                updating && <ClipLoader color="white" loading={true} size={20} className="mr-2" />
-              }
+            <Button
+              variant="gradient"
+              color="green"
+              type="submit"
+              className="flex items-center"
+              disabled={updating}
+            >
+              {updating && (
+                <ClipLoader
+                  color="white"
+                  loading={true}
+                  size={20}
+                  className="mr-2"
+                />
+              )}
               <span>Update Group</span>
             </Button>
           </DialogFooter>
@@ -252,4 +323,4 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
       </Dialog>
     </Fragment>
   );
-}
+};
