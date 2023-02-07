@@ -14,10 +14,14 @@ import { DesoContext } from "../contexts/desoContext";
 import { AccessGroupEntryResponse, DerivedPrivateUserInfo } from "deso-protocol-types";
 import ClipLoader from 'react-spinners/ClipLoader';
 import difference from "lodash/difference";
-import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto-utils.service";
+import {
+  decryptAccessGroupPrivateKeyToMemberDefaultKey,
+  encryptAccessGroupPrivateKeyToMemberDefaultKey, privateKeyToDeSoPublicKey
+} from "../services/crypto-utils.service";
 import { useMembers } from "../hooks/useMembers";
 import { Conversation } from "../utils/types";
 import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "../services/backend.service";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void,
@@ -71,7 +75,42 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
 
   const addMembers = async (groupName: string, memberKeys: Array<string>) => {
     return updateMembers(groupName, memberKeys, async(groupEntries?: Array<AccessGroupEntryResponse>) => {
-      const accessGroupDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPrivateKey as string, groupName);
+      const standardDerivation = deso.utils.getAccessGroupStandardDerivation(derivedResponse.messagingPrivateKey as string, groupName);
+
+      // We first try to decrypt the group's private key that was encrypted to the group owner's
+      // default key. This is safer than simply using the standard derivation since
+      // the standard derivation could have been computed incorrectly. This way we know that
+      // the new member will have the same encryption key as the rest of the group.
+      const accessGroupDerivation = await deso.accessGroup.GetAllUserAccessGroupsMemberOnly({
+        PublicKeyBase58Check: deso.identity.getUserKey() as string,
+      }).then((res) => {
+        const encryptedKey = (res.AccessGroupsMember || []).find(
+          (accessGroupEntry) =>
+            accessGroupEntry &&
+            accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check === deso.identity.getUserKey() &&
+            accessGroupEntry.AccessGroupKeyName === groupName &&
+            accessGroupEntry.AccessGroupMemberEntryResponse
+        )?.AccessGroupMemberEntryResponse?.EncryptedKey;
+
+        if (!encryptedKey) {
+          return standardDerivation;
+        }
+
+        const decryptedKey = decryptAccessGroupPrivateKeyToMemberDefaultKey(
+          Buffer.from(derivedResponse.messagingPrivateKey as string, 'hex'),
+          Buffer.from(encryptedKey, 'hex')
+        );
+
+        return {
+          AccessGroupPublicKeyBase58Check: privateKeyToDeSoPublicKey(decryptedKey),
+          AccessGroupPrivateKeyHex: decryptedKey.getPrivate().toString('hex'),
+          AccessGroupKeyName: groupName,
+        }
+      }).catch(() => {
+        // If, for any reason, we fail to recover the group's private key
+        // fall back to the standard derivation.
+        return standardDerivation
+      });
 
       const { SubmitTransactionResponse } = await constructSignAndSubmitWithDerived(
         deso,
@@ -146,6 +185,11 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
 
     await updateAction(AccessGroupEntries)
       .catch(() => toast.error("Something went wrong while submitting the transaction"));
+  }
+
+  const rotateGroupToNewPublicKey = async (
+  ) => {
+
   }
 
   return (
