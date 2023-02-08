@@ -92,9 +92,12 @@ export const MessagingSetupButton = () => {
             await desoAPI.accessGroup.GetAllUserAccessGroupsOwned({
               PublicKeyBase58Check: appUser.PublicKeyBase58Check,
             });
-          if (accessGroups.AccessGroupsOwned) {
-            setAccessGroups(accessGroups.AccessGroupsOwned);
+
+          if (!accessGroups.AccessGroupsOwned) {
+            throw new Error("did not get any access groups");
           }
+
+          setAccessGroups(accessGroups.AccessGroupsOwned);
         } catch (e: any) {
           toast.error("Something went wrong when setting up the account");
           console.error(e);

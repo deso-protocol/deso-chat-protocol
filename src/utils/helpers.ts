@@ -70,6 +70,7 @@ export const hasSetupMessaging = (user: AppUser | null) => {
   );
 };
 
+// TODO: delete this
 export const checkTransactionCompleted = (hashHex: string): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(async () => {

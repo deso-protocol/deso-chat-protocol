@@ -21,7 +21,15 @@ function App() {
     appUser: null,
     isLoadingUser: true,
     setAccessGroups: (accessGroupsOwned: AccessGroupEntryResponse[]) =>
-      setUserState((state) => ({ ...state, accessGroupsOwned })),
+      setUserState((state) => {
+        if (!state.appUser) {
+          throw new Error(
+            "cannot set access groups for without a logged in user!"
+          );
+        }
+        const currAppUser = state.appUser;
+        return { ...state, appUser: { ...currAppUser, accessGroupsOwned } };
+      }),
   });
 
   useEffect(
