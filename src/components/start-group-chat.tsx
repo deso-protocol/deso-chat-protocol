@@ -22,6 +22,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import { useMembers } from "../hooks/useMembers";
 import { constructSignAndSubmitWithDerived } from "../services/backend.service";
 import { useMobile } from "../hooks/useMobile";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 
 export interface StartGroupChatProps {
   deso: Deso,
@@ -100,7 +101,7 @@ export const StartGroupChat = ({ deso, onSuccess, derivedResponse }: StartGroupC
         GroupOwnerAndGroupKeyNamePairs: groupMembersArray
           .map((key) => ({
             GroupOwnerPublicKeyBase58Check: key,
-            GroupKeyName: "default-key",
+            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           }))
       });
 

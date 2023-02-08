@@ -215,9 +215,9 @@ export const MessagingApp: FC = () => {
     if (currentConvo.ChatType === ChatType.DM) {
       const messages = await deso.accessGroup.GetPaginatedMessagesForDmThread({
         UserGroupOwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
-        UserGroupKeyName: 'default-key',
+        UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
         PartyGroupOwnerPublicKeyBase58Check: currentConvo.firstMessagePublicKey,
-        PartyGroupKeyName: 'default-key',
+        PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
         MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         StartTimeStamp: new Date().valueOf() * 1e6,
       });
@@ -494,7 +494,7 @@ export const MessagingApp: FC = () => {
                         recipientPublicKey,
                         true,
                         recipientAccessGroupKeyName,
-                        'default-key',
+                        DEFAULT_KEY_MESSAGING_GROUP_NAME,
                       );
                     } catch (e: any) {
                       // If we fail to send the message for any reason, remove the mock message

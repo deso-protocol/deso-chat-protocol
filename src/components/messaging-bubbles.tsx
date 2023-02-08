@@ -4,7 +4,7 @@ import { FC, useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { getDerivedKeyResponse } from "../utils/store";
 import { decryptAccessGroupMessages } from "../services/crypto-utils.service";
-import { MESSAGES_ONE_REQUEST_LIMIT } from "../utils/constants";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME, MESSAGES_ONE_REQUEST_LIMIT } from "../utils/constants";
 import {
   ChatType,
   GetPaginatedMessagesForDmThreadResponse,
@@ -119,9 +119,9 @@ export const MessagingBubblesAndAvatar: FC<{
       }),
       conversation.ChatType === ChatType.DM ? deso.accessGroup.GetPaginatedMessagesForDmThread({
         UserGroupOwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
-        UserGroupKeyName: 'default-key',
+        UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
         PartyGroupOwnerPublicKeyBase58Check: (conversation.messages[0].IsSender ? conversation.messages[0].RecipientInfo : conversation.messages[0].SenderInfo).OwnerPublicKeyBase58Check,
-        PartyGroupKeyName: 'default-key',
+        PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
         StartTimeStampString,
         MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
       }) : deso.accessGroup.GetPaginatedMessagesForGroupChatThread({

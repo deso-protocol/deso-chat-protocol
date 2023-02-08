@@ -4,7 +4,11 @@ import { toast } from "react-toastify";
 import { DesoContext } from "../contexts/desoContext";
 import { Conversation } from "../utils/types";
 import { sortBy } from "lodash";
-import { MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN, MAX_MEMBERS_TO_REQUEST_IN_GROUP } from "utils/constants";
+import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
+  MAX_MEMBERS_TO_REQUEST_IN_GROUP
+} from "utils/constants";
 
 export function useMembers(
   setLoading: (l: boolean) => void,
@@ -56,7 +60,7 @@ export function useMembers(
       const { PairsNotFound } = await deso.accessGroup.GetBulkAccessGroupEntries({
         GroupOwnerAndGroupKeyNamePairs: [{
           GroupOwnerPublicKeyBase58Check: member.id,
-          GroupKeyName: "default-key",
+          GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME
         }]
       });
 

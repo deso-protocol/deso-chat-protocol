@@ -1,6 +1,7 @@
 import { FC, useContext } from 'react';
 import { SearchUsers } from "./search-users";
 import { DesoContext } from "../contexts/desoContext";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 
 export const MessagingStartNewConversation: FC<{
   rehydrateConversation: (publicKey: string, autoScroll?: boolean) => void;
@@ -16,7 +17,7 @@ export const MessagingStartNewConversation: FC<{
             if (!e) {
               return;
             }
-            await rehydrateConversation(e?.id + "default-key", true);
+            await rehydrateConversation(e?.id + DEFAULT_KEY_MESSAGING_GROUP_NAME, true);
           }}
           placeholder="Search DeSo & Ethereum Addresses..."
           className="text-white placeholder:text-blue-100 bg-blue-900/10 placeholder-gray border border-blue-900 hover:border-blue-600"

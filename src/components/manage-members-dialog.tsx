@@ -23,6 +23,7 @@ import { useMembers } from "../hooks/useMembers";
 import { Conversation } from "../utils/types";
 import { checkTransactionCompleted, constructSignAndSubmitWithDerived } from "../services/backend.service";
 import { useMobile } from "../hooks/useMobile";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void,
@@ -176,7 +177,7 @@ export const ManageMembersDialog = ({ onSuccess, derivedResponse, conversation }
 
     const { AccessGroupEntries, PairsNotFound } = await deso.accessGroup.GetBulkAccessGroupEntries({
       GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
-        return { GroupOwnerPublicKeyBase58Check: pubKey, GroupKeyName: "default-key" }
+        return { GroupOwnerPublicKeyBase58Check: pubKey, GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME }
       })
     });
 

@@ -9,7 +9,7 @@ import {
   DecryptedMessageEntryResponse,
   NewMessageEntryResponse,
 } from 'deso-protocol-types';
-import { DESO_NETWORK } from "../utils/constants";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME, DESO_NETWORK } from "../utils/constants";
 import { constructSignAndSubmitWithDerived } from "./backend.service";
 
 export const PUBLIC_KEY_PREFIXES = {
@@ -185,7 +185,7 @@ export const decryptAccessGroupMessage = (
   // Well now we're assuming that if you're messaging with base key or default key, you're the sender.
   const IsSender =
     message.SenderInfo.OwnerPublicKeyBase58Check === userPublicKeyBase58Check &&
-    (message.SenderInfo.AccessGroupKeyName === 'default-key' ||
+    (message.SenderInfo.AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME ||
       !message.SenderInfo.AccessGroupKeyName);
 
   const myAccessGroupInfo = IsSender
@@ -386,14 +386,14 @@ export const encryptAndSendNewMessage = async (
   messagingPrivateKey: string,
   RecipientPublicKeyBase58Check: string,
   isDerived: boolean,
-  RecipientMessagingKeyName = 'default-key',
-  SenderMessagingKeyName = 'default-key'
+  RecipientMessagingKeyName = DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  SenderMessagingKeyName = DEFAULT_KEY_MESSAGING_GROUP_NAME
 ): Promise<string> => {
   if (!messagingPrivateKey) {
     return Promise.reject('messagingPrivateKey is undefined');
   }
 
-  if (SenderMessagingKeyName !== 'default-key') {
+  if (SenderMessagingKeyName !== DEFAULT_KEY_MESSAGING_GROUP_NAME) {
     return Promise.reject('sender must use default key for now');
   }
 
@@ -479,7 +479,7 @@ export const encryptAndSendNewMessage = async (
     SubmitTransactionResponse
   } = await constructSignAndSubmitWithDerived(
     deso,
-    !RecipientMessagingKeyName || RecipientMessagingKeyName === 'default-key' ?
+    !RecipientMessagingKeyName || RecipientMessagingKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME ?
       deso.accessGroup.SendDmMessage(requestBody, { broadcast: false }) :
       deso.accessGroup.SendGroupChatMessage(requestBody, { broadcast: false }),
     derivedSeedHex);
