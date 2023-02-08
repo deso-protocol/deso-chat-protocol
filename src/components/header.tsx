@@ -16,7 +16,7 @@ export const Header = () => {
 
   return (
     <header className="flex justify-between px-4 fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md h-[80px]">
-      <a href="/public" className="flex items-center">
+      <a href="/" className="flex items-center">
         <div className="text-left">
           <img src="/assets/logo-white.svg" width={100} alt="deso-logo" />
         </div>

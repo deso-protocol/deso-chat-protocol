@@ -7,7 +7,10 @@ import {
 } from "deso-protocol-types";
 import { toast } from "react-toastify";
 import { desoAPI } from "services/deso.service";
-import { USER_TO_SEND_MESSAGE_TO } from "../utils/constants";
+import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  USER_TO_SEND_MESSAGE_TO,
+} from "../utils/constants";
 import { checkTransactionCompleted } from "../utils/helpers";
 import { ConversationMap } from "../utils/types";
 import {
@@ -32,7 +35,7 @@ export const getConversationsNewMap = async (
       otherInfo.OwnerPublicKeyBase58Check +
       (otherInfo.AccessGroupKeyName
         ? otherInfo.AccessGroupKeyName
-        : "default-key");
+        : DEFAULT_KEY_MESSAGING_GROUP_NAME);
     const currentConversation = Conversations[key];
     if (currentConversation) {
       currentConversation.messages.push(dmr);

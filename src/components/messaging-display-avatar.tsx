@@ -98,7 +98,7 @@ export const MessagingDisplayAvatar: FC<{
   return (
     <ConditionalLink
       className={`block ${classNames}`}
-      style={{ width: `${diameter}px` }}
+      style={{ width: `${diameter}px`, maxWidth: `${diameter}px`, minWidth: `${diameter}px`}}
       href={getProfileURL(username)}
       condition={!!username}
       target="_blank"

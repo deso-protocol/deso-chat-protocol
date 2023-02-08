@@ -53,7 +53,7 @@ export const SaveToClipboard = ({ text, children, copyIcon, copiedIcon, classNam
             : (copyIcon || defaultCopyIcon)}
         </div>
 
-        <div className="ml-2 cursor-pointer">
+        <div className="ml-1 md:ml-2 cursor-pointer whitespace-nowrap">
           {children}
         </div>
       </div>

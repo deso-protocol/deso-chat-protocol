@@ -2,6 +2,7 @@ import { Card, CardBody } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
 import {
   ChatType,
+  DecryptedMessageEntryResponse,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
 } from "deso-protocol-types";
@@ -17,6 +18,7 @@ import {
   encryptAndSendNewMessage,
 } from "../services/crypto.service";
 import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
@@ -59,6 +61,7 @@ export const MessagingApp: FC = () => {
   useEffect(() => {
     if (!appUser) return;
     if (hasSetupMessaging(appUser)) {
+      setAutoFetchConversations(true);
       rehydrateConversation("", false, !isMobile);
     }
   }, [appUser, isMobile]);
@@ -257,10 +260,10 @@ export const MessagingApp: FC = () => {
       const messages =
         await desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
           UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-          UserGroupKeyName: "default-key",
+          UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           PartyGroupOwnerPublicKeyBase58Check:
             currentConvo.firstMessagePublicKey,
-          PartyGroupKeyName: "default-key",
+          PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
           StartTimeStamp: new Date().valueOf() * 1e6,
         });
@@ -501,7 +504,7 @@ export const MessagingApp: FC = () => {
                       username={
                         activeChatUsersMap[
                           selectedConversation.messages[0].RecipientInfo
-                            .OwnerPublicKeyBase58Check
+                            .OwnerPublicKeyBase58Check as string
                         ]
                       }
                       publicKey={
@@ -541,38 +544,77 @@ export const MessagingApp: FC = () => {
                 <SendMessageButtonAndInput
                   key={selectedConversationPublicKey}
                   onClick={async (messageToSend: string) => {
-                    if (!appUser) {
-                      throw new Error("App user is not available");
-                    }
-
+                    // Generate a mock message to display in the UI to give
+                    // the user immediate feedback.
+                    const TimestampNanos = new Date().getTime() * 1e6;
+                    const recipientPublicKey =
+                      selectedConversation.ChatType === ChatType.DM
+                        ? selectedConversation.firstMessagePublicKey
+                        : selectedConversation.messages[0].RecipientInfo
+                            .OwnerPublicKeyBase58Check;
+                    const recipientAccessGroupKeyName =
+                      selectedConversation.ChatType === ChatType.DM
+                        ? DEFAULT_KEY_MESSAGING_GROUP_NAME
+                        : selectedConversation.messages[0].RecipientInfo
+                            .AccessGroupKeyName;
+                    const mockMessage = {
+                      DecryptedMessage: messageToSend,
+                      IsSender: true,
+                      SenderInfo: {
+                        OwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+                        AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+                      },
+                      RecipientInfo: {
+                        OwnerPublicKeyBase58Check: recipientPublicKey,
+                        AccessGroupKeyName: recipientAccessGroupKeyName,
+                      },
+                      MessageInfo: {
+                        TimestampNanos,
+                      },
+                    };
+                    // Put this new message into the conversations object.
+                    const newMessages =
+                      conversations[selectedConversationPublicKey].messages;
+                    newMessages.unshift(
+                      mockMessage as DecryptedMessageEntryResponse
+                    );
+                    setConversations((prevConversations) => ({
+                      ...prevConversations,
+                      [selectedConversationPublicKey]: {
+                        ...prevConversations[selectedConversationPublicKey],
+                        ...{
+                          messages: newMessages,
+                        },
+                      },
+                    }));
                     try {
-                      if (!appUser.primaryDerivedKey.derivedSeedHex) {
-                        throw new Error("Derived seed is not available");
-                      }
-
-                      // TODO: fix for group chat sends. need to use encrypted key
+                      // Try sending the message
                       await encryptAndSendNewMessage(
                         messageToSend,
                         appUser.PublicKeyBase58Check,
-                        selectedConversation.ChatType === ChatType.DM
-                          ? selectedConversation.firstMessagePublicKey
-                          : selectedConversation.messages[0].RecipientInfo
-                              .OwnerPublicKeyBase58Check,
-                        selectedConversation.ChatType === ChatType.DM
-                          ? "default-key"
-                          : selectedConversation.messages[0].RecipientInfo
-                              .AccessGroupKeyName,
-                        "default-key"
-                      );
-                      await getConversation(
-                        selectedConversationPublicKey,
-                        undefined,
-                        true
+                        recipientPublicKey,
+                        recipientAccessGroupKeyName,
+                        DEFAULT_KEY_MESSAGING_GROUP_NAME
                       );
                     } catch (e: any) {
+                      // If we fail to send the message for any reason, remove the mock message
+                      // by shifting the newMessages array and then updating the conversations
+                      // object.
+                      newMessages.shift();
+                      setConversations((prevConversations) => ({
+                        ...prevConversations,
+                        [selectedConversationPublicKey]: {
+                          ...prevConversations[selectedConversationPublicKey],
+                          ...{
+                            messages: newMessages,
+                          },
+                        },
+                      }));
                       toast.error(
-                        `There is a problem happened during sending your message. Error: ${e.toString()}`
+                        `An error occurred while sending your message. Error: ${e.toString()}`
                       );
+                      // Rethrow the error so that the caller can handle it.
+                      return Promise.reject(e);
                     }
                   }}
                 />

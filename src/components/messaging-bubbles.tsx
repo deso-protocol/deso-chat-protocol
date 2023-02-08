@@ -10,7 +10,10 @@ import { toast } from "react-toastify";
 import { desoAPI } from "services/deso.service";
 import { useMobile } from "../hooks/useMobile";
 import { decryptAccessGroupMessages } from "../services/crypto.service";
-import { MESSAGES_ONE_REQUEST_LIMIT } from "../utils/constants";
+import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  MESSAGES_ONE_REQUEST_LIMIT,
+} from "../utils/constants";
 import { ConversationMap } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { shortenLongWord } from "./search-users";
@@ -125,13 +128,13 @@ export const MessagingBubblesAndAvatar: FC<{
       conversation.ChatType === ChatType.DM
         ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
             UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-            UserGroupKeyName: "default-key",
+            UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
             PartyGroupOwnerPublicKeyBase58Check: (conversation.messages[0]
               .IsSender
               ? conversation.messages[0].RecipientInfo
               : conversation.messages[0].SenderInfo
             ).OwnerPublicKeyBase58Check,
-            PartyGroupKeyName: "default-key",
+            PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
             StartTimeStampString,
             MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
           })
@@ -224,7 +227,7 @@ export const MessagingBubblesAndAvatar: FC<{
 
           const timestamp = (
             <div
-              className={`text-xs text-blue-100/30 mt-1 ${
+              className={`whitespace-nowrap text-xs text-blue-100/30 mt-1 ${
                 IsSender ? "text-right" : "text-left"
               }`}
             >

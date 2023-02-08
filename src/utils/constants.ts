@@ -3,7 +3,7 @@ import { DeSoNetwork, TransactionSpendingLimitResponse } from "deso-protocol-typ
 export const getTransactionSpendingLimits =
   (publicKey: string): TransactionSpendingLimitResponse => {
     return {
-      GlobalDESOLimit: 100 * 1e9,
+      GlobalDESOLimit: 5 * 1e9,
       TransactionCountLimitMap: {
         AUTHORIZE_DERIVED_KEY: 1,
         NEW_MESSAGE: LIMIT,

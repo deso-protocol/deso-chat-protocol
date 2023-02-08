@@ -19,8 +19,10 @@ import React, {
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
+import { useMobile } from "../hooks/useMobile";
 import { encryptAndSendNewMessage } from "../services/crypto.service";
 import { desoAPI } from "../services/deso.service";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SearchUsers } from "./search-users";
 
@@ -38,6 +40,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
     open
   );
   const membersAreaRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useMobile();
 
   const handleOpen = () => setOpen(!open);
 
@@ -100,7 +103,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           AccessGroupKeyName: groupName,
           AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           AccessGroupPublicKeyBase58Check:
-            accessGroupKeyInfo.accessGroupPublicKeyBase58Check,
+            accessGroupKeyInfo.AccessGroupPublicKeyBase58Check,
           MinFeeRateNanosPerKB: 1000,
         },
         {
@@ -118,7 +121,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         await desoAPI.accessGroup.GetBulkAccessGroupEntries({
           GroupOwnerAndGroupKeyNamePairs: groupMembersArray.map((key) => ({
             GroupOwnerPublicKeyBase58Check: key,
-            GroupKeyName: "default-key",
+            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           })),
         });
 
@@ -139,7 +142,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                 AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
                 EncryptedKey: await encrypt(
                   accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                  accessGroupKeyInfo.accessGroupPrivateKeyHex
+                  accessGroupKeyInfo.AccessGroupPrivateKeyHex
                 ),
               };
             })
@@ -161,7 +164,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         groupName
       );
 
-      return `${appUser.PublicKeyBase58Check}${accessGroupKeyInfo.accessGroupKeyName}`;
+      return `${appUser.PublicKeyBase58Check}${accessGroupKeyInfo.AccessGroupKeyName}`;
     } catch {
       toast.error(
         "something went wrong while submitting the add members transaction"
@@ -198,7 +201,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
-            <div className="mb-8">
+            <div className="mb-4 md:mb-8">
               <div className="text-lg font-semibold mb-2 text-blue-100">
                 Chat details
               </div>
@@ -237,11 +240,13 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                     <MessagingDisplayAvatar
                       username={member.text}
                       publicKey={member.id}
-                      diameter={50}
+                      diameter={isMobile ? 40 : 50}
                       classNames="mx-0"
                     />
                     <div className="flex justify-between align-center flex-1 text-blue-100">
-                      <span className="ml-4 font-medium">{member.text}</span>
+                      <span className="ml-2 md:ml-4 font-medium">
+                        {member.text}
+                      </span>
                       <Button
                         size="sm"
                         color="red"

@@ -1,4 +1,9 @@
-import { encrypt, identity, PrimaryDerivedKeyInfo } from "@deso-core/identity";
+import {
+  AccessGroupPrivateInfo,
+  identity,
+  PrimaryDerivedKeyInfo,
+  publicKeyToBase58Check,
+} from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -13,7 +18,10 @@ import React, { Fragment, useContext, useRef, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
+import { useMobile } from "../hooks/useMobile";
+import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto-utils.service";
 import { desoAPI } from "../services/deso.service";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { checkTransactionCompleted } from "../utils/helpers";
 import { Conversation } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
@@ -37,6 +45,7 @@ export const ManageMembersDialog = ({
   const { members, addMember, removeMember, onPairMissing, currentMemberKeys } =
     useMembers(setLoading, open, conversation);
   const membersAreaRef = useRef<HTMLDivElement>(null);
+  const { isMobile } = useMobile();
 
   const handleOpen = () => setOpen(!open);
   const groupName = conversation.messages[0].RecipientInfo.AccessGroupKeyName;
@@ -73,29 +82,70 @@ export const ManageMembersDialog = ({
     if (!appUser) {
       return Promise.reject(new Error("You are not logged in."));
     }
-
     return updateMembers(
       groupName,
       memberKeys,
       async (groupEntries?: Array<AccessGroupEntryResponse>) => {
-        const accessGroupDerivation =
-          await identity.accessGroupStandardDerivation(groupName);
+        let accessGroupKeyInfo: AccessGroupPrivateInfo;
+        // We first try to decrypt the group's private key that was encrypted to the group owner's
+        // default key. This is safer than simply using the standard derivation since
+        // the standard derivation could have been computed incorrectly. This way we know that
+        // the new member will have the same encryption key as the rest of the group.
+        try {
+          const resp =
+            await desoAPI.accessGroup.GetAllUserAccessGroupsMemberOnly({
+              PublicKeyBase58Check: appUser.PublicKeyBase58Check,
+            });
+
+          const encryptedKey = (resp.AccessGroupsMember ?? []).find(
+            (accessGroupEntry) =>
+              accessGroupEntry &&
+              accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check ===
+                appUser.PublicKeyBase58Check &&
+              accessGroupEntry.AccessGroupKeyName === groupName &&
+              accessGroupEntry.AccessGroupMemberEntryResponse
+          )?.AccessGroupMemberEntryResponse?.EncryptedKey;
+
+          if (encryptedKey) {
+            const keys = await identity.decryptAccessGroupKeyPair(encryptedKey);
+            const pkBs58Check = await publicKeyToBase58Check(keys.public);
+
+            accessGroupKeyInfo = {
+              AccessGroupPublicKeyBase58Check: pkBs58Check,
+              AccessGroupPrivateKeyHex: keys.seedHex,
+              AccessGroupKeyName: groupName,
+            };
+          }
+        } catch (e) {
+          // If, for any reason, we fail to recover the group's private key
+          // we will fall back to the standard derivation.
+          accessGroupKeyInfo = await identity.accessGroupStandardDerivation(
+            groupName
+          );
+          // TODO: make sure these are the same and then remove the old one.
+          const oldImpl = await desoAPI.utils.getAccessGroupStandardDerivation(
+            appUser.primaryDerivedKey.messagingPrivateKey,
+            groupName
+          );
+        }
+
         const tx = await desoAPI.accessGroup.AddAccessGroupMembers(
           {
-            AccessGroupOwnerPublicKeyBase58Check: appUser?.PublicKeyBase58Check,
+            AccessGroupOwnerPublicKeyBase58Check:
+              desoAPI.identity.getUserKey() as string,
             AccessGroupKeyName: groupName,
-            AccessGroupMemberList: await Promise.all(
-              (groupEntries || []).map(async (accessGroupEntry) => {
+            AccessGroupMemberList: (groupEntries || []).map(
+              (accessGroupEntry) => {
                 return {
                   AccessGroupMemberPublicKeyBase58Check:
                     accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
                   AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-                  EncryptedKey: await encrypt(
+                  EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
                     accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                    accessGroupDerivation.accessGroupPrivateKeyHex
+                    accessGroupKeyInfo.AccessGroupPrivateKeyHex
                   ),
                 };
-              })
+              }
             ),
             MinFeeRateNanosPerKB: 1000,
           },
@@ -105,7 +155,6 @@ export const ManageMembersDialog = ({
         );
 
         const signedTx = await identity.signAndSubmit(tx);
-
         return checkTransactionCompleted(signedTx.TxnHashHex);
       }
     );
@@ -168,7 +217,7 @@ export const ManageMembersDialog = ({
         GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
           return {
             GroupOwnerPublicKeyBase58Check: pubKey,
-            GroupKeyName: "default-key",
+            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           };
         }),
       });
@@ -208,7 +257,7 @@ export const ManageMembersDialog = ({
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
             <div className="mb-4">
-              <div className="mb-8">
+              <div className="mb-4 md:mb-8">
                 <div className="mb-2 text-blue-100">
                   Chat: <span className="font-semibold">{groupName}</span>
                 </div>
@@ -260,11 +309,11 @@ export const ManageMembersDialog = ({
                       <MessagingDisplayAvatar
                         username={member.text}
                         publicKey={member.id}
-                        diameter={50}
+                        diameter={isMobile ? 40 : 50}
                         classNames="mx-0"
                       />
                       <div className="flex justify-between align-center flex-1">
-                        <div className="ml-4">
+                        <div className="ml-2 md:ml-4">
                           <div className="font-medium">{member.text}</div>
                           {currentMemberKeys.includes(member.id) && (
                             <div className="text-xs">Already in the chat</div>

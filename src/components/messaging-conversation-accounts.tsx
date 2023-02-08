@@ -197,7 +197,7 @@ export const MessagingGroupMembers: FC<{
 
       {hiddenMembersNum > 0 && (
         <Tooltip content={`${hiddenMembersNum} members more in this group`}>
-          <div className="-ml-2 rounded-full bg-indigo-50 w-[25px] h-[25px] text-center text-[10px] font-bold flex items-center justify-center">
+          <div className="-ml-2 rounded-full bg-indigo-50 w-[25px] h-[25px] text-center text-[10px] font-black flex items-center justify-center">
             {hiddenMembersNum > MAX_MEMBERS_TO_REQUEST_IN_GROUP
               ? `>${MAX_MEMBERS_TO_REQUEST_IN_GROUP}`
               : `+${hiddenMembersNum}`}
