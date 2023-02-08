@@ -50,7 +50,7 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
 
   return (
     <Fragment>
-      <Dialog open={true} handler={onClose} className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]">
+      <Dialog open={true} handler={onClose} className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%] max-h-[95%] overflow-y-auto custom-scrollbar">
         <DialogHeader className="text-blue-100">Get $DESO to get started</DialogHeader>
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
@@ -60,14 +60,14 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
                 No deso funds found for your address:
 
                 <div>
-                  <div className="bg-gray-700 text-white px-4 py-2 mt-1 rounded mx-auto inline-block">
+                  <div className="bg-gray-700 text-white px-2 md:px-4 py-2 my-2 md:my-3 rounded mx-auto inline-block">
                     <SaveToClipboard text={deso.identity.getUserKey() || ""}>
                       {shortenLongWord(deso.identity.getUserKey(), 8, 8)}
                     </SaveToClipboard>
                   </div>
                 </div>
 
-                <br/>Click "Get $DESO" button below to add some through phone verification. Otherwise you can send $DESO from another account.
+                Click "Get $DESO" button below to add some through phone verification. Otherwise you can send $DESO from another account.
               </div>
             </AlertNotification>
 
