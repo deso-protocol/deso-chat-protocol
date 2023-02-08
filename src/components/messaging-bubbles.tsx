@@ -191,7 +191,7 @@ export const MessagingBubblesAndAvatar: FC<{
           }
 
           const timestamp = (
-            <div className={`text-xs text-blue-100/30 mt-1 ${IsSender ? 'text-right' : 'text-left'}`}>
+            <div className={`whitespace-nowrap text-xs text-blue-100/30 mt-1 ${IsSender ? 'text-right' : 'text-left'}`}>
               {convertTstampToDateTime(message.MessageInfo.TimestampNanos)}
             </div>
           )

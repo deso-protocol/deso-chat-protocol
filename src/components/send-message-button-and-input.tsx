@@ -1,4 +1,3 @@
-import ClipLoader from 'react-spinners/ClipLoader';
 import { useState } from 'react';
 import { Button, Textarea } from "@material-tailwind/react";
 import { toast } from "react-toastify";
@@ -13,6 +12,27 @@ export const SendMessageButtonAndInput = ({
   const [isSending, setIsSending] = useState(false);
   const [messageToSend, setMessageToSend] = useState('');
 
+  const sendMessage = async () => {
+    if (messageToSend === '') {
+      toast.warning('The provided message is empty');
+      return;
+    }
+    if (isSending) {
+      toast.warning('Please wait a second before sending another message');
+      return;
+    }
+    setIsSending(true);
+    setMessageToSend('');
+    try {
+      await onClick(messageToSend)
+    } catch (e) {
+      // If the onClick handler failed, reset the messageToSend
+      // so the sender doesn't lose it.
+      setMessageToSend(messageToSend)
+    }
+    setIsSending(false);
+  }
+
   return (
     <div className="flex justify-center items-start w-full p-0 pb-2 md:p-4 md:pb-2">
       <div className="flex-1">
@@ -22,6 +42,16 @@ export const SendMessageButtonAndInput = ({
             label="What's on your mind?"
             onChange={(e) => {
               setMessageToSend(e.target.value);
+            }}
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                await sendMessage();
+              }
+            }}
+            onKeyUp={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                setMessageToSend(messageToSend.trim());
+              }
             }}
             value={messageToSend}
           />
@@ -33,8 +63,6 @@ export const SendMessageButtonAndInput = ({
             onChange={(e) => {
               setMessageToSend(e.target.value);
             }}
-            onFocus={() => {
-            }}
             placeholder="What's on your mind?"
             value={messageToSend}
           />
@@ -42,36 +70,14 @@ export const SendMessageButtonAndInput = ({
       </div>
       <div className="flex h-[100px] items-center">
         <Button
-          onClick={async () => {
-            if (messageToSend === '') {
-              toast.warning('The provided message is empty');
-              return;
-            }
-            setIsSending(true);
-            try {
-              await onClick(messageToSend);
-            } catch (e: any) {
-              setIsSending(false);
-              toast.error(`There was an issue when sending your message. Error: ${e.toString()}`);
-              console.error(e);
-              return;
-            }
-            setMessageToSend('');
-            setIsSending(false);
-          }}
+          onClick={sendMessage}
           className='bg-[#ffda59] ml-4 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg'
         >
           <div className="flex justify-center md:w-[80px]">
-            {isSending ? (
-              <ClipLoader color={'#6d4800'} loading={true} size={28} className="mx-2" />
-            ) : (
-              <>
-                <div className="hidden md:block mx-2">Send</div>
-                <div className="visible md:hidden mx-2">
-                  <img src="/assets/send.png" width={28} />
-                </div>
-              </>
-            )}
+            <div className="hidden md:block mx-2">Send</div>
+            <div className="visible md:hidden mx-2">
+              <img src="/assets/send.png" width={28} />
+            </div>
           </div>
         </Button>
       </div>
