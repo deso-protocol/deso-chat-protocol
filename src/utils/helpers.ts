@@ -57,10 +57,11 @@ export const isMaybeENSName = (query: string): boolean => {
 };
 
 export const formatDisplayName = (user: AppUser) => {
-  return (
-    `@${user?.ProfileEntryResponse?.Username}` ??
-    shortenLongWord(user?.PublicKeyBase58Check)
-  );
+  const maybeUserName = user?.ProfileEntryResponse?.Username;
+
+  return maybeUserName
+    ? `@${maybeUserName}`
+    : shortenLongWord(user?.PublicKeyBase58Check);
 };
 
 export const hasSetupMessaging = (user: AppUser | null) => {

@@ -11,7 +11,7 @@ import { desoAPI } from "./services/deso.service";
 
 identity.configure({
   identityURI: process.env.REACT_APP_IDENTITY_URL,
-  nodeURI: process.env.REACT_APP_API_URL,
+  nodeURI: process.env.REACT_APP_API_URL?.replace("/api/v0", ""),
   network: process.env.REACT_APP_IS_TESTNET ? "testnet" : "mainnet",
   spendingLimitOptions: { IsUnlimited: true },
 });
@@ -49,12 +49,13 @@ function App() {
         }
 
         if (
+          currentUser &&
+          currentUser?.publicKey !== userState.appUser?.PublicKeyBase58Check &&
           [
+            NOTIFICATION_EVENTS.SUBSCRIBE,
             NOTIFICATION_EVENTS.LOGIN_END,
             NOTIFICATION_EVENTS.CHANGE_ACTIVE_USER,
-          ].includes(event as NOTIFICATION_EVENTS) &&
-          currentUser &&
-          currentUser?.publicKey !== userState.appUser?.PublicKeyBase58Check
+          ].includes(event)
         ) {
           setUserState((state) => ({ ...state, isLoadingUser: true }));
           Promise.all([
@@ -105,7 +106,7 @@ function App() {
               }
             })
             .finally(() => {
-              setUserState((state) => ({ ...state, isLoading: false }));
+              setUserState((state) => ({ ...state, isLoadingUser: false }));
             });
           return;
         }
