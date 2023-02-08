@@ -391,7 +391,7 @@ export const MessagingApp: FC = () => {
                   />
                 </div>
               )}
-              {!autoFetchConversations && hasSetupMessaging(appUser) && (
+              {!autoFetchConversations && !hasSetupMessaging(appUser) && (
                 <>
                   <div>
                     {appUser ? (

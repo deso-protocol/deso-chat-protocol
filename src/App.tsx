@@ -31,6 +31,15 @@ function App() {
 
       // TODO: fix event type to be NOTIFICATION_EVENTS
       identity.subscribe(({ event, currentUser, alternateUsers }) => {
+        if (!currentUser && !alternateUsers) {
+          setUserState((state) => ({
+            ...state,
+            appUser: null,
+            isLoadingUser: false,
+          }));
+          return;
+        }
+
         if (
           event === NOTIFICATION_EVENTS.AUTHORIZE_DERIVED_KEY_START &&
           currentUser
@@ -106,12 +115,6 @@ function App() {
             const fallbackUser = Object.values(alternateUsers)[0];
             identity.setActiveUser(fallbackUser.publicKey);
             return;
-          } else {
-            setUserState((state) => ({
-              ...state,
-              appUser: null,
-              isLoadingUser: false,
-            }));
           }
           return;
         }
