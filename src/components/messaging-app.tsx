@@ -9,6 +9,7 @@ import { MessagingBubblesAndAvatar } from './messaging-bubbles';
 import ClipLoader from 'react-spinners/ClipLoader';
 import {
   ChatType,
+  DecryptedMessageEntryResponse,
   DerivedPrivateUserInfo,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
@@ -18,6 +19,7 @@ import { ManageMembersDialog } from "./manage-members-dialog";
 import { Card, CardBody } from "@material-tailwind/react";
 import { DesoContext } from "../contexts/desoContext";
 import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
@@ -51,7 +53,14 @@ export const MessagingApp: FC = () => {
 
       if (key) {
         const derivedResponse = getDerivedKeyResponse(key); //have they set a derived key before?
-        const hasSetupMessagingAlready = !!derivedResponse.derivedPublicKeyBase58Check;
+        const hasDerivedKeyResponse = !!derivedResponse.derivedPublicKeyBase58Check;
+        let hasSetupMessagingAlready = false;
+        if (hasDerivedKeyResponse) {
+          const ownedGroups = await deso.accessGroup.GetAllUserAccessGroupsOwned({
+            PublicKeyBase58Check: key,
+          });
+          hasSetupMessagingAlready = !!ownedGroups.AccessGroupsOwned?.find((group) => group?.AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME);
+        }
         setHasSetupAccount(hasSetupMessagingAlready);
         setLoggedInPublicKey(key);
         if (hasSetupMessagingAlready) {
@@ -439,21 +448,71 @@ export const MessagingApp: FC = () => {
                 <SendMessageButtonAndInput
                   key={selectedConversationPublicKey}
                   onClick={async (messageToSend: string) => {
+                    // Generate a mock message to display in the UI to give
+                    // the user immediate feedback.
+                    const TimestampNanos = new Date().getTime() * 1e6;
+                    const recipientPublicKey = selectedConversation.ChatType === ChatType.DM ?
+                      selectedConversation.firstMessagePublicKey :
+                      selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check;
+                    const recipientAccessGroupKeyName = selectedConversation.ChatType === ChatType.DM ?
+                        DEFAULT_KEY_MESSAGING_GROUP_NAME :
+                        selectedConversation.messages[0].RecipientInfo.AccessGroupKeyName;
+                    const mockMessage = {
+                      DecryptedMessage: messageToSend,
+                      IsSender: true,
+                      SenderInfo: {
+                        OwnerPublicKeyBase58Check: deso.identity.getUserKey() as string,
+                        AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+                      },
+                      RecipientInfo: {
+                        OwnerPublicKeyBase58Check: recipientPublicKey,
+                        AccessGroupKeyName: recipientAccessGroupKeyName,
+                      },
+                      MessageInfo: {
+                        TimestampNanos,
+                      }
+                    };
+                    // Put this new message into the conversations object.
+                    const newMessages = conversations[selectedConversationPublicKey].messages;
+                    newMessages.unshift(mockMessage as DecryptedMessageEntryResponse);
+                    setConversations((prevConversations) => ({
+                      ...prevConversations,
+                      [selectedConversationPublicKey]: {
+                        ...prevConversations[selectedConversationPublicKey],
+                        ...{
+                          messages: newMessages,
+                        }
+                      }
+                    }))
                     try {
-                      // TODO: fix for group chat sends. need to use encrypted key
+                      // Try sending the message
                       await encryptAndSendNewMessage(
                         deso,
                         messageToSend,
                         derivedResponse.derivedSeedHex as string,
                         derivedResponse.messagingPrivateKey as string,
-                        selectedConversation.ChatType === ChatType.DM ? selectedConversation.firstMessagePublicKey : selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check,
+                        recipientPublicKey,
                         true,
-                        selectedConversation.ChatType === ChatType.DM ? 'default-key' : selectedConversation.messages[0].RecipientInfo.AccessGroupKeyName,
+                        recipientAccessGroupKeyName,
                         'default-key',
                       );
-                      await getConversation(selectedConversationPublicKey, undefined, true);
                     } catch (e: any) {
-                      toast.error(`There is a problem happened during sending your message. Error: ${e.toString()}`);
+                      // If we fail to send the message for any reason, remove the mock message
+                      // by shifting the newMessages array and then updating the conversations
+                      // object.
+                      newMessages.shift();
+                      setConversations((prevConversations) => ({
+                        ...prevConversations,
+                        [selectedConversationPublicKey]: {
+                          ...prevConversations[selectedConversationPublicKey],
+                          ...{
+                            messages: newMessages,
+                          }
+                        }
+                      }));
+                      toast.error(`An error occurred while sending your message. Error: ${e.toString()}`);
+                      // Rethrow the error so that the caller can handle it.
+                      return Promise.reject(e);
                     }
                   }}
                 />
