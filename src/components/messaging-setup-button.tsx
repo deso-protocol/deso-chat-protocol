@@ -1,8 +1,7 @@
 import { identity } from "@deso-core/identity";
 import { Button } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
-import { DerivedPrivateUserInfo } from "deso-protocol-types";
-import { FC, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { desoAPI } from "services/deso.service";
@@ -10,9 +9,7 @@ import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "utils/constants";
 import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";
 
-export const MessagingSetupButton: FC<{
-  setDerivedResponse: (d: Partial<DerivedPrivateUserInfo>) => void;
-}> = ({ setDerivedResponse }) => {
+export const MessagingSetupButton = () => {
   const { appUser, isLoadingUser, setAccessGroups } = useContext(UserContext);
   const [isSettingUpMessage, setIsSettingUpMessaging] =
     useState<boolean>(false);

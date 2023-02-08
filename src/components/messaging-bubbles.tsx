@@ -180,7 +180,7 @@ export const MessagingBubblesAndAvatar: FC<{
       return;
     }
 
-    const decrypted = decryptAccessGroupMessages(
+    const decrypted = await decryptAccessGroupMessages(
       appUser.PublicKeyBase58Check,
       messages,
       allMyAccessGroups,

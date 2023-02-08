@@ -1,4 +1,4 @@
-import { identity } from "@deso-core/identity";
+import { encrypt, identity } from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -19,11 +19,7 @@ import React, {
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
-import {
-  encryptAccessGroupPrivateKeyToMemberDefaultKey,
-  encryptAndSendNewMessage,
-  getAccessGroupStandardDerivation,
-} from "../services/crypto.service";
+import { encryptAndSendNewMessage } from "../services/crypto.service";
 import { desoAPI } from "../services/deso.service";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SearchUsers } from "./search-users";
@@ -91,9 +87,11 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
     setLoading(true);
 
     try {
-      // TODO: replace this derivation thing with the lib
-      const accessGroupDerivation = getAccessGroupStandardDerivation(
-        appUser.primaryDerivedKey.messagingPublicKeyBase58Check,
+      // TODO: figure out the right way to replace this derivation thing with
+      // the lib. Also the thing says it takes a seed, but we were passing the
+      // public key. Something is wrong, but i'm not sure if its the argument
+      // naming or if we're actually just passing the wrong thing here.
+      const accessGroupKeyInfo = await identity.accessGroupStandardDerivation(
         groupName
       );
 
@@ -102,7 +100,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           AccessGroupKeyName: groupName,
           AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           AccessGroupPublicKeyBase58Check:
-            accessGroupDerivation.AccessGroupPublicKeyBase58Check,
+            accessGroupKeyInfo.accessGroupPublicKeyBase58Check,
           MinFeeRateNanosPerKB: 1000,
         },
         {
@@ -133,17 +131,19 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         {
           AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           AccessGroupKeyName: groupName,
-          AccessGroupMemberList: AccessGroupEntries.map((accessGroupEntry) => {
-            return {
-              AccessGroupMemberPublicKeyBase58Check:
-                accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
-              AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-              EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
-                accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                accessGroupDerivation.AccessGroupPrivateKeyHex
-              ),
-            };
-          }),
+          AccessGroupMemberList: await Promise.all(
+            AccessGroupEntries.map(async (accessGroupEntry) => {
+              return {
+                AccessGroupMemberPublicKeyBase58Check:
+                  accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
+                AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
+                EncryptedKey: await encrypt(
+                  accessGroupEntry.AccessGroupPublicKeyBase58Check,
+                  accessGroupKeyInfo.accessGroupPrivateKeyHex
+                ),
+              };
+            })
+          ),
           MinFeeRateNanosPerKB: 1000,
         },
         {
@@ -156,12 +156,12 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       // And we'll send a message just so it pops up for convenience
       await encryptAndSendNewMessage(
         `Hi. This is my first message to "${groupName}"`,
-        appUser,
         appUser.PublicKeyBase58Check,
-        accessGroupDerivation.AccessGroupKeyName
+        appUser.PublicKeyBase58Check,
+        groupName
       );
 
-      return `${appUser.PublicKeyBase58Check}${accessGroupDerivation.AccessGroupKeyName}`;
+      return `${appUser.PublicKeyBase58Check}${accessGroupKeyInfo.accessGroupKeyName}`;
     } catch {
       toast.error(
         "something went wrong while submitting the add members transaction"

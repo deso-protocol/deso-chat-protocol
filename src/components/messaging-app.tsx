@@ -1,4 +1,3 @@
-import { PrimaryDerivedKeyInfo } from "@deso-core/identity";
 import { Card, CardBody } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
 import {
@@ -46,8 +45,6 @@ export const MessagingApp: FC = () => {
   const { appUser } = useContext(UserContext);
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
     useState<{ [key: string]: string }>({});
-  const [derivedResponse, setDerivedResponse] =
-    useState<PrimaryDerivedKeyInfo>();
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
   const [pubKeyPlusGroupName, setPubKeyPlusGroupName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -61,7 +58,6 @@ export const MessagingApp: FC = () => {
 
   useEffect(() => {
     if (!appUser) return;
-    setDerivedResponse(appUser.primaryDerivedKey);
     if (hasSetupMessaging(appUser)) {
       rehydrateConversation("", false, !isMobile);
     }
@@ -157,8 +153,7 @@ export const MessagingApp: FC = () => {
     }
 
     const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
-      appUser.PublicKeyBase58Check,
-      appUser.primaryDerivedKey
+      appUser
     );
     let conversationsResponse = res || {};
     const keyToUse =
@@ -257,7 +252,7 @@ export const MessagingApp: FC = () => {
         ...(myAccessGroups.AccessGroupsMember || []),
       ])
     );
-    const derivedKeyResponse = appUser.primaryDerivedKey;
+
     if (currentConvo.ChatType === ChatType.DM) {
       const messages =
         await desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
@@ -270,11 +265,11 @@ export const MessagingApp: FC = () => {
           StartTimeStamp: new Date().valueOf() * 1e6,
         });
 
-      const decrypted = decryptAccessGroupMessages(
+      const decrypted = await decryptAccessGroupMessages(
         appUser.PublicKeyBase58Check,
         messages.ThreadMessages,
         allMyAccessGroups,
-        { decryptedKey: derivedKeyResponse.messagingPrivateKey }
+        { decryptedKey: appUser.primaryDerivedKey.messagingPrivateKey }
       );
 
       const updatedConversations = {
@@ -310,11 +305,13 @@ export const MessagingApp: FC = () => {
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         });
 
-      const decrypted = decryptAccessGroupMessages(
+      const decrypted = await decryptAccessGroupMessages(
         appUser.PublicKeyBase58Check,
         messages.GroupChatMessages,
         allMyAccessGroups,
-        { decryptedKey: derivedKeyResponse.messagingPrivateKey as string }
+        {
+          decryptedKey: appUser.primaryDerivedKey.messagingPrivateKey as string,
+        }
       );
 
       const updatedConversations = {
@@ -436,7 +433,7 @@ export const MessagingApp: FC = () => {
           </Card>
         </div>
       )}
-      {conversationsReady && derivedResponse && (
+      {conversationsReady && appUser?.primaryDerivedKey && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount
@@ -446,11 +443,9 @@ export const MessagingApp: FC = () => {
                 await getConversation(key);
               }}
               membersByGroupKey={membersByGroupKey}
-              deso={desoAPI}
               conversations={conversations}
               getUsernameByPublicKeyBase58Check={usernameByPublicKeyBase58Check}
               selectedConversationPublicKey={selectedConversationPublicKey}
-              derivedResponse={derivedResponse}
             />
           </Card>
 
@@ -486,10 +481,10 @@ export const MessagingApp: FC = () => {
               </div>
 
               <div className="flex justify-end">
-                {isGroupOwner && derivedResponse ? (
+                {isGroupOwner && appUser?.primaryDerivedKey ? (
                   <ManageMembersDialog
                     conversation={selectedConversation}
-                    derivedResponse={derivedResponse}
+                    derivedResponse={appUser.primaryDerivedKey}
                     onSuccess={rehydrateConversation}
                   />
                 ) : selectedConversation && isGroupChat ? (
@@ -546,15 +541,19 @@ export const MessagingApp: FC = () => {
                 <SendMessageButtonAndInput
                   key={selectedConversationPublicKey}
                   onClick={async (messageToSend: string) => {
+                    if (!appUser) {
+                      throw new Error("App user is not available");
+                    }
+
                     try {
-                      if (!derivedResponse.derivedSeedHex) {
+                      if (!appUser.primaryDerivedKey.derivedSeedHex) {
                         throw new Error("Derived seed is not available");
                       }
 
                       // TODO: fix for group chat sends. need to use encrypted key
                       await encryptAndSendNewMessage(
                         messageToSend,
-                        appUser,
+                        appUser.PublicKeyBase58Check,
                         selectedConversation.ChatType === ChatType.DM
                           ? selectedConversation.firstMessagePublicKey
                           : selectedConversation.messages[0].RecipientInfo

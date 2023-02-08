@@ -1,4 +1,4 @@
-import { identity, PrimaryDerivedKeyInfo } from "@deso-core/identity";
+import { encrypt, identity, PrimaryDerivedKeyInfo } from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -13,7 +13,6 @@ import React, { Fragment, useContext, useRef, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
-import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto.service";
 import { desoAPI } from "../services/deso.service";
 import { checkTransactionCompleted } from "../utils/helpers";
 import { Conversation } from "../utils/types";
@@ -80,27 +79,23 @@ export const ManageMembersDialog = ({
       memberKeys,
       async (groupEntries?: Array<AccessGroupEntryResponse>) => {
         const accessGroupDerivation =
-          desoAPI.utils.getAccessGroupStandardDerivation(
-            derivedResponse.messagingPublicKeyBase58Check as string,
-            groupName
-          );
-
+          await identity.accessGroupStandardDerivation(groupName);
         const tx = await desoAPI.accessGroup.AddAccessGroupMembers(
           {
             AccessGroupOwnerPublicKeyBase58Check: appUser?.PublicKeyBase58Check,
             AccessGroupKeyName: groupName,
-            AccessGroupMemberList: (groupEntries || []).map(
-              (accessGroupEntry) => {
+            AccessGroupMemberList: await Promise.all(
+              (groupEntries || []).map(async (accessGroupEntry) => {
                 return {
                   AccessGroupMemberPublicKeyBase58Check:
                     accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
                   AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-                  EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
+                  EncryptedKey: await encrypt(
                     accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                    accessGroupDerivation.AccessGroupPrivateKeyHex
+                    accessGroupDerivation.accessGroupPrivateKeyHex
                   ),
                 };
-              }
+              })
             ),
             MinFeeRateNanosPerKB: 1000,
           },
