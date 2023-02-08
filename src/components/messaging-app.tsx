@@ -510,7 +510,7 @@ export const MessagingApp: FC = () => {
                           }
                         }
                       }));
-                      toast.error(`There was a problem encountered while sending your message. Error: ${e.toString()}`);
+                      toast.error(`An error occurred while sending your message. Error: ${e.toString()}`);
                       // Rethrow the error so that the caller can handle it.
                       return Promise.reject(e);
                     }
