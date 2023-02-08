@@ -7,7 +7,7 @@ import {
 } from 'deso-protocol-types';
 import { decryptAccessGroupMessages, encryptAndSendNewMessage } from "./crypto-utils.service";
 import { toast } from "react-toastify";
-import { USER_TO_SEND_MESSAGE_TO } from "../utils/constants";
+import { DEFAULT_KEY_MESSAGING_GROUP_NAME, USER_TO_SEND_MESSAGE_TO } from "../utils/constants";
 import { ConversationMap } from "../utils/types";
 import { checkTransactionCompleted } from "./backend.service";
 
@@ -22,7 +22,7 @@ export const getConversationsNewMap = async (
   const Conversations: ConversationMap = {};
   decryptedMessageResponses.forEach((dmr) => {
     const otherInfo = dmr.ChatType === ChatType.DM ? (dmr.IsSender ? dmr.RecipientInfo : dmr.SenderInfo ) : dmr.RecipientInfo;
-    const key = otherInfo.OwnerPublicKeyBase58Check + (otherInfo.AccessGroupKeyName ? otherInfo.AccessGroupKeyName : 'default-key');
+    const key = otherInfo.OwnerPublicKeyBase58Check + (otherInfo.AccessGroupKeyName ? otherInfo.AccessGroupKeyName : DEFAULT_KEY_MESSAGING_GROUP_NAME);
     const currentConversation = Conversations[key];
     if (currentConversation) {
       currentConversation.messages.push(dmr);
