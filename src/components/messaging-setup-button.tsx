@@ -18,7 +18,6 @@ export const MessagingSetupButton: FC<{
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [balance, setBalance] = useState<number>(0);
-  const [interval, setInterval] = useState<number>(0);
   const [loadedBalance, setLoadedBalance] = useState<boolean>(false);
 
   useEffect(() => {
@@ -33,8 +32,6 @@ export const MessagingSetupButton: FC<{
 
   useEffect(() => {
     const intervalId = pollUserBalanceNanos(deso, setBalance);
-    setInterval(intervalId);
-
     return () => clearInterval(intervalId);
   }, []);
 

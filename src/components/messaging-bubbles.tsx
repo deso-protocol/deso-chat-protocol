@@ -7,6 +7,7 @@ import { decryptAccessGroupMessages } from "../services/crypto-utils.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME, MESSAGES_ONE_REQUEST_LIMIT } from "../utils/constants";
 import {
   ChatType,
+  DecryptedMessageEntryResponse,
   GetPaginatedMessagesForDmThreadResponse,
   GetPaginatedMessagesForGroupChatThreadResponse,
 } from "deso-protocol-types";
@@ -19,6 +20,7 @@ export interface MessagingBubblesProps {
   conversationPublicKey: string;
   deso: Deso;
   getUsernameByPublicKey: { [k: string]: string };
+  onScroll: (e: Array<DecryptedMessageEntryResponse>) => void;
 }
 
 function convertTstampToDateTime(tstampNanos: number) {
@@ -45,17 +47,13 @@ function convertTstampToDateTime(tstampNanos: number) {
   return date.toLocaleString("default", { hour: "numeric", minute: "numeric" });
 }
 
-export const MessagingBubblesAndAvatar: FC<{
-  conversations: ConversationMap;
-  conversationPublicKey: string;
-  deso: Deso;
-  getUsernameByPublicKey: { [k: string]: string };
-}> = ({
-        conversations,
-        conversationPublicKey,
-        deso,
-        getUsernameByPublicKey,
-      }: MessagingBubblesProps) => {
+export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
+  conversations,
+  conversationPublicKey,
+  deso,
+  getUsernameByPublicKey,
+  onScroll,
+}: MessagingBubblesProps) => {
   const messageAreaRef = useRef<HTMLDivElement>(null);
 
   const conversation = conversations[conversationPublicKey] ?? { messages: [] };
@@ -78,7 +76,7 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-hidden");
     }
 
-    const hasUnreadMessages = JSON.stringify(visibleMessages[0]) !== JSON.stringify(conversation.messages[0]);
+    const hasUnreadMessages = visibleMessages[0].MessageInfo.TimestampNanosString !== conversation.messages[0].MessageInfo.TimestampNanosString;
     const isLastMessageFromMe = conversation.messages[0].IsSender;
 
     setVisibleMessages(conversation.messages);
@@ -92,10 +90,12 @@ export const MessagingBubblesAndAvatar: FC<{
 
     if (hasUnreadMessages && isLastMessageFromMe && (isMobile || element.scrollTop !== 0)) {
       // Always scroll to the last message if it's a new message from the current user
-      const scrollerStub = element.querySelector(".scroller-end-stub");
-      scrollerStub && scrollerStub.scrollIntoView({
-        behavior: "smooth",
-      });
+      setTimeout(() => {
+        const scrollerStub = element.querySelector(".scroller-end-stub");
+        scrollerStub && scrollerStub.scrollIntoView({
+          behavior: "smooth",
+        });
+      }, 500);
     }
   }, [conversations, conversationPublicKey]);
 
@@ -155,7 +155,7 @@ export const MessagingBubblesAndAvatar: FC<{
       { decryptedKey: derivedKeyResponse.messagingPrivateKey as string }
     );
 
-    setVisibleMessages(prev => [...prev, ...decrypted]);
+    onScroll(decrypted);
   }
 
   return (
@@ -165,7 +165,7 @@ export const MessagingBubblesAndAvatar: FC<{
       id="scrollableArea"
     >
       <InfiniteScroll
-        dataLength={visibleMessages.length}
+        dataLength={conversation.messages.length}
         next={loadMore}
         style={{ display: 'flex', flexDirection: 'column-reverse' }}
         inverse={true}
