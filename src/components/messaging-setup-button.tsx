@@ -43,7 +43,7 @@ export const MessagingSetupButton: FC<{
 
     try {
       // are they already logged in? if not prompt them
-      const res = await deso.identity.login();
+      const res = await deso.identity.login('1');
       const key = res.key;
       if (!key) {
         toast.error('Failed to login');
