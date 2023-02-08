@@ -1,5 +1,6 @@
 import {
   AccessGroupPrivateInfo,
+  encrypt,
   identity,
   PrimaryDerivedKeyInfo,
   publicKeyToBase58Check,
@@ -19,7 +20,6 @@ import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
 import { useMobile } from "../hooks/useMobile";
-import { encryptAccessGroupPrivateKeyToMemberDefaultKey } from "../services/crypto-utils.service";
 import { desoAPI } from "../services/deso.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { checkTransactionCompleted } from "../utils/helpers";
@@ -134,18 +134,18 @@ export const ManageMembersDialog = ({
             AccessGroupOwnerPublicKeyBase58Check:
               desoAPI.identity.getUserKey() as string,
             AccessGroupKeyName: groupName,
-            AccessGroupMemberList: (groupEntries || []).map(
-              (accessGroupEntry) => {
+            AccessGroupMemberList: await Promise.all(
+              (groupEntries || []).map(async (accessGroupEntry) => {
                 return {
                   AccessGroupMemberPublicKeyBase58Check:
                     accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
                   AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-                  EncryptedKey: encryptAccessGroupPrivateKeyToMemberDefaultKey(
+                  EncryptedKey: await encrypt(
                     accessGroupEntry.AccessGroupPublicKeyBase58Check,
                     accessGroupKeyInfo.AccessGroupPrivateKeyHex
                   ),
                 };
-              }
+              })
             ),
             MinFeeRateNanosPerKB: 1000,
           },
