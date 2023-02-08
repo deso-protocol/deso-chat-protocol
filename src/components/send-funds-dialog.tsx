@@ -45,7 +45,7 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
     const intervalId = pollUserBalanceNanos(deso, setBalanceNanos);
     setInterval(intervalId);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

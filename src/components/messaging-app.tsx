@@ -53,16 +53,11 @@ export const MessagingApp: FC = () => {
 
       if (key) {
         const derivedResponse = getDerivedKeyResponse(key); //have they set a derived key before?
-        const hasDerivedKeyResponse = !!derivedResponse.derivedPublicKeyBase58Check;
-        let hasSetupMessagingAlready = false;
-        if (hasDerivedKeyResponse) {
-          const ownedGroups = await deso.accessGroup.GetAllUserAccessGroupsOwned({
-            PublicKeyBase58Check: key,
-          });
-          hasSetupMessagingAlready = !!ownedGroups.AccessGroupsOwned?.find((group) => group?.AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME);
-        }
+        const hasSetupMessagingAlready = !!derivedResponse.derivedPublicKeyBase58Check;
+
         setHasSetupAccount(hasSetupMessagingAlready);
         setLoggedInPublicKey(key);
+
         if (hasSetupMessagingAlready) {
           setAutoFetchConversations(true);
           setDerivedResponse(derivedResponse);
