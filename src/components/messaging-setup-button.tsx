@@ -35,7 +35,9 @@ export const MessagingSetupButton: FC<{
     const intervalId = pollUserBalanceNanos(deso, setBalance);
     setInterval(intervalId);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   const login = async () => {
