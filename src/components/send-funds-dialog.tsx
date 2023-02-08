@@ -84,7 +84,7 @@ export const SendFundsDialog = ({ onSubmit, onClose }: StartGroupChatProps) => {
                     return;
                   }
 
-                  await deso.identity.phoneVerification('4', undefined, {
+                  await deso.identity.phoneVerification('1', undefined, {
                     publicKey: key,
                   });
                 }}>

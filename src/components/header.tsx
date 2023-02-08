@@ -109,7 +109,7 @@ export const Header = () => {
               <MenuItem
                 className="flex items-center"
                 onClick={async () => {
-                  await deso.identity.login();
+                  await deso.identity.login('1');
                   await window.location.reload();
                 }}
               >
