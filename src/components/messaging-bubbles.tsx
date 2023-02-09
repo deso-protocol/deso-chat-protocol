@@ -156,8 +156,6 @@ export const MessagingBubblesAndAvatar: FC<{
       ])
     );
 
-    const derivedKeyResponse = appUser.primaryDerivedKey;
-
     const messages =
       conversation.ChatType === ChatType.DM
         ? (dmOrGroupChatMessages as GetPaginatedMessagesForDmThreadResponse)

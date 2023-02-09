@@ -122,11 +122,6 @@ export const ManageMembersDialog = ({
           accessGroupKeyInfo = await identity.accessGroupStandardDerivation(
             groupName
           );
-          // TODO: make sure these are the same and then remove the old one.
-          const oldImpl = await desoAPI.utils.getAccessGroupStandardDerivation(
-            appUser.primaryDerivedKey.messagingPrivateKey,
-            groupName
-          );
         }
 
         const tx = await desoAPI.accessGroup.AddAccessGroupMembers(

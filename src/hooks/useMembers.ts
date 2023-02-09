@@ -66,7 +66,7 @@ export function useMembers(
         })
         .finally(() => setLoading(false));
     }
-  }, [open]);
+  }, [open, appUser]);
 
   const onPairMissing = () => {
     return toast.error(
@@ -105,7 +105,7 @@ export function useMembers(
       onAdded && onAdded();
     } catch (err: any) {
       toast.error(
-        "Cannot validate the selected user." + `\nError: ${err.toString()}`
+        `Cannot validate the selected user.\nError: ${err.toString()}`
       );
     }
   };
