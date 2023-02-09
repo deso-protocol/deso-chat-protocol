@@ -271,8 +271,7 @@ export const MessagingApp: FC = () => {
       const decrypted = await decryptAccessGroupMessages(
         appUser.PublicKeyBase58Check,
         messages.ThreadMessages,
-        allMyAccessGroups,
-        { decryptedKey: appUser.primaryDerivedKey.messagingPrivateKey }
+        allMyAccessGroups
       );
 
       const updatedConversations = {
@@ -311,10 +310,7 @@ export const MessagingApp: FC = () => {
       const decrypted = await decryptAccessGroupMessages(
         appUser.PublicKeyBase58Check,
         messages.GroupChatMessages,
-        allMyAccessGroups,
-        {
-          decryptedKey: appUser.primaryDerivedKey.messagingPrivateKey as string,
-        }
+        allMyAccessGroups
       );
 
       const updatedConversations = {

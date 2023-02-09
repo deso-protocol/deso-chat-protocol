@@ -8,7 +8,6 @@ import {
   Input,
 } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
-import uniq from "lodash/uniq";
 import React, {
   Fragment,
   useContext,
@@ -90,14 +89,9 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
     setLoading(true);
 
     try {
-      // TODO: figure out the right way to replace this derivation thing with
-      // the lib. Also the thing says it takes a seed, but we were passing the
-      // public key. Something is wrong, but i'm not sure if its the argument
-      // naming or if we're actually just passing the wrong thing here.
       const accessGroupKeyInfo = await identity.accessGroupStandardDerivation(
         groupName
       );
-
       const createGroupTx = await desoAPI.accessGroup.CreateAccessGroup(
         {
           AccessGroupKeyName: groupName,
@@ -113,8 +107,8 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
       await identity.signAndSubmit(createGroupTx);
 
-      const groupMembersArray = uniq(
-        [...memberKeys, appUser.PublicKeyBase58Check].filter((key) => !!key)
+      const groupMembersArray = Array.from(
+        new Set([...memberKeys, appUser.PublicKeyBase58Check])
       );
 
       const { AccessGroupEntries, PairsNotFound } =
@@ -165,7 +159,8 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       );
 
       return `${appUser.PublicKeyBase58Check}${accessGroupKeyInfo.AccessGroupKeyName}`;
-    } catch {
+    } catch (e) {
+      console.log(e);
       toast.error(
         "something went wrong while submitting the add members transaction"
       );

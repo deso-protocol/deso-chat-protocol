@@ -1,4 +1,3 @@
-import { PrimaryDerivedKeyInfo } from "@deso-core/identity";
 import { AppUser } from "contexts/UserContext";
 import {
   ChatType,
@@ -19,10 +18,10 @@ import {
 } from "./crypto.service";
 
 export const getConversationsNewMap = async (
-  derivedResponse: PrimaryDerivedKeyInfo
+  appUser: AppUser
 ): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
   const [decryptedMessageResponses, publicKeyToProfileEntryResponseMap] =
-    await getConversationNew(derivedResponse);
+    await getConversationNew(appUser);
   const Conversations: ConversationMap = {};
   decryptedMessageResponses.forEach((dmr) => {
     const otherInfo =
@@ -54,22 +53,22 @@ export const getConversationsNewMap = async (
 };
 
 export const getConversationNew = async (
-  derivedResponse: PrimaryDerivedKeyInfo
+  appUser: AppUser
 ): Promise<
   [DecryptedMessageEntryResponse[], PublicKeyToProfileEntryResponseMap]
 > => {
-  if (!derivedResponse) {
-    toast.error("No derived response found");
+  if (!appUser) {
+    toast.error("You must be logged in to get conversations");
     return [[], {}];
   }
 
   const [messages, { AccessGroupsOwned, AccessGroupsMember }] =
     await Promise.all([
       desoAPI.accessGroup.GetAllUserMessageThreads({
-        UserPublicKeyBase58Check: derivedResponse.publicKeyBase58Check,
+        UserPublicKeyBase58Check: appUser.PublicKeyBase58Check,
       }),
       desoAPI.accessGroup.GetAllUserAccessGroups({
-        PublicKeyBase58Check: derivedResponse.publicKeyBase58Check,
+        PublicKeyBase58Check: appUser.PublicKeyBase58Check,
       }),
     ]);
 
@@ -77,10 +76,9 @@ export const getConversationNew = async (
     new Set([...(AccessGroupsOwned || []), ...(AccessGroupsMember || [])])
   );
   const decryptedMessageEntries = await decryptAccessGroupMessages(
-    derivedResponse.publicKeyBase58Check,
+    appUser.PublicKeyBase58Check,
     messages.MessageThreads,
-    allAccessGroups,
-    { decryptedKey: derivedResponse.messagingPrivateKey as string }
+    allAccessGroups
   );
 
   return [decryptedMessageEntries, messages.PublicKeyToProfileEntryResponse];
@@ -90,16 +88,15 @@ export const getConversations = async (
   appUser: AppUser
 ): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
   try {
-    if (!appUser.primaryDerivedKey?.derivedSeedHex) {
+    if (!appUser) {
       toast.error("no derived private key available");
       return [{}, {}];
     }
 
     let [Conversations, publicKeyToProfileEntryResponseMap] =
-      await getConversationsNewMap(appUser.primaryDerivedKey);
+      await getConversationsNewMap(appUser);
 
-    let conversationsArray = Object.keys(Conversations);
-    if (conversationsArray.length === 0) {
+    if (Object.keys(Conversations).length === 0) {
       const txnHashHex = await encryptAndSendNewMessage(
         "Hi. This is my first test message!",
         appUser.PublicKeyBase58Check,
@@ -107,7 +104,7 @@ export const getConversations = async (
       );
       await checkTransactionCompleted(txnHashHex);
       [Conversations, publicKeyToProfileEntryResponseMap] =
-        await getConversationsNewMap(appUser.primaryDerivedKey);
+        await getConversationsNewMap(appUser);
     }
     return [Conversations, publicKeyToProfileEntryResponseMap];
   } catch (e: any) {

@@ -1,7 +1,6 @@
 import { shortenLongWord } from "components/search-users";
 import { AppUser } from "contexts/UserContext";
 import { ChatType } from "deso-protocol-types";
-import { reject } from "lodash";
 import { desoAPI } from "services/deso.service";
 import { PUBLIC_KEY_LENGTH, PUBLIC_KEY_PREFIX } from "./constants";
 import { Conversation } from "./types";
@@ -70,9 +69,8 @@ export const hasSetupMessaging = (user: AppUser | null) => {
   );
 };
 
-// TODO: delete this
 export const checkTransactionCompleted = (hashHex: string): Promise<void> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(async () => {
       desoAPI.transaction
         .getTransaction(hashHex)
@@ -83,7 +81,7 @@ export const checkTransactionCompleted = (hashHex: string): Promise<void> => {
             resolve(checkTransactionCompleted(hashHex));
           }
         })
-        .catch(() => reject("Error when getting transaction"));
+        .catch(() => reject(new Error("Error when getting transaction")));
     }, 150);
   });
 };
