@@ -39,7 +39,6 @@ function App() {
       // I guess we can leave it here for now, although it just adds unnecessary complexity imo.
       let pollingIntervalId = 0;
 
-      // TODO: fix event type to be NOTIFICATION_EVENTS
       identity.subscribe(({ event, currentUser, alternateUsers }) => {
         if (!currentUser && !alternateUsers) {
           setUserState((state) => ({
