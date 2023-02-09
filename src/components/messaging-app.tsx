@@ -156,7 +156,7 @@ export const MessagingApp: FC = () => {
     }
 
     const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
-      appUser
+      appUser.PublicKeyBase58Check
     );
     let conversationsResponse = res || {};
     const keyToUse =
@@ -269,7 +269,6 @@ export const MessagingApp: FC = () => {
         });
 
       const decrypted = await decryptAccessGroupMessages(
-        appUser.PublicKeyBase58Check,
         messages.ThreadMessages,
         allMyAccessGroups
       );
@@ -308,7 +307,6 @@ export const MessagingApp: FC = () => {
         });
 
       const decrypted = await decryptAccessGroupMessages(
-        appUser.PublicKeyBase58Check,
         messages.GroupChatMessages,
         allMyAccessGroups
       );
@@ -432,7 +430,7 @@ export const MessagingApp: FC = () => {
           </Card>
         </div>
       )}
-      {conversationsReady && appUser?.primaryDerivedKey && (
+      {conversationsReady && appUser && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount
@@ -480,10 +478,9 @@ export const MessagingApp: FC = () => {
               </div>
 
               <div className="flex justify-end">
-                {isGroupOwner && appUser?.primaryDerivedKey ? (
+                {isGroupOwner ? (
                   <ManageMembersDialog
                     conversation={selectedConversation}
-                    derivedResponse={appUser.primaryDerivedKey}
                     onSuccess={rehydrateConversation}
                   />
                 ) : selectedConversation && isGroupChat ? (

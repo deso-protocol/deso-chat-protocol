@@ -1,5 +1,4 @@
 import { identity } from "@deso-core/identity";
-import { AppUser } from "contexts/UserContext";
 import {
   AccessGroupEntryResponse,
   ChatType,
@@ -17,10 +16,10 @@ import { checkTransactionCompleted } from "../utils/helpers";
 import { ConversationMap } from "../utils/types";
 
 export const getConversationsNewMap = async (
-  appUser: AppUser
+  userPublicKeyBase58Check: string
 ): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
   const [decryptedMessageResponses, publicKeyToProfileEntryResponseMap] =
-    await getConversationNew(appUser);
+    await getConversationNew(userPublicKeyBase58Check);
   const Conversations: ConversationMap = {};
   decryptedMessageResponses.forEach((dmr) => {
     const otherInfo =
@@ -52,22 +51,17 @@ export const getConversationsNewMap = async (
 };
 
 export const getConversationNew = async (
-  appUser: AppUser
+  userPublicKeyBase58Check: string
 ): Promise<
   [DecryptedMessageEntryResponse[], PublicKeyToProfileEntryResponseMap]
 > => {
-  if (!appUser) {
-    toast.error("You must be logged in to get conversations");
-    return [[], {}];
-  }
-
   const [messages, { AccessGroupsOwned, AccessGroupsMember }] =
     await Promise.all([
       desoAPI.accessGroup.GetAllUserMessageThreads({
-        UserPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+        UserPublicKeyBase58Check: userPublicKeyBase58Check,
       }),
       desoAPI.accessGroup.GetAllUserAccessGroups({
-        PublicKeyBase58Check: appUser.PublicKeyBase58Check,
+        PublicKeyBase58Check: userPublicKeyBase58Check,
       }),
     ]);
 
@@ -75,7 +69,6 @@ export const getConversationNew = async (
     new Set([...(AccessGroupsOwned || []), ...(AccessGroupsMember || [])])
   );
   const decryptedMessageEntries = await decryptAccessGroupMessages(
-    appUser.PublicKeyBase58Check,
     messages.MessageThreads,
     allAccessGroups
   );
@@ -84,26 +77,21 @@ export const getConversationNew = async (
 };
 
 export const getConversations = async (
-  appUser: AppUser
+  userPublicKeyBase58Check: string
 ): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
   try {
-    if (!appUser) {
-      toast.error("no derived private key available");
-      return [{}, {}];
-    }
-
     let [Conversations, publicKeyToProfileEntryResponseMap] =
-      await getConversationsNewMap(appUser);
+      await getConversationsNewMap(userPublicKeyBase58Check);
 
     if (Object.keys(Conversations).length === 0) {
       const txnHashHex = await encryptAndSendNewMessage(
         "Hi. This is my first test message!",
-        appUser.PublicKeyBase58Check,
+        userPublicKeyBase58Check,
         USER_TO_SEND_MESSAGE_TO
       );
       await checkTransactionCompleted(txnHashHex);
       [Conversations, publicKeyToProfileEntryResponseMap] =
-        await getConversationsNewMap(appUser);
+        await getConversationsNewMap(userPublicKeyBase58Check);
     }
     return [Conversations, publicKeyToProfileEntryResponseMap];
   } catch (e: any) {
@@ -114,127 +102,13 @@ export const getConversations = async (
 };
 
 export const decryptAccessGroupMessages = (
-  userPublicKeyBase58Check: string,
   messages: NewMessageEntryResponse[],
   accessGroups: AccessGroupEntryResponse[]
 ): Promise<DecryptedMessageEntryResponse[]> => {
   return Promise.all(
-    (messages || []).map((m) =>
-      decryptAccessGroupMessage(userPublicKeyBase58Check, m, accessGroups)
-    )
+    (messages || []).map((m) => identity.decryptMessage(m, accessGroups))
   );
 };
-
-export const decryptAccessGroupMessage = async (
-  userPublicKeyBase58Check: string,
-  message: NewMessageEntryResponse,
-  accessGroups: AccessGroupEntryResponse[]
-): Promise<DecryptedMessageEntryResponse> => {
-  // Okay we know we're dealing with DMs, so figuring out sender vs. receiver is easy.
-  // Well now we're assuming that if you're messaging with base key or default key, you're the sender.
-  const IsSender =
-    message.SenderInfo.OwnerPublicKeyBase58Check === userPublicKeyBase58Check &&
-    (message.SenderInfo.AccessGroupKeyName ===
-      DEFAULT_KEY_MESSAGING_GROUP_NAME ||
-      !message.SenderInfo.AccessGroupKeyName);
-
-  const myAccessGroupInfo = IsSender
-    ? message.SenderInfo
-    : message.RecipientInfo;
-
-  let DecryptedMessage: string;
-  if (message.ChatType === ChatType.DM) {
-    if (
-      message?.MessageInfo?.ExtraData &&
-      message.MessageInfo.ExtraData["unencrypted"]
-    ) {
-      DecryptedMessage = Buffer.from(
-        message.MessageInfo.EncryptedText,
-        "hex"
-      ).toString();
-    } else {
-      try {
-        const decryptedMessageBuffer =
-          await decryptAccessGroupMessageFromPrivateMessagingKey(
-            userPublicKeyBase58Check,
-            myAccessGroupInfo.AccessGroupKeyName,
-            message
-          );
-        DecryptedMessage = decryptedMessageBuffer.toString();
-      } catch (e) {
-        return {
-          ...message,
-          ...{ DecryptedMessage: "", IsSender, error: (e as any).toString() },
-        };
-      }
-    }
-  } else {
-    // ASSUMPTION: if it's a group chat, then the RECIPIENT has the group key name we need?
-    const accessGroup = accessGroups.find((accessGroup) => {
-      return (
-        accessGroup.AccessGroupKeyName ===
-          message.RecipientInfo.AccessGroupKeyName &&
-        accessGroup.AccessGroupOwnerPublicKeyBase58Check ===
-          message.RecipientInfo.OwnerPublicKeyBase58Check &&
-        accessGroup.AccessGroupMemberEntryResponse
-      );
-    });
-    if (
-      !accessGroup ||
-      !accessGroup.AccessGroupMemberEntryResponse?.EncryptedKey
-    ) {
-      console.error("access group not found");
-      return {
-        ...message,
-        ...{
-          DecryptedMessage: "",
-          IsSender,
-          error: "access group member entry not found",
-        },
-      };
-    }
-
-    try {
-      const decryptedMessageBuffer =
-        await decryptAccessGroupMessageFromPrivateMessagingKey(
-          userPublicKeyBase58Check,
-          accessGroup.AccessGroupKeyName,
-          message
-        );
-      DecryptedMessage = decryptedMessageBuffer.toString();
-    } catch (e) {
-      console.error(e);
-      return {
-        ...message,
-        ...{ DecryptedMessage: "", IsSender, error: (e as any).toString() },
-      };
-    }
-  }
-
-  return { ...message, ...{ DecryptedMessage, IsSender, error: "" } };
-};
-
-export function decryptAccessGroupMessageFromPrivateMessagingKey(
-  userPublicKeyBase58Check: string,
-  userMessagingKeyName: string,
-  message: NewMessageEntryResponse
-) {
-  const isRecipient =
-    message.RecipientInfo.OwnerPublicKeyBase58Check ===
-      userPublicKeyBase58Check &&
-    message.RecipientInfo.AccessGroupKeyName === userMessagingKeyName;
-  const senderPublicKeyBase58Check =
-    message.ChatType === ChatType.GROUPCHAT
-      ? message.SenderInfo.AccessGroupPublicKeyBase58Check
-      : isRecipient
-      ? message.SenderInfo.AccessGroupPublicKeyBase58Check
-      : message.RecipientInfo.AccessGroupPublicKeyBase58Check;
-
-  return identity.decryptChatMessage(
-    senderPublicKeyBase58Check,
-    message.MessageInfo.EncryptedText
-  );
-}
 
 export const encryptAndSendNewMessage = async (
   messageToSend: string,
@@ -262,7 +136,7 @@ export const encryptAndSendNewMessage = async (
   let isUnencrypted = false;
   const ExtraData: { [k: string]: string } = {};
   if (response.RecipientAccessGroupKeyName) {
-    message = await identity.encryptChatMessage(
+    message = await identity.encryptMessage(
       response.RecipientAccessGroupPublicKeyBase58Check,
       messageToSend
     );

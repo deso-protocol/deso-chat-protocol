@@ -2,7 +2,6 @@ import {
   AccessGroupPrivateInfo,
   encrypt,
   identity,
-  PrimaryDerivedKeyInfo,
   publicKeyToBase58Check,
 } from "@deso-core/identity";
 import {
@@ -29,13 +28,11 @@ import { SearchUsers } from "./search-users";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void;
-  derivedResponse: PrimaryDerivedKeyInfo;
   conversation: Conversation;
 }
 
 export const ManageMembersDialog = ({
   onSuccess,
-  derivedResponse,
   conversation,
 }: ManageMembersDialogProps) => {
   const { appUser } = useContext(UserContext);
