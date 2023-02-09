@@ -35,6 +35,8 @@ function App() {
   useEffect(
     () => {
       // if the user does't have a balance we'll kick off a polling interval to check for it
+      // probably we can just delete this since we changed the identity thing to just force you to get $DESO.
+      // I guess we can leave it here for now, although it just adds unnecessary complexity imo.
       let pollingIntervalId = 0;
 
       // TODO: fix event type to be NOTIFICATION_EVENTS
