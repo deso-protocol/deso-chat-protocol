@@ -10,7 +10,7 @@ import { ChatType, ProfileEntryResponse } from "deso-protocol-types";
 import { ethers } from "ethers";
 import sortBy from "lodash/sortBy";
 import { FC, useState } from "react";
-import { desoAPI } from "services/deso.service";
+import { desoAPI } from "services/desoAPI.service";
 import {
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,

@@ -10,13 +10,13 @@ import difference from "lodash/difference";
 import { FC, useContext, useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/deso.service";
+import { desoAPI } from "services/desoAPI.service";
 import { useMobile } from "../hooks/useMobile";
-import { getConversations } from "../services/conversations.service";
 import {
   decryptAccessGroupMessages,
   encryptAndSendNewMessage,
-} from "../services/crypto.service";
+  getConversations,
+} from "../services/conversations.service";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,

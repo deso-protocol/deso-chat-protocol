@@ -1,7 +1,7 @@
 import { shortenLongWord } from "components/search-users";
 import { AppUser } from "contexts/UserContext";
 import { ChatType } from "deso-protocol-types";
-import { desoAPI } from "services/deso.service";
+import { desoAPI } from "services/desoAPI.service";
 import { PUBLIC_KEY_LENGTH, PUBLIC_KEY_PREFIX } from "./constants";
 import { Conversation } from "./types";
 

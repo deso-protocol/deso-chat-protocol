@@ -1,6 +1,6 @@
 import toMaterialStyle from "material-color-hash";
 import { FC, ReactElement, useEffect, useState } from "react";
-import { desoAPI } from "../services/deso.service";
+import { desoAPI } from "../services/desoAPI.service";
 import { getProfileURL } from "../utils/helpers";
 
 function ConditionalLink({
@@ -98,7 +98,11 @@ export const MessagingDisplayAvatar: FC<{
   return (
     <ConditionalLink
       className={`block ${classNames}`}
-      style={{ width: `${diameter}px`, maxWidth: `${diameter}px`, minWidth: `${diameter}px`}}
+      style={{
+        width: `${diameter}px`,
+        maxWidth: `${diameter}px`,
+        minWidth: `${diameter}px`,
+      }}
       href={getProfileURL(username)}
       condition={!!username}
       target="_blank"

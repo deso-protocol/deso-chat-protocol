@@ -1,5 +1,4 @@
 import { UserContext } from "contexts/UserContext";
-import { sortBy } from "lodash";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -8,7 +7,7 @@ import {
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
 } from "utils/constants";
 import { nameOrFormattedKey, SearchMenuItem } from "../components/search-users";
-import { desoAPI } from "../services/deso.service";
+import { desoAPI } from "../services/desoAPI.service";
 import { Conversation } from "../utils/types";
 
 export function useMembers(
@@ -43,10 +42,14 @@ export function useMembers(
         })
         .then((res) => {
           // Keep the current user on top
-          const sortedMembers = sortBy(
-            res.AccessGroupMembersBase58Check || [],
-            (publicKey) => publicKey !== appUser.PublicKeyBase58Check
-          );
+          const currUserIndex = (
+            res.AccessGroupMembersBase58Check ?? []
+          ).indexOf(appUser.PublicKeyBase58Check);
+          res.AccessGroupMembersBase58Check.splice(currUserIndex, 1);
+          const sortedMembers = [
+            appUser.PublicKeyBase58Check,
+            ...res.AccessGroupMembersBase58Check,
+          ];
 
           setCurrentMemberKeys(res.AccessGroupMembersBase58Check || []);
           setMembers(

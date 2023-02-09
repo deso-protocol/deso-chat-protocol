@@ -20,7 +20,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
 import { useMobile } from "../hooks/useMobile";
-import { desoAPI } from "../services/deso.service";
+import { desoAPI } from "../services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { checkTransactionCompleted } from "../utils/helpers";
 import { Conversation } from "../utils/types";

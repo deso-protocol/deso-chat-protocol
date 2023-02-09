@@ -7,9 +7,9 @@ import {
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/deso.service";
+import { desoAPI } from "services/desoAPI.service";
 import { useMobile } from "../hooks/useMobile";
-import { decryptAccessGroupMessages } from "../services/crypto.service";
+import { decryptAccessGroupMessages } from "../services/conversations.service";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MESSAGES_ONE_REQUEST_LIMIT,

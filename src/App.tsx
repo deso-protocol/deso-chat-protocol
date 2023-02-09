@@ -7,7 +7,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Header } from "./components/header";
 import { MessagingApp } from "./components/messaging-app";
-import { desoAPI } from "./services/deso.service";
+import { desoAPI } from "./services/desoAPI.service";
 
 identity.configure({
   identityURI: process.env.REACT_APP_IDENTITY_URL,

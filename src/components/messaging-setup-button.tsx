@@ -4,7 +4,7 @@ import { UserContext } from "contexts/UserContext";
 import { useContext, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/deso.service";
+import { desoAPI } from "services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "utils/constants";
 import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";

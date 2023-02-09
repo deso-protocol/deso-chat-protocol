@@ -5,7 +5,7 @@ import debounce from "lodash/debounce";
 import { Fragment, useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "../services/deso.service";
+import { desoAPI } from "../services/desoAPI.service";
 import { DESO_NETWORK } from "../utils/constants";
 import {
   isMaybeDeSoPublicKey,
@@ -20,7 +20,10 @@ export const shortenLongWord = (
   startSecondPartAfter = 6,
   separator = "..."
 ) => {
-  if (!key || key.length <= endFirstPartAfter + startSecondPartAfter + separator.length) {
+  if (
+    !key ||
+    key.length <= endFirstPartAfter + startSecondPartAfter + separator.length
+  ) {
     return key || "";
   }
 
