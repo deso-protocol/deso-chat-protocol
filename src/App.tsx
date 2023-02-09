@@ -23,9 +23,7 @@ function App() {
     setAccessGroups: (accessGroupsOwned: AccessGroupEntryResponse[]) =>
       setUserState((state) => {
         if (!state.appUser) {
-          throw new Error(
-            "cannot set access groups for without a logged in user!"
-          );
+          throw new Error("cannot set access groups without a logged in user!");
         }
         const currAppUser = state.appUser;
         return { ...state, appUser: { ...currAppUser, accessGroupsOwned } };
@@ -66,6 +64,9 @@ function App() {
             NOTIFICATION_EVENTS.CHANGE_ACTIVE_USER,
           ].includes(event)
         ) {
+          const { messagingPublicKeyBase58Check } =
+            currentUser.primaryDerivedKey;
+
           setUserState((state) => ({ ...state, isLoadingUser: true }));
           Promise.all([
             fetchAppUserData(currentUser.publicKey),
@@ -73,12 +74,12 @@ function App() {
               PublicKeyBase58Check: currentUser.publicKey,
             }),
           ])
-            .then(([userRes, accessGroupsRes]) => {
+            .then(([userRes, { AccessGroupsOwned }]) => {
               const user = userRes.UserList?.[0] ?? null;
               const appUser: AppUser | null = user && {
                 ...user,
-                primaryDerivedKey: currentUser.primaryDerivedKey,
-                accessGroupsOwned: accessGroupsRes.AccessGroupsOwned,
+                messagingPublicKeyBase58Check,
+                accessGroupsOwned: AccessGroupsOwned,
               };
 
               setUserState((state) => ({
@@ -105,7 +106,7 @@ function App() {
                         ...state,
                         appUser: {
                           ...user,
-                          primaryDerivedKey: currentUser.primaryDerivedKey,
+                          messagingPublicKeyBase58Check,
                         },
                       }));
                       window.clearInterval(pollingIntervalId);

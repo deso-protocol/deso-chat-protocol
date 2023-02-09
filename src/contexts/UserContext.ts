@@ -1,9 +1,8 @@
-import { PrimaryDerivedKeyInfo } from "@deso-core/identity";
 import { AccessGroupEntryResponse, User } from "deso-protocol-types";
 import { createContext } from "react";
 
 export type AppUser = User & {
-  primaryDerivedKey: PrimaryDerivedKeyInfo;
+  messagingPublicKeyBase58Check: string;
   accessGroupsOwned?: AccessGroupEntryResponse[];
 };
 

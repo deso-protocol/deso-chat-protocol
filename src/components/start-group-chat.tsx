@@ -7,6 +7,7 @@ import {
   DialogHeader,
   Input,
 } from "@material-tailwind/react";
+import { SearchUsers } from "components/search-users";
 import { UserContext } from "contexts/UserContext";
 import React, {
   Fragment,
@@ -23,7 +24,6 @@ import { encryptAndSendNewMessage } from "../services/conversations.service";
 import { desoAPI } from "../services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { SearchUsers } from "./search-users";
 
 export interface StartGroupChatProps {
   onSuccess: (pubKey: string) => void;
@@ -81,7 +81,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
     groupName: string,
     memberKeys: Array<string>
   ) => {
-    if (!appUser?.primaryDerivedKey?.derivedSeedHex) {
+    if (!appUser) {
       toast.error("You must be logged in to start a group chat.");
       return;
     }
@@ -138,21 +138,23 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         })
       );
 
-      const addGroupMembersTx = await desoAPI.accessGroup.AddAccessGroupMembers(
-        {
-          AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-          AccessGroupKeyName: groupName,
-          AccessGroupMemberList: groupMemberList,
-          MinFeeRateNanosPerKB: 1000,
-        },
-        {
-          broadcast: false,
-        }
+      await identity.signAndSubmit(
+        await desoAPI.accessGroup.AddAccessGroupMembers(
+          {
+            AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+            AccessGroupKeyName: groupName,
+            AccessGroupMemberList: groupMemberList,
+            MinFeeRateNanosPerKB: 1000,
+          },
+          {
+            broadcast: false,
+          }
+        )
       );
 
-      await identity.signAndSubmit(addGroupMembersTx);
-
       // And we'll send a message just so it pops up for convenience
+      // In this case we'll send it to ourselves. In most cases the
+      // recipient will be a different user.
       await encryptAndSendNewMessage(
         `Hi. This is my first message to "${groupName}"`,
         appUser.PublicKeyBase58Check,
