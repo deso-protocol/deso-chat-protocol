@@ -1,26 +1,27 @@
-import { DeSoNetwork, TransactionSpendingLimitResponse } from "deso-protocol-types";
+import { DeSoNetwork } from "deso-protocol-types";
+import { TransactionSpendingLimitResponseOptions } from "@deso-core/identity";
 
 export const getTransactionSpendingLimits =
-  (publicKey: string): TransactionSpendingLimitResponse => {
+  (publicKey: string): TransactionSpendingLimitResponseOptions => {
     return {
       GlobalDESOLimit: 5 * 1e9,
       TransactionCountLimitMap: {
         AUTHORIZE_DERIVED_KEY: 1,
-        NEW_MESSAGE: LIMIT,
+        NEW_MESSAGE: "UNLIMITED",
       },
       AccessGroupLimitMap: [{
         AccessGroupOwnerPublicKeyBase58Check: publicKey,
         ScopeType: "Any",
         AccessGroupKeyName: "",
         OperationType: "Any",
-        OpCount: LIMIT,
+        OpCount: "UNLIMITED",
       }],
       AccessGroupMemberLimitMap: [{
         AccessGroupOwnerPublicKeyBase58Check: publicKey,
         ScopeType: "Any",
         AccessGroupKeyName: "",
         OperationType: "Any",
-        OpCount: LIMIT,
+        OpCount: "UNLIMITED",
       }]
       // We can flip back to IsUnlimited if we prefer it
       // IsUnlimited: true,
@@ -32,7 +33,6 @@ export const DERIVED_SEED_HEX: Readonly<string> = 'derivedSeedHex';
 export const DEFAULT_KEY_IDENTITY_MESSAGING_OPERATION: Readonly<string> =
   'defaultKey';
 export const DEFAULT_KEY_MESSAGING_GROUP_NAME: Readonly<string> = 'default-key';
-export const LIMIT: Readonly<number> = 1_000_000_000_000;
 export const localStorageKeys: Readonly<string>[] = [
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   DEFAULT_KEY_IDENTITY_MESSAGING_OPERATION,
