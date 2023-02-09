@@ -89,7 +89,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
     setLoading(true);
 
     try {
-      const accessGroupKeyInfo = await identity.accessGroupStandardDerivation(
+      const accessGroupKeys = await identity.accessGroupStandardDerivation(
         groupName
       );
       const createGroupTx = await desoAPI.accessGroup.CreateAccessGroup(
@@ -97,7 +97,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           AccessGroupKeyName: groupName,
           AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           AccessGroupPublicKeyBase58Check:
-            accessGroupKeyInfo.AccessGroupPublicKeyBase58Check,
+            accessGroupKeys.AccessGroupPublicKeyBase58Check,
           MinFeeRateNanosPerKB: 1000,
         },
         {
@@ -124,23 +124,25 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         return;
       }
 
+      const groupMemberList = await Promise.all(
+        AccessGroupEntries.map(async (accessGroupEntry) => {
+          return {
+            AccessGroupMemberPublicKeyBase58Check:
+              accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
+            AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
+            EncryptedKey: await encrypt(
+              accessGroupEntry.AccessGroupPublicKeyBase58Check,
+              accessGroupKeys.AccessGroupPrivateKeyHex
+            ),
+          };
+        })
+      );
+
       const addGroupMembersTx = await desoAPI.accessGroup.AddAccessGroupMembers(
         {
           AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           AccessGroupKeyName: groupName,
-          AccessGroupMemberList: await Promise.all(
-            AccessGroupEntries.map(async (accessGroupEntry) => {
-              return {
-                AccessGroupMemberPublicKeyBase58Check:
-                  accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
-                AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-                EncryptedKey: await encrypt(
-                  accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                  accessGroupKeyInfo.AccessGroupPrivateKeyHex
-                ),
-              };
-            })
-          ),
+          AccessGroupMemberList: groupMemberList,
           MinFeeRateNanosPerKB: 1000,
         },
         {
@@ -158,7 +160,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         groupName
       );
 
-      return `${appUser.PublicKeyBase58Check}${accessGroupKeyInfo.AccessGroupKeyName}`;
+      return `${appUser.PublicKeyBase58Check}${accessGroupKeys.AccessGroupKeyName}`;
     } catch (e) {
       console.log(e);
       toast.error(

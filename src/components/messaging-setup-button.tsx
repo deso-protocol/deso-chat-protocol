@@ -40,11 +40,15 @@ export const MessagingSetupButton = () => {
         className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
         onClick={() => identity.login()}
       >
-        Login
+        Secure Login
       </Button>
     );
   }
 
+  // TODO: we can probably just delete this since we changed the identity thing
+  // to just force you to get $DESO.  we don't even have to deal with the
+  // polling thing anymore... Leaving it here for now just in case, but it's
+  // probably safe to delete which removes a lot of incidental complexity.
   if (appUser.BalanceNanos === 0) {
     return (
       <>
