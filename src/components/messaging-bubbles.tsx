@@ -1,6 +1,7 @@
 import { UserContext } from "contexts/UserContext";
 import {
   ChatType,
+  DecryptedMessageEntryResponse,
   GetPaginatedMessagesForDmThreadResponse,
   GetPaginatedMessagesForGroupChatThreadResponse,
 } from "deso-protocol-types";
@@ -22,6 +23,7 @@ export interface MessagingBubblesProps {
   conversations: ConversationMap;
   conversationPublicKey: string;
   getUsernameByPublicKey: { [k: string]: string };
+  onScroll: (e: Array<DecryptedMessageEntryResponse>) => void;
 }
 
 function convertTstampToDateTime(tstampNanos: number) {
@@ -47,14 +49,11 @@ function convertTstampToDateTime(tstampNanos: number) {
   return date.toLocaleString("default", { hour: "numeric", minute: "numeric" });
 }
 
-export const MessagingBubblesAndAvatar: FC<{
-  conversations: ConversationMap;
-  conversationPublicKey: string;
-  getUsernameByPublicKey: { [k: string]: string };
-}> = ({
+export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
   conversations,
   conversationPublicKey,
   getUsernameByPublicKey,
+  onScroll,
 }: MessagingBubblesProps) => {
   const messageAreaRef = useRef<HTMLDivElement>(null);
   const { appUser } = useContext(UserContext);
@@ -78,10 +77,11 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-hidden");
     }
 
-    setVisibleMessages(conversation.messages);
-  }, [conversation.messages, conversationPublicKey, isMobile]);
+    const hasUnreadMessages = visibleMessages.length && visibleMessages[0].MessageInfo.TimestampNanosString !== conversation.messages[0].MessageInfo.TimestampNanosString;
+    const isLastMessageFromMe = conversation.messages.length && conversation.messages[0].IsSender;
 
-  useEffect(() => {
+    setVisibleMessages(conversation.messages);
+
     const element = messageAreaRef.current!;
 
     if (isMobile) {
@@ -89,18 +89,16 @@ export const MessagingBubblesAndAvatar: FC<{
       messageAreaRef.current!.classList.add("overflow-auto");
     }
 
-    if (isMobile && element.scrollTop !== 0) {
-      /*
-       * Always scroll to the last message on mobile, desktop browsers update scroller
-       * properly if it's staying on the very end
-       */
-      const scrollerStub = element.querySelector(".scroller-end-stub");
-      scrollerStub &&
-        scrollerStub.scrollIntoView({
+    if (hasUnreadMessages && isLastMessageFromMe && (isMobile || element.scrollTop !== 0)) {
+      // Always scroll to the last message if it's a new message from the current user
+      setTimeout(() => {
+        const scrollerStub = element.querySelector(".scroller-end-stub");
+        scrollerStub && scrollerStub.scrollIntoView({
           behavior: "smooth",
         });
+      }, 500);
     }
-  }, [visibleMessages, isMobile]);
+  }, [conversations, conversationPublicKey, isMobile]);
 
   if (Object.keys(conversations).length === 0 || conversationPublicKey === "") {
     return <div></div>;
@@ -186,8 +184,8 @@ export const MessagingBubblesAndAvatar: FC<{
       allMyAccessGroups
     );
 
-    setVisibleMessages((prev) => [...prev, ...decrypted]);
-  };
+    onScroll(decrypted);
+  }
 
   return (
     <div
@@ -196,7 +194,7 @@ export const MessagingBubblesAndAvatar: FC<{
       id="scrollableArea"
     >
       <InfiniteScroll
-        dataLength={visibleMessages.length}
+        dataLength={conversation.messages.length}
         next={loadMore}
         style={{ display: "flex", flexDirection: "column-reverse" }}
         inverse={true}

@@ -7,7 +7,7 @@ import {
   PublicKeyToProfileEntryResponseMap,
 } from "deso-protocol-types";
 import difference from "lodash/difference";
-import { FC, useContext, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useRef, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { desoAPI } from "services/desoAPI.service";
@@ -18,12 +18,16 @@ import {
   getConversations,
 } from "../services/conversations.service";
 import {
+  BASE_TITLE,
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
   MESSAGES_ONE_REQUEST_LIMIT,
   PUBLIC_KEY_LENGTH,
   PUBLIC_KEY_PREFIX,
+  REFRESH_MESSAGES_INTERVAL_MS,
+  REFRESH_MESSAGES_MOBILE_INTERVAL_MS,
+  TITLE_DIVIDER
 } from "../utils/constants";
 import {
   getChatNameFromConversation,
@@ -41,15 +45,19 @@ import { MessagingConversationButton } from "./messaging-conversation-button";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { MessagingSetupButton } from "./messaging-setup-button";
 import { shortenLongWord } from "./search-users";
+import { useInterval } from 'hooks/useInterval';
+import { RefreshContext } from "../contexts/RefreshContext";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
   const { appUser, isLoadingUser } = useContext(UserContext);
+  const { lockRefresh, setLockRefresh } = useContext(RefreshContext);
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
     useState<{ [key: string]: string }>({});
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
   const [pubKeyPlusGroupName, setPubKeyPlusGroupName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingConversation, setLoadingConversation] = useState(false);
   const [selectedConversationPublicKey, setSelectedConversationPublicKey] =
     useState("");
   const [conversations, setConversations] = useState<ConversationMap>({});
@@ -57,14 +65,30 @@ export const MessagingApp: FC = () => {
     [groupKey: string]: PublicKeyToProfileEntryResponseMap;
   }>({});
   const { isMobile } = useMobile();
+  const lockRefreshRef = useRef(lockRefresh); // reference to lockRefresh that keeps current state in setInterval
+
+  useEffect(() => {
+    lockRefreshRef.current = lockRefresh;
+  });
 
   useEffect(() => {
     if (!appUser) return;
     if (hasSetupMessaging(appUser)) {
+      setLoading(true);
       setAutoFetchConversations(true);
       rehydrateConversation("", false, !isMobile, isLoadingUser);
+    } else {
+      setLoading(false);
     }
   }, [appUser, isMobile]);
+
+  useEffect(() => {
+    setSelectedConversationPublicKey("");
+    setLockRefresh(isLoadingUser);
+    if (isLoadingUser && appUser) {
+      setLoading(true);
+    }
+  }, [isLoadingUser, appUser])
 
   useEffect(() => {
     if (conversations[selectedConversationPublicKey]) {
@@ -74,18 +98,59 @@ export const MessagingApp: FC = () => {
       );
 
       if (chatName) {
-        document.title = [chatName, "DeSo Chat Protocol"].join(" · ");
+        document.title = ([chatName, BASE_TITLE].join(TITLE_DIVIDER));
       }
     }
 
     return () => {
-      document.title = "DeSo Chat Protocol";
-    };
-  }, [
-    selectedConversationPublicKey,
-    conversations,
-    usernameByPublicKeyBase58Check,
-  ]);
+      document.title = BASE_TITLE;
+    }
+  }, [selectedConversationPublicKey, conversations, usernameByPublicKeyBase58Check]);
+
+  useInterval(async () => {
+    if (!selectedConversationPublicKey || lockRefreshRef.current) {
+      return;
+    }
+
+    const [res] = await getConversations(appUser!.PublicKeyBase58Check);
+    const { updatedConversations, pubKeyPlusGroupName } = await getConversation(
+      selectedConversationPublicKey,
+      {
+        ...res,
+        [selectedConversationPublicKey]: conversations[selectedConversationPublicKey],
+      }
+    );
+
+    if (!lockRefreshRef.current && conversations[selectedConversationPublicKey]) {
+      // Live updates to the current conversation.
+      // We get the last processed message and inject the unread messages into existing conversation
+      setConversations(conversations => {
+        const currentMessages = conversations[selectedConversationPublicKey].messages
+
+        // This takes the last processed message, meaning we filter out mocked messages sent by current user
+        const lastProcessedMessageIdx = currentMessages.findIndex(e => e.MessageInfo.TimestampNanosString);
+
+        const updatedMessages = updatedConversations[selectedConversationPublicKey].messages;
+        const lastProcessedMessageIdxInUpdated = updatedMessages.findIndex(e => e.MessageInfo.TimestampNanosString === currentMessages[lastProcessedMessageIdx]!.MessageInfo.TimestampNanosString);
+
+        const unreadMessages = lastProcessedMessageIdxInUpdated > 0
+          ? updatedMessages.slice(0, lastProcessedMessageIdxInUpdated)
+          : [];
+
+        return {
+          ...updatedConversations,
+          [selectedConversationPublicKey]: {
+            ...conversations[selectedConversationPublicKey],
+            messages: [
+              ...unreadMessages,
+              ...conversations[selectedConversationPublicKey].messages.slice(lastProcessedMessageIdx),
+            ]
+          }
+        };
+      });
+      setPubKeyPlusGroupName(pubKeyPlusGroupName);
+    }
+  }, isMobile ? REFRESH_MESSAGES_MOBILE_INTERVAL_MS : REFRESH_MESSAGES_INTERVAL_MS);
 
   const fetchUsersStateless = async (newPublicKeysToGet: Array<string>) => {
     const diff = difference(
@@ -206,8 +271,20 @@ export const MessagingApp: FC = () => {
       // This is mostly used to control "chats view" vs "messages view" on mobile
       setSelectedConversationPublicKey(keyToUse);
     }
-    setConversations(conversationsResponse);
-    await getConversation(keyToUse, conversationsResponse);
+    setLoadingConversation(true);
+
+    try {
+      const { updatedConversations, pubKeyPlusGroupName } = await getConversation(keyToUse, conversationsResponse);
+      setConversations(updatedConversations);
+      setPubKeyPlusGroupName(pubKeyPlusGroupName);
+    } catch(e) {
+      toast.error(`Error fetching current conversation: ${e}`);
+      console.error(e);
+    } finally {
+      setLoadingConversation(false);
+      setLoading(false);
+    }
+
     setAutoFetchConversations(false);
 
     if (autoScroll) {
@@ -233,19 +310,17 @@ export const MessagingApp: FC = () => {
   const getConversation = async (
     pubKeyPlusGroupName: string,
     currentConversations = conversations,
-    skipLoading: boolean = false
-  ) => {
+  ): Promise<{ updatedConversations: ConversationMap, pubKeyPlusGroupName: string }> => {
     if (!appUser) {
       toast.error("You must be logged in to use this feature");
-      return;
+      return { updatedConversations: {}, pubKeyPlusGroupName: '' };
     }
 
     const currentConvo = currentConversations[pubKeyPlusGroupName];
     if (!currentConvo) {
-      return;
+      return { updatedConversations: {}, pubKeyPlusGroupName: '' };
     }
     const convo = currentConvo.messages;
-    setLoading(!skipLoading);
 
     const myAccessGroups = await desoAPI.accessGroup.GetAllUserAccessGroups({
       PublicKeyBase58Check: appUser.PublicKeyBase58Check,
@@ -289,13 +364,16 @@ export const MessagingApp: FC = () => {
         },
       };
 
-      setConversations(updatedConversations);
-      setPubKeyPlusGroupName(pubKeyPlusGroupName);
+      return {
+        updatedConversations,
+        pubKeyPlusGroupName,
+      }
     } else {
       if (!convo) {
-        setPubKeyPlusGroupName(pubKeyPlusGroupName);
-        setLoading(false);
-        return;
+        return {
+          updatedConversations: {},
+          pubKeyPlusGroupName,
+        }
       }
       const firstMessage = convo[0];
       const messages =
@@ -324,12 +402,12 @@ export const MessagingApp: FC = () => {
         },
       };
 
-      setConversations(updatedConversations);
-      setPubKeyPlusGroupName(pubKeyPlusGroupName);
+      return {
+        updatedConversations,
+        pubKeyPlusGroupName,
+      }
     }
-
-    setLoading(false);
-  };
+  }
 
   const getCurrentChatName = () => {
     if (!selectedConversation || !Object.keys(activeChatUsersMap).length) {
@@ -368,11 +446,11 @@ export const MessagingApp: FC = () => {
 
   return (
     <div className="h-full">
-      {(!conversationsReady || !hasSetupMessaging(appUser) || isLoadingUser) && (
+      {(!conversationsReady || !hasSetupMessaging(appUser) || isLoadingUser || loading) && (
         <div className="py-20">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
-              {autoFetchConversations && (
+              {(autoFetchConversations || isLoadingUser || loading) && (
                 <div className="text-center">
                   <span className="font-bold text-white text-xl">
                     Loading Your Chat Experience
@@ -386,7 +464,7 @@ export const MessagingApp: FC = () => {
                   />
                 </div>
               )}
-              {!autoFetchConversations && !hasSetupMessaging(appUser) && !isLoadingUser && (
+              {!autoFetchConversations && !hasSetupMessaging(appUser) && !isLoadingUser && !loading && (
                 <>
                   <div>
                     {appUser ? (
@@ -424,21 +502,30 @@ export const MessagingApp: FC = () => {
                 </>
               )}
 
-              {!autoFetchConversations && hasSetupMessaging(appUser) && (
+              {!autoFetchConversations && hasSetupMessaging(appUser) && !isLoadingUser && !loading && (
                 <MessagingConversationButton onClick={rehydrateConversation} />
               )}
             </CardBody>
           </Card>
         </div>
       )}
-      {(hasSetupMessaging(appUser) && conversationsReady && appUser && !isLoadingUser) && (
+      {(hasSetupMessaging(appUser) && conversationsReady && appUser && !isLoadingUser && !loading) && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount
               rehydrateConversation={rehydrateConversation}
               onClick={async (key: string) => {
                 setSelectedConversationPublicKey(key);
-                await getConversation(key);
+
+                setLoadingConversation(true);
+
+                try {
+                  const { updatedConversations, pubKeyPlusGroupName } = await getConversation(key);
+                  setConversations(updatedConversations);
+                  setPubKeyPlusGroupName(pubKeyPlusGroupName);
+                } finally {
+                  setLoadingConversation(false);
+                }
               }}
               membersByGroupKey={membersByGroupKey}
               conversations={conversations}
@@ -519,20 +606,29 @@ export const MessagingApp: FC = () => {
             >
               <div className="border-none flex flex-col justify-between h-full">
                 <div className="max-h-[calc(100%-130px)] overflow-hidden">
-                  {loading ? (
-                    <ClipLoader
-                      color={"#6d4800"}
-                      loading={true}
-                      size={44}
-                      className="mt-4"
-                    />
-                  ) : (
-                    <MessagingBubblesAndAvatar
-                      conversationPublicKey={pubKeyPlusGroupName}
-                      conversations={conversations}
-                      getUsernameByPublicKey={activeChatUsersMap}
-                    />
-                  )}
+                  {
+                    loadingConversation
+                      ? <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
+                      : (
+                        <MessagingBubblesAndAvatar
+                          conversationPublicKey={pubKeyPlusGroupName}
+                          conversations={conversations}
+                          getUsernameByPublicKey={activeChatUsersMap}
+                          onScroll={(e: Array<DecryptedMessageEntryResponse>) => {
+                            setConversations(prev => ({
+                              ...prev,
+                              [selectedConversationPublicKey]: {
+                                ...prev[selectedConversationPublicKey],
+                                messages: [
+                                  ...prev[selectedConversationPublicKey].messages,
+                                  ...e,
+                                ]
+                              }
+                            }));
+                          }}
+                        />
+                      )
+                  }
                 </div>
 
                 <SendMessageButtonAndInput
@@ -564,23 +660,20 @@ export const MessagingApp: FC = () => {
                       },
                       MessageInfo: {
                         TimestampNanos,
-                      },
-                    };
+                      }
+                    } as DecryptedMessageEntryResponse;
                     // Put this new message into the conversations object.
-                    const newMessages =
-                      conversations[selectedConversationPublicKey].messages;
-                    newMessages.unshift(
-                      mockMessage as DecryptedMessageEntryResponse
-                    );
+                    const oldMessages = conversations[selectedConversationPublicKey].messages;
+                    const newMessages = [mockMessage, ...oldMessages];
                     setConversations((prevConversations) => ({
                       ...prevConversations,
                       [selectedConversationPublicKey]: {
                         ...prevConversations[selectedConversationPublicKey],
-                        ...{
-                          messages: newMessages,
-                        },
-                      },
+                        messages: newMessages,
+                      }
                     }));
+                    setLockRefresh(true);
+
                     try {
                       // Try sending the message
                       await encryptAndSendNewMessage(
@@ -599,16 +692,16 @@ export const MessagingApp: FC = () => {
                         ...prevConversations,
                         [selectedConversationPublicKey]: {
                           ...prevConversations[selectedConversationPublicKey],
-                          ...{
-                            messages: newMessages,
-                          },
-                        },
+                          messages: newMessages,
+                        }
                       }));
                       toast.error(
                         `An error occurred while sending your message. Error: ${e.toString()}`
                       );
                       // Rethrow the error so that the caller can handle it.
                       return Promise.reject(e);
+                    } finally {
+                      setLockRefresh(false);
                     }
                   }}
                 />
