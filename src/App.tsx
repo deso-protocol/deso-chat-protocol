@@ -134,7 +134,6 @@ function App() {
         }
       });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       /*
         NOTE: it is very important that we DO NOT add dependencies here. We only want this to run ONCE
@@ -149,9 +148,9 @@ function App() {
         <div className="App">
           <Header />
 
-            <section className="h-[calc(100%-80px)] mt-[80px]">
-              <MessagingApp />
-            </section>
+          <section className="h-[calc(100%-80px)] mt-[80px]">
+            <MessagingApp />
+          </section>
 
           <ToastContainer />
         </div>

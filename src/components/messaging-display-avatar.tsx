@@ -58,7 +58,7 @@ export const MessagingDisplayAvatar: FC<{
   const [profilePicUrl, setProfilePicUrl] = useState("");
 
   useEffect(() => {
-    let profilePicUrl: string = "";
+    let profilePicUrl = "";
 
     if (!publicKey) {
       setProfilePicUrl(DEFAULT_PROFILE_PIC_URL);

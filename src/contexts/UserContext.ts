@@ -15,5 +15,7 @@ export interface UserContextType {
 export const UserContext = createContext<UserContextType>({
   appUser: null,
   isLoadingUser: false,
-  setAccessGroups: (_: AccessGroupEntryResponse[]) => {},
+  setAccessGroups: () => {
+    return;
+  },
 });

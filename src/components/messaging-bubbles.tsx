@@ -72,30 +72,45 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       setAllowScrolling(false);
     }
 
-    if (isMobile) {
-      messageAreaRef.current!.classList.remove("overflow-auto");
-      messageAreaRef.current!.classList.add("overflow-hidden");
-    }
-
-    const hasUnreadMessages = visibleMessages.length && visibleMessages[0].MessageInfo.TimestampNanosString !== conversation.messages[0].MessageInfo.TimestampNanosString;
-    const isLastMessageFromMe = conversation.messages.length && conversation.messages[0].IsSender;
-
     setVisibleMessages(conversation.messages);
 
-    const element = messageAreaRef.current!;
+    const scrollableArea = messageAreaRef.current;
 
-    if (isMobile) {
-      messageAreaRef.current!.classList.remove("overflow-hidden");
-      messageAreaRef.current!.classList.add("overflow-auto");
+    if (!scrollableArea) {
+      return;
     }
 
-    if (hasUnreadMessages && isLastMessageFromMe && (isMobile || element.scrollTop !== 0)) {
+    if (isMobile) {
+      scrollableArea.classList.remove("overflow-auto");
+      scrollableArea.classList.add("overflow-hidden");
+    }
+
+    const hasUnreadMessages =
+      visibleMessages.length &&
+      visibleMessages[0].MessageInfo.TimestampNanosString !==
+        conversation.messages[0].MessageInfo.TimestampNanosString;
+    const isLastMessageFromMe =
+      conversation.messages.length && conversation.messages[0].IsSender;
+
+    const element = scrollableArea;
+
+    if (isMobile) {
+      scrollableArea.classList.remove("overflow-hidden");
+      scrollableArea.classList.add("overflow-auto");
+    }
+
+    if (
+      hasUnreadMessages &&
+      isLastMessageFromMe &&
+      (isMobile || element.scrollTop !== 0)
+    ) {
       // Always scroll to the last message if it's a new message from the current user
       setTimeout(() => {
         const scrollerStub = element.querySelector(".scroller-end-stub");
-        scrollerStub && scrollerStub.scrollIntoView({
-          behavior: "smooth",
-        });
+        scrollerStub &&
+          scrollerStub.scrollIntoView({
+            behavior: "smooth",
+          });
       }, 500);
     }
   }, [conversations, conversationPublicKey, isMobile]);
@@ -185,7 +200,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
     );
 
     onScroll(decrypted);
-  }
+  };
 
   return (
     <div

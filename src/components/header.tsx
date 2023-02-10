@@ -67,7 +67,7 @@ export const Header = () => {
 
                   <button
                     className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold md:text-sm hover:text-white border py-1 px-2 border-blue-500 hover:border-transparent rounded outline-none"
-                    onClick={async (e) => {
+                    onClick={async () => {
                       setLockRefresh(true);
 
                       try {
