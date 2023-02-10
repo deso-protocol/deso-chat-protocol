@@ -11,6 +11,7 @@ import { formatDisplayName, getProfileURL } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
 import { RefreshContext } from "../contexts/RefreshContext";
+import { UserAccountList } from "./user-account-list";
 import { toast } from "react-toastify";
 
 export const Header = () => {
@@ -57,7 +58,34 @@ export const Header = () => {
               </div>
             </MenuHandler>
 
-            <MenuList>
+            <MenuList className="max-w-[230px] w-[230px] p-2">
+              <div>
+                <div className="block px-2 pt-1 pb-2 flex justify-between items-center border-b">
+                  <span className="font-bold text-lg md:text-base">
+                    Profiles
+                  </span>
+
+                  <button
+                    className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold md:text-sm hover:text-white border py-1 px-2 border-blue-500 hover:border-transparent rounded outline-none"
+                    onClick={async (e) => {
+                      setLockRefresh(true);
+
+                      try {
+                        await identity.login();
+                      } catch (e) {
+                        toast.error(`Error logging in: ${e}`);
+                        console.error(e);
+                      }
+                      setLockRefresh(false);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <UserAccountList />
+              </div>
+
               {appUser?.ProfileEntryResponse && (
                 <MenuItem className="flex items-center p-0">
                   <a
@@ -107,29 +135,27 @@ export const Header = () => {
                 </MenuItem>
               )}
 
-              <MenuItem
-                className="flex items-center"
-                onClick={async () => {
-                  setLockRefresh(true);
+              {!appUser && (
+                <MenuItem className="flex items-center p-0">
+                  <a
+                    href="https://deso.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full outline-0"
+                  >
+                    <div className="w-full flex items-center pt-[9px] pb-2 px-3">
+                      <img
+                        src="/assets/external-link.png"
+                        width={20}
+                        className="mr-2"
+                        alt="logout"
+                      />
 
-                  try {
-                    await identity.login();
-                  } catch (e) {
-                    toast.error(`Error logging in: ${e}`);
-                    console.error(e);
-                  }
-                  setLockRefresh(false);
-                }}
-              >
-                <img
-                  src="/assets/change-user.png"
-                  width={20}
-                  className="mr-2"
-                  alt="switch-user"
-                />
-
-                <span className="text-base">Switch user</span>
-              </MenuItem>
+                      <span className="text-base">Go to deso.com</span>
+                    </div>
+                  </a>
+                </MenuItem>
+              )}
 
               <MenuItem
                 className="flex items-center"
