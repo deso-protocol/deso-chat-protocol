@@ -38,6 +38,7 @@ import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { useMobile } from "../hooks/useMobile";
 import { shortenLongWord } from "./search-users";
 import { useInterval } from 'hooks/useInterval';
+import { RefreshContext } from "../contexts/RefreshContext";
 
 export const MessagingApp: FC = () => {
   const {
@@ -45,9 +46,8 @@ export const MessagingApp: FC = () => {
     hasSetupAccount,
     setHasSetupAccount,
     setLoggedInPublicKey,
-    lockRefresh,
-    setLockRefresh
   } = useContext(DesoContext);
+   const { lockRefresh, setLockRefresh } = useContext(RefreshContext);
 
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] = useState<{ [key: string]: string }>({});
   const [derivedResponse, setDerivedResponse] = useState<Partial<DerivedPrivateUserInfo>>({});

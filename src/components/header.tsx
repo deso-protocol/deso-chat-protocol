@@ -6,11 +6,13 @@ import { clearAllState } from "../utils/store";
 import { getProfileURL } from "../utils/helpers";
 import { shortenLongWord } from "./search-users";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
+import { RefreshContext } from "../contexts/RefreshContext";
 
 export const Header = () => {
-  const { deso, hasSetupAccount, loggedInPublicKey, setLockRefresh } = useContext(DesoContext);
+  const { deso, hasSetupAccount, loggedInPublicKey } = useContext(DesoContext);
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
+  const { setLockRefresh } = useContext(RefreshContext);
 
   useEffect(() => {
     const getMyUsername = async () => {

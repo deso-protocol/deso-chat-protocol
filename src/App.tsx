@@ -7,6 +7,7 @@ import { Header } from "./components/header";
 import { DesoContext } from "./contexts/desoContext";
 import * as process from "process";
 import { DESO_NETWORK } from "./utils/constants";
+import { RefreshContext } from "./contexts/RefreshContext";
 
 function App() {
   const deso = new Deso({
@@ -29,19 +30,19 @@ function App() {
         setHasSetupAccount,
         loggedInPublicKey,
         setLoggedInPublicKey,
-        lockRefresh,
-        setLockRefresh
       }}
     >
-      <div className="App">
-        <Header />
+      <RefreshContext.Provider value={{ lockRefresh, setLockRefresh }}>
+        <div className="App">
+          <Header />
 
-        <section className="h-[calc(100%-80px)] mt-[80px]">
-          <MessagingApp />
-        </section>
+          <section className="h-[calc(100%-80px)] mt-[80px]">
+            <MessagingApp />
+          </section>
 
-        <ToastContainer />
-      </div>
+          <ToastContainer />
+        </div>
+      </RefreshContext.Provider>
     </DesoContext.Provider>
   );
 }
