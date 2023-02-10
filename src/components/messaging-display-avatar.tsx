@@ -1,53 +1,61 @@
-import { FC, ReactElement, useContext, useEffect, useState } from 'react';
-import { DesoContext } from "../contexts/desoContext";
 import toMaterialStyle from "material-color-hash";
+import { FC, ReactElement, useEffect, useState } from "react";
+import { desoAPI } from "../services/desoAPI.service";
 import { getProfileURL } from "../utils/helpers";
 
-function ConditionalLink({ children, condition, href, target, className, style, onClick }: {
-  children: ReactElement,
-  condition: boolean,
-  href: string,
-  target: string,
-  className: string,
-  style: any,
-  onClick: (e: any) => void,
+function ConditionalLink({
+  children,
+  condition,
+  href,
+  target,
+  className,
+  style,
+  onClick,
+}: {
+  children: ReactElement;
+  condition: boolean;
+  href: string;
+  target: string;
+  className: string;
+  style: any;
+  onClick: (e: any) => void;
 }) {
-  return condition
-    ? (
-      <a
-        href={href}
-        target={target}
-        rel="noreferrer"
-        className={`w-full ${className}`}
-        style={style}
-        onClick={onClick}
-      >
-        {children}
-      </a>
-    )
-    : (
-      <div
-        className={className}
-        style={style}
-      >
-        {children}
-      </div>
-    )
+  return condition ? (
+    <a
+      href={href}
+      target={target}
+      rel="noreferrer"
+      className={`w-full ${className}`}
+      style={style}
+      onClick={onClick}
+    >
+      {children}
+    </a>
+  ) : (
+    <div className={className} style={style}>
+      {children}
+    </div>
+  );
 }
 
 const DEFAULT_PROFILE_PIC_URL = "/assets/default-profile-pic.png";
 
 export const MessagingDisplayAvatar: FC<{
-  publicKey: string | undefined;
+  publicKey?: string;
   username?: string;
-  borderColor?: string,
+  borderColor?: string;
   diameter: number;
   classNames?: string;
   groupChat?: boolean;
-}> = ({ publicKey, username, diameter, borderColor = "border-white", classNames = "", groupChat = false }) => {
-  const { deso } = useContext(DesoContext);
-
-  const [profilePicUrl, setProfilePicUrl] = useState('');
+}> = ({
+  publicKey,
+  username,
+  diameter,
+  borderColor = "border-white",
+  classNames = "",
+  groupChat = false,
+}) => {
+  const [profilePicUrl, setProfilePicUrl] = useState("");
 
   useEffect(() => {
     let profilePicUrl: string = "";
@@ -58,10 +66,14 @@ export const MessagingDisplayAvatar: FC<{
     }
 
     if (groupChat) {
-      const keyFirstLast = `${publicKey.charAt(0)}${publicKey.charAt(publicKey.length - 1)}`;
+      const keyFirstLast = `${publicKey.charAt(0)}${publicKey.charAt(
+        publicKey.length - 1
+      )}`;
       const bgColor = toMaterialStyle(keyFirstLast, 200);
       const key = publicKey.replace(/[^a-zA-Z0-9]+/g, "");
-      profilePicUrl = `https://ui-avatars.com/api/?name=${key}&background=${bgColor.backgroundColor.slice(1)}`;
+      profilePicUrl = `https://ui-avatars.com/api/?name=${key}&background=${bgColor.backgroundColor.slice(
+        1
+      )}`;
     } else {
       profilePicUrl = getProfilePicture();
     }
@@ -73,8 +85,11 @@ export const MessagingDisplayAvatar: FC<{
     if (!publicKey) {
       return DEFAULT_PROFILE_PIC_URL;
     }
-    return `${deso.user.getSingleProfilePicture(publicKey, `${window.location.href}${DEFAULT_PROFILE_PIC_URL}`)}`;
-  }
+    return `${desoAPI.user.getSingleProfilePicture(
+      publicKey,
+      `${window.location.href}${DEFAULT_PROFILE_PIC_URL}`
+    )}`;
+  };
 
   if (!profilePicUrl) {
     return <></>;
@@ -83,11 +98,15 @@ export const MessagingDisplayAvatar: FC<{
   return (
     <ConditionalLink
       className={`block ${classNames}`}
-      style={{ width: `${diameter}px`, maxWidth: `${diameter}px`, minWidth: `${diameter}px`}}
+      style={{
+        width: `${diameter}px`,
+        maxWidth: `${diameter}px`,
+        minWidth: `${diameter}px`,
+      }}
       href={getProfileURL(username)}
       condition={!!username}
       target="_blank"
-      onClick={e => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
     >
       <img
         src={profilePicUrl}
