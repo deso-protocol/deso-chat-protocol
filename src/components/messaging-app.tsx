@@ -565,6 +565,9 @@ export const MessagingApp: FC = () => {
               <MessagingConversationAccount
                 rehydrateConversation={rehydrateConversation}
                 onClick={async (key: string) => {
+                  if (key === selectedConversationPublicKey) {
+                    return;
+                  }
                   setSelectedConversationPublicKey(key);
 
                   setLoadingConversation(true);

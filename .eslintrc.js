@@ -27,4 +27,9 @@ module.exports = {
     "react/react-in-jsx-scope": "off",
   },
   ignorePatterns: ["tailwind.config.js", "config-overrides.js", ".eslintrc.js"],
+  settings: {
+    react: {
+      version: "detect",
+    }
+  }
 };
