@@ -11,6 +11,7 @@ import { formatDisplayName, getProfileURL } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
 import { RefreshContext } from "../contexts/RefreshContext";
+import { UserAccountList } from "./user-account-list";
 
 export const Header = () => {
   const { appUser } = useContext(UserContext);
@@ -56,7 +57,7 @@ export const Header = () => {
               </div>
             </MenuHandler>
 
-            <MenuList>
+            <MenuList className={"max-w-[200px]"}>
               {appUser?.ProfileEntryResponse && (
                 <MenuItem className="flex items-center p-0">
                   <a
@@ -125,7 +126,7 @@ export const Header = () => {
                   alt="switch-user"
                 />
 
-                <span className="text-base">Switch user</span>
+                <span className="text-base">Add user</span>
               </MenuItem>
 
               <MenuItem
@@ -150,6 +151,9 @@ export const Header = () => {
                 />
 
                 <span className="text-base">Logout</span>
+              </MenuItem>
+              <MenuItem className="hover:bg-white pr-0">
+                <UserAccountList/>
               </MenuItem>
             </MenuList>
           </Menu>

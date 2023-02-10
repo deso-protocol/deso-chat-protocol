@@ -1,6 +1,6 @@
 import { shortenLongWord } from "components/search-users";
 import { AppUser } from "contexts/UserContext";
-import { ChatType } from "deso-protocol-types";
+import { ChatType, User } from "deso-protocol-types";
 import { desoAPI } from "services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME, PUBLIC_KEY_LENGTH, PUBLIC_KEY_PREFIX } from "./constants";
 import { Conversation } from "./types";
@@ -56,12 +56,16 @@ export const isMaybeENSName = (query: string): boolean => {
 };
 
 export const formatDisplayName = (user: AppUser) => {
+  return formatDisplayNameFromUser(user);
+};
+
+export const formatDisplayNameFromUser = (user: User) => {
   const maybeUserName = user?.ProfileEntryResponse?.Username;
 
   return maybeUserName
     ? `@${maybeUserName}`
     : shortenLongWord(user?.PublicKeyBase58Check);
-};
+}
 
 export const hasSetupMessaging = (user: AppUser | null) => {
   return !!user?.accessGroupsOwned?.find(
