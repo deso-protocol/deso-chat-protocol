@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@deso-core/identity": "^0.0.16",
     "@headlessui/react": "^1.7.7",
     "@material-tailwind/react": "^1.2.5",
     "@testing-library/jest-dom": "^5.16.5",
@@ -22,7 +23,6 @@
     "elliptic": "^6.5.4",
     "ethers": "^5.7.2",
     "hdkey": "github:deso-protocol/hdkey",
-    "lodash": "^4.17.21",
     "material-color-hash": "^0.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
