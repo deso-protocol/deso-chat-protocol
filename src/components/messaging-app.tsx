@@ -271,13 +271,14 @@ export const MessagingApp: FC = () => {
       // This is mostly used to control "chats view" vs "messages view" on mobile
       setSelectedConversationPublicKey(keyToUse);
     }
-    setLoading(true);
+    setLoadingConversation(true);
 
     try {
       const { updatedConversations, pubKeyPlusGroupName } = await getConversation(keyToUse, conversationsResponse);
       setConversations(updatedConversations);
       setPubKeyPlusGroupName(pubKeyPlusGroupName);
     } finally {
+      setLoadingConversation(false);
       setLoading(false);
     }
 

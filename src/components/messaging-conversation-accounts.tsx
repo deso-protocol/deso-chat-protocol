@@ -87,7 +87,15 @@ export const MessagingConversationAccount: FC<{
             className="conversations-list overflow-y-auto max-h-full [&>:nth-child(1)]:border-t-0 custom-scrollbar"
           >
             <div className="h-full">
-              {Object.entries(conversations).map(([key, value]) => {
+              {Object.entries(conversations).sort(([aPub, convoA], [bPub, convoB]) => {
+                if (convoA.messages.length === 0) {
+                  return aPub === selectedConversationPublicKey ? -1 : 1;
+                }
+                if (convoB.messages.length === 0) {
+                  return bPub === selectedConversationPublicKey ? 1 : - 1;
+                }
+                return convoB.messages[0].MessageInfo.TimestampNanos - convoA.messages[0].MessageInfo.TimestampNanos;
+              }).map(([key, value]) => {
                 const isDM = value.ChatType === ChatType.DM;
                 const isGroupChat = value.ChatType === ChatType.GROUPCHAT;
                 const publicKey = isDM
