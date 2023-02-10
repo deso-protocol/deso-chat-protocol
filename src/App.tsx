@@ -11,7 +11,7 @@ import { desoAPI } from "./services/desoAPI.service";
 import { getTransactionSpendingLimits } from "./utils/constants";
 
 identity.configure({
-  identityURI: 'http://localhost:4201', //process.env.REACT_APP_IDENTITY_URL,
+  identityURI: process.env.REACT_APP_IDENTITY_URL,
   nodeURI: process.env.REACT_APP_API_URL?.replace("/api/v0", ""),
   network: process.env.REACT_APP_IS_TESTNET ? "testnet" : "mainnet",
   spendingLimitOptions: getTransactionSpendingLimits(""),
