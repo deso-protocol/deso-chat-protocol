@@ -57,6 +57,7 @@ export const MessagingApp: FC = () => {
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
   const [pubKeyPlusGroupName, setPubKeyPlusGroupName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingConversation, setLoadingConversation] = useState(false);
   const [selectedConversationPublicKey, setSelectedConversationPublicKey] =
     useState("");
   const [conversations, setConversations] = useState<ConversationMap>({});
@@ -510,14 +511,14 @@ export const MessagingApp: FC = () => {
               onClick={async (key: string) => {
                 setSelectedConversationPublicKey(key);
 
-                setLoading(true);
+                setLoadingConversation(true);
 
                 try {
                   const { updatedConversations, pubKeyPlusGroupName } = await getConversation(key);
                   setConversations(updatedConversations);
                   setPubKeyPlusGroupName(pubKeyPlusGroupName);
                 } finally {
-                  setLoading(false);
+                  setLoadingConversation(false);
                 }
               }}
               membersByGroupKey={membersByGroupKey}
@@ -600,7 +601,7 @@ export const MessagingApp: FC = () => {
               <div className="border-none flex flex-col justify-between h-full">
                 <div className="max-h-[calc(100%-130px)] overflow-hidden">
                   {
-                    loading
+                    loadingConversation
                       ? <ClipLoader color={'#6d4800'} loading={true} size={44} className="mt-4" />
                       : (
                         <MessagingBubblesAndAvatar
