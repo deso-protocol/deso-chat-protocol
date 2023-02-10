@@ -71,7 +71,7 @@ const UserAccountList = () => {
       ["desc", "desc", "asc"]
     );
     setAllAccounts(sortedAccounts);
-  }, [users]);
+  }, [users, appUser]);
 
   const visibleAccounts = showMore
     ? allAccounts
