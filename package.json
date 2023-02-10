@@ -40,7 +40,11 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "eject": "react-app-rewired eject"
+    "eject": "react-app-rewired eject",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
+    "prepare": "husky install"
   },
   "eslintConfig": {
     "extends": [
@@ -69,9 +73,24 @@
     "@types/hdkey": "^2.0.1",
     "@types/lodash": "^4.14.191",
     "@types/sha256": "^0.2.0",
+    "eslint": "^8.33.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.1",
     "postcss": "^8.4.21",
+    "prettier": "^2.8.3",
     "process": "^0.11.10",
     "react-app-rewired": "^2.2.1",
     "tailwindcss": "^3.2.4"
+  },
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.yml": [
+      "prettier --write"
+    ]
   }
 }
