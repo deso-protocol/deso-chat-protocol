@@ -77,8 +77,8 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       messageAreaRef.current!.classList.add("overflow-hidden");
     }
 
-    const hasUnreadMessages = visibleMessages[0].MessageInfo.TimestampNanosString !== conversation.messages[0].MessageInfo.TimestampNanosString;
-    const isLastMessageFromMe = conversation.messages[0].IsSender;
+    const hasUnreadMessages = visibleMessages.length && visibleMessages[0].MessageInfo.TimestampNanosString !== conversation.messages[0].MessageInfo.TimestampNanosString;
+    const isLastMessageFromMe = conversation.messages.length && conversation.messages[0].IsSender;
 
     setVisibleMessages(conversation.messages);
 
