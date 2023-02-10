@@ -2,7 +2,7 @@ import { User } from "deso-protocol-types";
 import { useContext, useEffect, useState } from "react";
 import orderBy from "lodash/orderBy";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { formatDisplayNameFromUser } from "../utils/helpers";
+import { formatDisplayName } from "../utils/helpers";
 import { UserContext } from "../contexts/UserContext";
 import { identity } from "@deso-core/identity";
 import { desoAPI } from "../services/desoAPI.service";
@@ -57,7 +57,7 @@ const UserAccountList = () => {
       const hasProfile = !!profile;
 
       return {
-        name: formatDisplayNameFromUser(user),
+        name: formatDisplayName(user),
         onclick: async (key: string) => identity.setActiveUser(key),
         key,
         profile,

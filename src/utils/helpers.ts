@@ -55,11 +55,7 @@ export const isMaybeENSName = (query: string): boolean => {
   return /(\.eth)$/g.test(query);
 };
 
-export const formatDisplayName = (user: AppUser) => {
-  return formatDisplayNameFromUser(user);
-};
-
-export const formatDisplayNameFromUser = (user: User) => {
+export const formatDisplayName = (user: User) => {
   const maybeUserName = user?.ProfileEntryResponse?.Username;
 
   return maybeUserName
