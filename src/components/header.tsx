@@ -120,6 +120,13 @@ export const Header = () => {
 
               <MenuItem
                 className="flex items-center"
+                onClick={() => identity.login()}
+              >
+                <span className="text-base">Switch user</span>
+              </MenuItem>
+
+              <MenuItem
+                className="flex items-center"
                 onClick={() => identity.logout()}
               >
                 <img
