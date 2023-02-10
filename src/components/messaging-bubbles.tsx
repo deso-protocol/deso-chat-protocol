@@ -215,7 +215,17 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
         style={{ display: "flex", flexDirection: "column-reverse" }}
         inverse={true}
         hasMore={allowScrolling}
-        loader={<h4 className="my-4 flex items-center justify-center"><ClipLoader color={"#6d4800"} loading={true} size={16} className="mr-2"/>Loading...</h4>}
+        loader={
+          <h4 className="my-4 flex items-center justify-center">
+            <ClipLoader
+              color={"#6d4800"}
+              loading={true}
+              size={16}
+              className="mr-2"
+            />
+            Loading...
+          </h4>
+        }
         scrollableTarget="scrollableArea"
       >
         <div className="scroller-end-stub"></div>
