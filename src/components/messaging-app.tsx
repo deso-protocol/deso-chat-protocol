@@ -56,7 +56,7 @@ export const MessagingApp: FC = () => {
     useState<{ [key: string]: string }>({});
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
   const [pubKeyPlusGroupName, setPubKeyPlusGroupName] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [loadingConversation, setLoadingConversation] = useState(false);
   const [selectedConversationPublicKey, setSelectedConversationPublicKey] =
     useState("");
@@ -83,7 +83,7 @@ export const MessagingApp: FC = () => {
   useEffect(() => {
     setSelectedConversationPublicKey("");
     setLockRefresh(isLoadingUser);
-    if (isLoadingUser) {
+    if (isLoadingUser && appUser) {
       setLoading(true);
     }
   }, [isLoadingUser])
