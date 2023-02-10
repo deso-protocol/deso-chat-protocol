@@ -148,9 +148,11 @@ function App() {
       <RefreshContext.Provider value={{ lockRefresh, setLockRefresh }}>
         <div className="App">
           <Header />
+
             <section className="h-[calc(100%-80px)] mt-[80px]">
               <MessagingApp />
             </section>
+
           <ToastContainer />
         </div>
       </RefreshContext.Provider>

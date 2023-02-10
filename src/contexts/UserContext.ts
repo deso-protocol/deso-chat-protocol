@@ -1,6 +1,5 @@
 import { AccessGroupEntryResponse, User } from "deso-protocol-types";
 import { createContext } from "react";
-import { hasSetupMessaging } from "../utils/helpers";
 
 export type AppUser = User & {
   messagingPublicKeyBase58Check: string;
