@@ -82,6 +82,9 @@ export const MessagingApp: FC = () => {
   useEffect(() => {
     setSelectedConversationPublicKey("");
     setLockRefresh(!isLoadingUser);
+    if (isLoadingUser) {
+      setLoading(true);
+    }
   }, [isLoadingUser])
 
   useEffect(() => {

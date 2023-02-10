@@ -12,6 +12,7 @@ import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
 import { RefreshContext } from "../contexts/RefreshContext";
 import { UserAccountList } from "./user-account-list";
+import { toast } from "react-toastify";
 
 export const Header = () => {
   const { appUser } = useContext(UserContext);
@@ -57,7 +58,7 @@ export const Header = () => {
               </div>
             </MenuHandler>
 
-            <MenuList className={"max-w-[200px]"}>
+            <MenuList className={"max-w-[200px] w-[200px]"}>
               {appUser?.ProfileEntryResponse && (
                 <MenuItem className="flex items-center p-0">
                   <a
@@ -114,9 +115,11 @@ export const Header = () => {
 
                   try {
                     await identity.login();
-                  } finally {
-                    setLockRefresh(false);
+                  } catch (e) {
+                    toast.error(`Error logging in: ${e}`);
+                    console.error(e);
                   }
+                  setLockRefresh(false);
                 }}
               >
                 <img
@@ -138,9 +141,11 @@ export const Header = () => {
 
                   try {
                     await identity.logout();
-                  } finally {
-                    setLockRefresh(false);
+                  } catch (e) {
+                    toast.error(`Error logging out: ${e}`);
+                    console.error(e);
                   }
+                  setLockRefresh(false);
                 }}
               >
                 <img
