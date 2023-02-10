@@ -77,6 +77,8 @@ export const MessagingApp: FC = () => {
       setLoading(true);
       setAutoFetchConversations(true);
       rehydrateConversation("", false, !isMobile, isLoadingUser);
+    } else {
+      setLoading(false);
     }
   }, [appUser, isMobile]);
 
@@ -86,7 +88,7 @@ export const MessagingApp: FC = () => {
     if (isLoadingUser && appUser) {
       setLoading(true);
     }
-  }, [isLoadingUser])
+  }, [isLoadingUser, appUser])
 
   useEffect(() => {
     if (conversations[selectedConversationPublicKey]) {
