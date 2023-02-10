@@ -3,7 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+<<<<<<< Updated upstream
     "@deso-core/identity": "^0.0.14-beta.4",
+=======
+    "@deso-core/identity": "^0.0.16",
+>>>>>>> Stashed changes
     "@headlessui/react": "^1.7.7",
     "@material-tailwind/react": "^1.2.5",
     "@testing-library/jest-dom": "^5.16.5",
