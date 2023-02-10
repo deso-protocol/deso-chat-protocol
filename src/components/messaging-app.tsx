@@ -108,11 +108,11 @@ export const MessagingApp: FC = () => {
   }, [selectedConversationPublicKey, conversations, usernameByPublicKeyBase58Check]);
 
   useInterval(async () => {
-    if (!appUser?.PublicKeyBase58Check || !hasSetupMessaging(appUser) || loading || lockRefreshRef.current) {
+    if (!selectedConversationPublicKey || lockRefreshRef.current) {
       return;
     }
 
-    const [res] = await getConversations(appUser?.PublicKeyBase58Check);
+    const [res] = await getConversations(appUser!.PublicKeyBase58Check);
     const { updatedConversations, pubKeyPlusGroupName } = await getConversation(
       selectedConversationPublicKey,
       {
@@ -277,6 +277,9 @@ export const MessagingApp: FC = () => {
       const { updatedConversations, pubKeyPlusGroupName } = await getConversation(keyToUse, conversationsResponse);
       setConversations(updatedConversations);
       setPubKeyPlusGroupName(pubKeyPlusGroupName);
+    } catch(e) {
+      toast.error(`Error fetching current conversation: ${e}`);
+      console.error(e);
     } finally {
       setLoadingConversation(false);
       setLoading(false);
