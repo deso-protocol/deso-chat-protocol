@@ -1,4 +1,8 @@
-import { ChatType, DecryptedMessageEntryResponse, SubmitTransactionResponse } from "deso-protocol-types";
+import {
+  ChatType,
+  DecryptedMessageEntryResponse,
+  SubmitTransactionResponse,
+} from "deso-protocol-types";
 
 export interface Conversation {
   firstMessagePublicKey: string;
@@ -7,7 +11,7 @@ export interface Conversation {
 }
 
 export interface ConversationMap {
-  [k: string]: Conversation
+  [k: string]: Conversation;
 }
 
 export interface TransactionConstructionResponse {

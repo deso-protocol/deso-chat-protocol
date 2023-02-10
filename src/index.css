@@ -9,8 +9,8 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,19 +20,24 @@ body {
 * Fixing weird behavior for height: 100vh on Safari Mobile
 * https://stackoverflow.com/questions/37112218/css3-100vh-not-constant-in-mobile-browser
  */
-html, body, .App {
+html,
+body,
+.App {
   height: 100vh;
   height: var(--app-height);
-  -webkit-overflow-scrolling : touch !important;
+  -webkit-overflow-scrolling: touch !important;
 }
 
-@media not all and (hover:hover) {
-  html, body, .App {
+@media not all and (hover: hover) {
+  html,
+  body,
+  .App {
     height: var(--app-height);
   }
 }
 
-body, .App {
+body,
+.App {
   width: 100vw;
   background-color: #050e1d;
   overflow: hidden;

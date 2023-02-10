@@ -87,73 +87,78 @@ export const MessagingConversationAccount: FC<{
             className="conversations-list overflow-y-auto max-h-full [&>:nth-child(1)]:border-t-0 custom-scrollbar"
           >
             <div className="h-full">
-              {Object.entries(conversations).sort(([aPub, convoA], [bPub, convoB]) => {
-                if (convoA.messages.length === 0) {
-                  return aPub === selectedConversationPublicKey ? -1 : 1;
-                }
-                if (convoB.messages.length === 0) {
-                  return bPub === selectedConversationPublicKey ? 1 : - 1;
-                }
-                return convoB.messages[0].MessageInfo.TimestampNanos - convoA.messages[0].MessageInfo.TimestampNanos;
-              }).map(([key, value]) => {
-                const isDM = value.ChatType === ChatType.DM;
-                const isGroupChat = value.ChatType === ChatType.GROUPCHAT;
-                const publicKey = isDM
-                  ? value.firstMessagePublicKey
-                  : value.messages[0].RecipientInfo.OwnerPublicKeyBase58Check;
-                const chatName = getChatNameFromConversation(
-                  value,
-                  getUsernameByPublicKeyBase58Check
-                );
-                const selectedConversationStyle =
-                  key === selectedConversationPublicKey
-                    ? "selected-conversation bg-blue-900/20"
-                    : "";
-                return (
-                  <div
-                    onClick={() => onClick(key)}
-                    className={`px-2 py-4 ${selectedConversationStyle} hover:bg-blue-900/10 cursor-pointer flex justify-start`}
-                    key={`message-thread-${key}`}
-                  >
-                    <MessagingDisplayAvatar
-                      username={isDM ? chatName : undefined}
-                      publicKey={
-                        isDM ? value.firstMessagePublicKey : chatName || ""
-                      }
-                      groupChat={isGroupChat}
-                      diameter={50}
-                      classNames="mx-2"
-                    />
-                    <div className="w-[calc(100%-70px)] text-left">
-                      <header className="flex items-center justify-between">
-                        <div className="text-left ml-2 text-blue-100 font-semibold">
-                          {isDM && chatName ? "@" : ""}
-                          {chatName || shortenLongWord(publicKey)}
-                        </div>
+              {Object.entries(conversations)
+                .sort(([aPub, convoA], [bPub, convoB]) => {
+                  if (convoA.messages.length === 0) {
+                    return aPub === selectedConversationPublicKey ? -1 : 1;
+                  }
+                  if (convoB.messages.length === 0) {
+                    return bPub === selectedConversationPublicKey ? 1 : -1;
+                  }
+                  return (
+                    convoB.messages[0].MessageInfo.TimestampNanos -
+                    convoA.messages[0].MessageInfo.TimestampNanos
+                  );
+                })
+                .map(([key, value]) => {
+                  const isDM = value.ChatType === ChatType.DM;
+                  const isGroupChat = value.ChatType === ChatType.GROUPCHAT;
+                  const publicKey = isDM
+                    ? value.firstMessagePublicKey
+                    : value.messages[0].RecipientInfo.OwnerPublicKeyBase58Check;
+                  const chatName = getChatNameFromConversation(
+                    value,
+                    getUsernameByPublicKeyBase58Check
+                  );
+                  const selectedConversationStyle =
+                    key === selectedConversationPublicKey
+                      ? "selected-conversation bg-blue-900/20"
+                      : "";
+                  return (
+                    <div
+                      onClick={() => onClick(key)}
+                      className={`px-2 py-4 ${selectedConversationStyle} hover:bg-blue-900/10 cursor-pointer flex justify-start`}
+                      key={`message-thread-${key}`}
+                    >
+                      <MessagingDisplayAvatar
+                        username={isDM ? chatName : undefined}
+                        publicKey={
+                          isDM ? value.firstMessagePublicKey : chatName || ""
+                        }
+                        groupChat={isGroupChat}
+                        diameter={50}
+                        classNames="mx-2"
+                      />
+                      <div className="w-[calc(100%-70px)] text-left">
+                        <header className="flex items-center justify-between">
+                          <div className="text-left ml-2 text-blue-100 font-semibold">
+                            {isDM && chatName ? "@" : ""}
+                            {chatName || shortenLongWord(publicKey)}
+                          </div>
 
-                        {isDM && (
-                          <ETHSection
-                            desoPublicKey={publicKey}
-                            provider={provider}
-                          />
+                          {isDM && (
+                            <ETHSection
+                              desoPublicKey={publicKey}
+                              provider={provider}
+                            />
+                          )}
+
+                          {isGroupChat && (
+                            <MessagingGroupMembers
+                              membersMap={membersByGroupKey[key] || {}}
+                            />
+                          )}
+                        </header>
+
+                        {value.messages[0] && (
+                          <div className="text-left break-all truncate w-full text-blue-300/60 ml-2">
+                            {value.messages[0].DecryptedMessage.slice(0, 50)}...
+                          </div>
                         )}
-
-                        {isGroupChat && (
-                          <MessagingGroupMembers
-                            membersMap={membersByGroupKey[key] || {}}
-                          />
-                        )}
-                      </header>
-
-                      {value.messages[0] && (
-                        <div className="text-left break-all truncate w-full text-blue-300/60 ml-2">
-                          {value.messages[0].DecryptedMessage.slice(0, 50)}...
-                        </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </TabPanel>
 
@@ -219,8 +224,8 @@ export const MessagingGroupMembers: FC<{
 export const ETHSection: FC<{
   desoPublicKey: string;
   provider: ethers.providers.InfuraProvider;
-}> = ({ desoPublicKey, provider }) => {
-  const [ensName, setENSName] = useState<string | null>(null);
+}> = ({ desoPublicKey }) => {
+  const [ensName] = useState<string | null>(null);
   const ethAddress =
     desoAPI.ethereum.desoAddressToEthereumAddress(desoPublicKey);
 

@@ -1,4 +1,5 @@
 ![DeSo Logo](public/assets/logo-white.svg)
+
 # DeSo Chat Protocol
 
 This repo is a react app that demonstrates how to use access groups to create an end-to-end encrypted chat application

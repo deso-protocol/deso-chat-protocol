@@ -17,7 +17,10 @@ export function useInterval(callback: () => any, delay: number) {
   // Set up the interval:
 
   useEffect(() => {
-    intervalRef.current = window.setInterval(() => callbackRef.current(), delay);
+    intervalRef.current = window.setInterval(
+      () => callbackRef.current(),
+      delay
+    );
 
     // Clear interval if the components is unmounted or the delay changes:
     return () => window.clearInterval(intervalRef.current);

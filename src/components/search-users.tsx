@@ -227,7 +227,9 @@ export const SearchUsers = ({
           />
         </div>
         <Combobox.Options
-          className={`absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100`}
+          className={
+            "absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100"
+          }
         >
           <Combobox.Option
             value={false}

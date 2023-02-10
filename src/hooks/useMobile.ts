@@ -9,13 +9,13 @@ export function useMobile() {
   }
 
   useEffect(() => {
-    window.addEventListener('resize', handleWindowSizeChange);
+    window.addEventListener("resize", handleWindowSizeChange);
     return () => {
-      window.removeEventListener('resize', handleWindowSizeChange);
-    }
+      window.removeEventListener("resize", handleWindowSizeChange);
+    };
   }, []);
 
   return {
-    isMobile: (width <= MOBILE_WIDTH_BREAKPOINT)
+    isMobile: width <= MOBILE_WIDTH_BREAKPOINT,
   };
 }

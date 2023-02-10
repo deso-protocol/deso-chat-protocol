@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import { Button, Textarea } from "@material-tailwind/react";
 import { toast } from "react-toastify";
 
@@ -10,28 +10,28 @@ export const SendMessageButtonAndInput = ({
   onClick,
 }: SendMessageButtonAndInputProps) => {
   const [isSending, setIsSending] = useState(false);
-  const [messageToSend, setMessageToSend] = useState('');
+  const [messageToSend, setMessageToSend] = useState("");
 
   const sendMessage = async () => {
-    if (messageToSend === '') {
-      toast.warning('The provided message is empty');
+    if (messageToSend === "") {
+      toast.warning("The provided message is empty");
       return;
     }
     if (isSending) {
-      toast.warning('Please wait a second before sending another message');
+      toast.warning("Please wait a second before sending another message");
       return;
     }
     setIsSending(true);
-    setMessageToSend('');
+    setMessageToSend("");
     try {
-      await onClick(messageToSend)
+      await onClick(messageToSend);
     } catch (e) {
       // If the onClick handler failed, reset the messageToSend
       // so the sender doesn't lose it.
-      setMessageToSend(messageToSend)
+      setMessageToSend(messageToSend);
     }
     setIsSending(false);
-  }
+  };
 
   return (
     <div className="flex justify-center items-start w-full p-0 pb-2 md:p-4 md:pb-2">
@@ -44,12 +44,12 @@ export const SendMessageButtonAndInput = ({
               setMessageToSend(e.target.value);
             }}
             onKeyDown={async (e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 await sendMessage();
               }
             }}
             onKeyUp={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === "Enter" && !e.shiftKey) {
                 setMessageToSend(messageToSend.trim());
               }
             }}
@@ -71,7 +71,7 @@ export const SendMessageButtonAndInput = ({
       <div className="flex h-[100px] items-center">
         <Button
           onClick={sendMessage}
-          className='bg-[#ffda59] ml-4 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg'
+          className="bg-[#ffda59] ml-4 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg"
         >
           <div className="flex justify-center md:w-[80px]">
             <div className="hidden md:block mx-2">Send</div>

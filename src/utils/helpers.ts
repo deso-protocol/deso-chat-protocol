@@ -59,7 +59,7 @@ export const isMaybeENSName = (query: string): boolean => {
   return /(\.eth)$/g.test(query);
 };
 
-export const formatDisplayName = (user: User, prefix: string = "@") => {
+export const formatDisplayName = (user: User, prefix = "@") => {
   const maybeUserName = user?.ProfileEntryResponse?.Username;
 
   return maybeUserName
