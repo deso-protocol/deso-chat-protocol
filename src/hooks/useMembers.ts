@@ -51,7 +51,7 @@ export function useMembers(
             ...res.AccessGroupMembersBase58Check,
           ];
 
-          setCurrentMemberKeys(res.AccessGroupMembersBase58Check || []);
+          setCurrentMemberKeys(sortedMembers);
           setMembers(
             sortedMembers.map((publicKey) => ({
               id: publicKey,

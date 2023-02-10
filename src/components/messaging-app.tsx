@@ -44,7 +44,7 @@ import { shortenLongWord } from "./search-users";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
-  const { appUser } = useContext(UserContext);
+  const { appUser, isLoadingUser } = useContext(UserContext);
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
     useState<{ [key: string]: string }>({});
   const [autoFetchConversations, setAutoFetchConversations] = useState(false);
@@ -62,7 +62,7 @@ export const MessagingApp: FC = () => {
     if (!appUser) return;
     if (hasSetupMessaging(appUser)) {
       setAutoFetchConversations(true);
-      rehydrateConversation("", false, !isMobile);
+      rehydrateConversation("", false, !isMobile, isLoadingUser);
     }
   }, [appUser, isMobile]);
 
@@ -148,21 +148,22 @@ export const MessagingApp: FC = () => {
   const rehydrateConversation = async (
     selectedKey = "",
     autoScroll: boolean = false,
-    selectConversation: boolean = true
+    selectConversation: boolean = true,
+    userChange: boolean = false,
   ) => {
     if (!appUser) {
       toast.error("You must be logged in to use this feature");
       return;
     }
-
     const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
       appUser.PublicKeyBase58Check
     );
     let conversationsResponse = res || {};
     const keyToUse =
       selectedKey ||
-      selectedConversationPublicKey ||
+      (!userChange && selectedConversationPublicKey) ||
       Object.keys(conversationsResponse)[0];
+
     if (!conversationsResponse[keyToUse]) {
       // This is just to make the search bar work. we have 0 messages in this thread originally.
       conversationsResponse = {
@@ -367,7 +368,7 @@ export const MessagingApp: FC = () => {
 
   return (
     <div className="h-full">
-      {!conversationsReady && (
+      {(!conversationsReady || !hasSetupMessaging(appUser) || isLoadingUser) && (
         <div className="py-20">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
@@ -385,7 +386,7 @@ export const MessagingApp: FC = () => {
                   />
                 </div>
               )}
-              {!autoFetchConversations && !hasSetupMessaging(appUser) && (
+              {!autoFetchConversations && !hasSetupMessaging(appUser) && !isLoadingUser && (
                 <>
                   <div>
                     {appUser ? (
@@ -430,7 +431,7 @@ export const MessagingApp: FC = () => {
           </Card>
         </div>
       )}
-      {conversationsReady && appUser && (
+      {(hasSetupMessaging(appUser) && conversationsReady && appUser && !isLoadingUser) && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount

@@ -2,7 +2,7 @@ import { Combobox } from "@headlessui/react";
 import { ProfileEntryResponse } from "deso-protocol-types";
 import { ethers } from "ethers";
 import debounce from "lodash/debounce";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { desoAPI } from "../services/desoAPI.service";
@@ -13,6 +13,7 @@ import {
   isMaybeETHAddress,
 } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
+import { UserContext } from "../contexts/UserContext";
 
 export const shortenLongWord = (
   key: string | null,
@@ -71,6 +72,8 @@ export const SearchUsers = ({
   const [inputValue, setInputValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const provider = new ethers.providers.InfuraProvider("homestead"); //, process.env.REACT_APP_INFURA_API_KEY);
+
+  const { appUser } = useContext(UserContext);
 
   useEffect(() => {
     setInputValue(initialValue);
@@ -147,7 +150,7 @@ export const SearchUsers = ({
       Description: "",
       OrderBy: "",
       NumToFetch: 7,
-      ReaderPublicKeyBase58Check: desoAPI.identity.getUserKey() ?? "",
+      ReaderPublicKeyBase58Check: appUser?.PublicKeyBase58Check ?? "",
       ModerationType: "",
       FetchUsersThatHODL: false,
       AddGlobalFeedBool: false,
