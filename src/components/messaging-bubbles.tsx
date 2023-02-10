@@ -79,7 +79,7 @@ export const MessagingBubblesAndAvatar: FC<{
     }
 
     setVisibleMessages(conversation.messages);
-  }, [conversations, conversationPublicKey]);
+  }, [conversation.messages, conversationPublicKey, isMobile]);
 
   useEffect(() => {
     const element = messageAreaRef.current!;
@@ -100,7 +100,7 @@ export const MessagingBubblesAndAvatar: FC<{
           behavior: "smooth",
         });
     }
-  }, [visibleMessages]);
+  }, [visibleMessages, isMobile]);
 
   if (Object.keys(conversations).length === 0 || conversationPublicKey === "") {
     return <div></div>;

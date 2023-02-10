@@ -124,7 +124,7 @@ export const ManageMembersDialog = ({
         const tx = await desoAPI.accessGroup.AddAccessGroupMembers(
           {
             AccessGroupOwnerPublicKeyBase58Check:
-              desoAPI.identity.getUserKey() as string,
+              appUser.PublicKeyBase58Check,
             AccessGroupKeyName: groupName,
             AccessGroupMemberList: await Promise.all(
               (groupEntries || []).map(async (accessGroupEntry) => {

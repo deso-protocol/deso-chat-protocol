@@ -56,13 +56,14 @@ export const MessagingApp: FC = () => {
   const [membersByGroupKey, setMembersByGroupKey] = useState<{
     [groupKey: string]: PublicKeyToProfileEntryResponseMap;
   }>({});
+  const [loadingConversationsNewUser, setLoadingConversationsNewUser] = useState(false);
   const { isMobile } = useMobile();
 
   useEffect(() => {
     if (!appUser) return;
     if (hasSetupMessaging(appUser)) {
       setAutoFetchConversations(true);
-      rehydrateConversation("", false, !isMobile);
+      rehydrateConversation("", false, !isMobile, true);
     }
   }, [appUser, isMobile]);
 
@@ -148,21 +149,25 @@ export const MessagingApp: FC = () => {
   const rehydrateConversation = async (
     selectedKey = "",
     autoScroll: boolean = false,
-    selectConversation: boolean = true
+    selectConversation: boolean = true,
+    userChange: boolean = false,
   ) => {
     if (!appUser) {
       toast.error("You must be logged in to use this feature");
       return;
     }
-
+    if (userChange) {
+      setLoadingConversationsNewUser(true);
+    }
     const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
       appUser.PublicKeyBase58Check
     );
     let conversationsResponse = res || {};
     const keyToUse =
       selectedKey ||
-      selectedConversationPublicKey ||
+      (!userChange && selectedConversationPublicKey) ||
       Object.keys(conversationsResponse)[0];
+
     if (!conversationsResponse[keyToUse]) {
       // This is just to make the search bar work. we have 0 messages in this thread originally.
       conversationsResponse = {
@@ -211,6 +216,10 @@ export const MessagingApp: FC = () => {
 
     if (autoScroll) {
       scrollContainerToElement(".conversations-list", ".selected-conversation");
+    }
+
+    if (userChange) {
+      setLoadingConversationsNewUser(false);
     }
   };
 
@@ -367,7 +376,7 @@ export const MessagingApp: FC = () => {
 
   return (
     <div className="h-full">
-      {!conversationsReady && (
+      {(!conversationsReady || !hasSetupMessaging(appUser) || loadingConversationsNewUser) && (
         <div className="py-20">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
@@ -430,7 +439,7 @@ export const MessagingApp: FC = () => {
           </Card>
         </div>
       )}
-      {conversationsReady && appUser && (
+      {(hasSetupMessaging(appUser) && conversationsReady && appUser && !loadingConversationsNewUser) && (
         <div className="flex h-full">
           <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
             <MessagingConversationAccount
