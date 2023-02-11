@@ -103,3 +103,7 @@ textarea:not(:focus) ~ label::before,
 textarea:not(:focus) ~ label::after {
   border: none;
 }
+
+#message-text > a {
+  text-decoration: underline;
+}
