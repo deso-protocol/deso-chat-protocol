@@ -29,11 +29,13 @@ import { SearchUsers } from "./search-users";
 export interface ManageMembersDialogProps {
   onSuccess: () => void;
   conversation: Conversation;
+  isGroupOwner: boolean;
 }
 
 export const ManageMembersDialog = ({
   onSuccess,
   conversation,
+  isGroupOwner
 }: ManageMembersDialogProps) => {
   const { appUser } = useContext(UserContext);
   const [open, setOpen] = useState(false);
@@ -223,13 +225,15 @@ export const ManageMembersDialog = ({
     );
   };
 
+  const title = isGroupOwner ? "Manage Group" : "View Members";
+
   return (
     <Fragment>
       <Button
         onClick={handleOpen}
         className="bg-blue-700/40 hover:bg-blue-700/70 relative z-10 text-white rounded-full hover:shadow-none normal-case text-xs shadow-none px-3 py-1 md:px-6 md:py-3"
       >
-        <span className="hidden md:block">Manage Members</span>
+        <span className="hidden md:block">{title}</span>
         <img
           className="visible md:hidden"
           src="/assets/members.png"
@@ -243,7 +247,7 @@ export const ManageMembersDialog = ({
         handler={handleOpen}
         className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
-        <DialogHeader className="text-blue-100">Manage members</DialogHeader>
+        <DialogHeader className="text-blue-100">{title}</DialogHeader>
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider>
@@ -265,18 +269,22 @@ export const ManageMembersDialog = ({
                 </div>
               </div>
 
-              <SearchUsers
-                onSelected={(member) =>
-                  addMember(member, () => {
-                    setTimeout(() => {
-                      membersAreaRef.current?.scrollTo(
-                        0,
-                        membersAreaRef.current.scrollHeight
-                      );
-                    }, 0);
-                  })
-                }
-              />
+              {
+                isGroupOwner &&
+                <SearchUsers
+                  onSelected={(member) =>
+                    addMember(member, () => {
+                      setTimeout(() => {
+                        membersAreaRef.current?.scrollTo(
+                          0,
+                          membersAreaRef.current.scrollHeight
+                        );
+                      }, 0);
+                    })
+                  }
+                />
+              }
+
 
               <div
                 className="max-h-[240px] overflow-y-auto custom-scrollbar"
@@ -306,11 +314,11 @@ export const ManageMembersDialog = ({
                       <div className="flex justify-between align-center flex-1">
                         <div className="ml-2 md:ml-4">
                           <div className="font-medium">{member.text}</div>
-                          {currentMemberKeys.includes(member.id) && (
+                          {isGroupOwner && currentMemberKeys.includes(member.id) && (
                             <div className="text-xs">Already in the chat</div>
                           )}
                         </div>
-                        {member.id !== appUser?.PublicKeyBase58Check && (
+                        {isGroupOwner && member.id !== appUser?.PublicKeyBase58Check && (
                           <Button
                             size="sm"
                             color="red"
@@ -328,6 +336,8 @@ export const ManageMembersDialog = ({
           </DialogBody>
 
           <DialogFooter>
+            { isGroupOwner && (
+              <>
             <Button
               variant="text"
               color="red"
@@ -353,6 +363,8 @@ export const ManageMembersDialog = ({
               )}
               <span>Update Group</span>
             </Button>
+                </>)
+            }
           </DialogFooter>
         </form>
       </Dialog>

@@ -596,9 +596,7 @@ export const MessagingApp: FC = () => {
               }`}
             >
               <header
-                className={`flex justify-between items-center relative px-5 md:px-4 h-[69px] ${
-                  !isGroupOwner ? "md:hidden" : ""
-                }`}
+                className={`flex ${isGroupChat && isGroupChat ? "justify-between" : "justify-end"} items-center relative px-5 md:px-4 h-[69px]`}
               >
                 <div
                   className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
@@ -617,22 +615,16 @@ export const MessagingApp: FC = () => {
                     {getCurrentChatName()}
                   </div>
                 )}
-                <div className="text-blue-300/70 hidden md:block">
+                <div className={`text-blue-300/70 hidden ${isGroupOwner ? "md:block" : "md:hidden"}`}>
                   You're the<b> owner of this group</b>
                 </div>
 
-                <div className="flex justify-end">
-                  {isGroupOwner ? (
+                <div className={`flex justify-end ${!isGroupOwner ? "md:w-full" : ""}`}>
+                  {isGroupChat ? (
                     <ManageMembersDialog
                       conversation={selectedConversation}
                       onSuccess={rehydrateConversation}
-                    />
-                  ) : selectedConversation && isGroupChat ? (
-                    <MessagingGroupMembers
-                      membersMap={
-                        membersByGroupKey[selectedConversationPublicKey] || {}
-                      }
-                      maxMembersShown={2}
+                      isGroupOwner={!!isGroupOwner}
                     />
                   ) : (
                     selectedConversation &&
