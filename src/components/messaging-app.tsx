@@ -37,10 +37,7 @@ import {
 import { Conversation, ConversationMap } from "../utils/types";
 import { ManageMembersDialog } from "./manage-members-dialog";
 import { MessagingBubblesAndAvatar } from "./messaging-bubbles";
-import {
-  MessagingConversationAccount,
-  MessagingGroupMembers,
-} from "./messaging-conversation-accounts";
+import { MessagingConversationAccount } from "./messaging-conversation-accounts";
 import { MessagingConversationButton } from "./messaging-conversation-button";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { MessagingSetupButton } from "./messaging-setup-button";
@@ -596,7 +593,9 @@ export const MessagingApp: FC = () => {
               }`}
             >
               <header
-                className={`flex justify-between ${!isGroupChat ? "md:hidden" : ""} items-center relative px-5 md:px-4 h-[69px]`}
+                className={`flex justify-between ${
+                  !isGroupChat ? "md:hidden" : ""
+                } items-center relative px-5 md:px-4 h-[69px]`}
               >
                 <div
                   className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
@@ -615,11 +614,19 @@ export const MessagingApp: FC = () => {
                     {getCurrentChatName()}
                   </div>
                 )}
-                <div className={`text-blue-300/70 hidden ${isGroupOwner ? "md:block" : "md:hidden"}`}>
+                <div
+                  className={`text-blue-300/70 hidden ${
+                    isGroupOwner ? "md:block" : "md:hidden"
+                  }`}
+                >
                   You're the<b> owner of this group</b>
                 </div>
 
-                <div className={`flex justify-end ${!isGroupOwner ? "md:w-full" : ""}`}>
+                <div
+                  className={`flex justify-end ${
+                    !isGroupOwner ? "md:w-full" : ""
+                  }`}
+                >
                   {isGroupChat ? (
                     <ManageMembersDialog
                       conversation={selectedConversation}

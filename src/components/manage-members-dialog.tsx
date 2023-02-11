@@ -35,7 +35,7 @@ export interface ManageMembersDialogProps {
 export const ManageMembersDialog = ({
   onSuccess,
   conversation,
-  isGroupOwner
+  isGroupOwner,
 }: ManageMembersDialogProps) => {
   const { appUser } = useContext(UserContext);
   const [open, setOpen] = useState(false);
@@ -269,8 +269,7 @@ export const ManageMembersDialog = ({
                 </div>
               </div>
 
-              {
-                isGroupOwner &&
+              {isGroupOwner && (
                 <SearchUsers
                   onSelected={(member) =>
                     addMember(member, () => {
@@ -283,8 +282,7 @@ export const ManageMembersDialog = ({
                     })
                   }
                 />
-              }
-
+              )}
 
               <div
                 className="max-h-[240px] overflow-y-auto custom-scrollbar"
@@ -314,19 +312,21 @@ export const ManageMembersDialog = ({
                       <div className="flex justify-between align-center flex-1">
                         <div className="ml-2 md:ml-4">
                           <div className="font-medium">{member.text}</div>
-                          {isGroupOwner && currentMemberKeys.includes(member.id) && (
-                            <div className="text-xs">Already in the chat</div>
-                          )}
+                          {isGroupOwner &&
+                            currentMemberKeys.includes(member.id) && (
+                              <div className="text-xs">Already in the chat</div>
+                            )}
                         </div>
-                        {isGroupOwner && member.id !== appUser?.PublicKeyBase58Check && (
-                          <Button
-                            size="sm"
-                            color="red"
-                            onClick={() => removeMember(member.id)}
-                          >
-                            Remove
-                          </Button>
-                        )}
+                        {isGroupOwner &&
+                          member.id !== appUser?.PublicKeyBase58Check && (
+                            <Button
+                              size="sm"
+                              color="red"
+                              onClick={() => removeMember(member.id)}
+                            >
+                              Remove
+                            </Button>
+                          )}
                       </div>
                     </div>
                   ))
@@ -336,35 +336,35 @@ export const ManageMembersDialog = ({
           </DialogBody>
 
           <DialogFooter>
-            { isGroupOwner && (
+            {isGroupOwner && (
               <>
-            <Button
-              variant="text"
-              color="red"
-              onClick={handleOpen}
-              className="mr-1"
-            >
-              <span>Cancel</span>
-            </Button>
-            <Button
-              variant="gradient"
-              color="green"
-              type="submit"
-              className="flex items-center"
-              disabled={updating}
-            >
-              {updating && (
-                <ClipLoader
-                  color="white"
-                  loading={true}
-                  size={20}
-                  className="mr-2"
-                />
-              )}
-              <span>Update Group</span>
-            </Button>
-                </>)
-            }
+                <Button
+                  variant="text"
+                  color="red"
+                  onClick={handleOpen}
+                  className="mr-1"
+                >
+                  <span>Cancel</span>
+                </Button>
+                <Button
+                  variant="gradient"
+                  color="green"
+                  type="submit"
+                  className="flex items-center"
+                  disabled={updating}
+                >
+                  {updating && (
+                    <ClipLoader
+                      color="white"
+                      loading={true}
+                      size={20}
+                      className="mr-2"
+                    />
+                  )}
+                  <span>Update Group</span>
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </form>
       </Dialog>
