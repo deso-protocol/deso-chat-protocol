@@ -47,7 +47,7 @@
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
-    "commit": "commit",
+    "commit": "commit"
   },
   "eslintConfig": {
     "extends": [
