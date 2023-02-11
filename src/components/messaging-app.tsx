@@ -422,10 +422,10 @@ export const MessagingApp: FC = () => {
                   </div>
                   <MessagingSetupButton />
                   <p className="mt-5 text-md text-blue-300/40">
-                    This chat framework is open-sourced. It can be found <a target="_blank" className="underline" href="https://github.com/deso-protocol/deso-chat-protocol">on Github</a>
+                    This chat framework is open-sourced. It can be found <a target="_blank" className="underline hover:text-blue-300/80" href="https://github.com/deso-protocol/deso-chat-protocol">on Github</a>
                   </p> 
                   <p className="mt-1 text-md text-blue-300/40">
-                    Curious about building on DeSo? <a className="underline" href="https://docs.deso.org">Read our developer docs</a>
+                    Curious about building on DeSo? <a target="_blank"  className="underline hover:text-blue-300/80" href="https://docs.deso.org">Read our developer docs</a>
                   </p> 
                 </>
               )}

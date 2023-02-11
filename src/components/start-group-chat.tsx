@@ -184,7 +184,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           size="md"
         >
           <div className="flex items-center ">
-            <span className="mr-2">Create Chat</span>
+            <span>Create Chat</span>
           </div>
         </Button>
       </div>
@@ -206,8 +206,9 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
               </div>
 
               <Input
-                label="Chat Name"
                 value={chatName}
+                autoFocus={true}
+                label="Name"
                 onChange={(e) => setChatName(e.target.value)}
                 className="text-blue-100 border-none bg-blue-900/20"
               />

@@ -38,7 +38,7 @@ export const SendMessageButtonAndInput = ({
       <div className="flex-1">
         <div className="hidden md:block relative">
           <div className="relative">
-            <p className="text-left text-blue-300/40 mb-3 text-xs">Pres Shift + Return for paragraph breaks</p>
+            <p className="text-left text-blue-300/40 mb-3 text-xs">Press Shift + Return for paragraph breaks</p>
             <Textarea
               className="p-2 pr-[200px] text-blue-100 bg-black/70 border-blue-gray-100 focus:shadow-none border-none focus:border-solid flex-1"
               label="What's on your mind?"
