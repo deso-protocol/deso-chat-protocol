@@ -311,7 +311,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                 <div
                   className={`${senderStyles} mt-auto mb-5 py-2 px-4 rounded-3xl text-white break-words inline-flex text-left relative items-center w-full`}
                 >
-                  <div className="text-md break-words">{messageToShow}</div>
+                  <div className="text-md break-words whitespace-pre-wrap">{messageToShow}</div>
                 </div>
               </div>
               {IsSender && messagingDisplayAvatarAndTimestamp}
