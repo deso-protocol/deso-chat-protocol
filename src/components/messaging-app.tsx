@@ -475,14 +475,13 @@ export const MessagingApp: FC = () => {
         {}
       )
     : usernameByPublicKeyBase58Check;
-
   return (
-    <div className="h-screen flex">
+    <div className="h-full">
       {(!conversationsReady ||
         !hasSetupMessaging(appUser) ||
         isLoadingUser ||
         loading) && (
-        <div className="m-auto relative -top-8">
+        <div className="m-auto relative top-8">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
               {(autoFetchConversations || isLoadingUser || loading) && (

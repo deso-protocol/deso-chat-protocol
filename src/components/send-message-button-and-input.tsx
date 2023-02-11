@@ -62,19 +62,6 @@ export const SendMessageButtonAndInput = ({
               value={messageToSend}
             />
           </div>
-          <div className="bottom-6 right-4 absolute z-50 items-center">
-            <Button
-              onClick={sendMessage}
-              className="bg-[#ffda59] ml-4 px-2 py-2 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg"
-            >
-              <div className="flex justify-center md:w-[80px]">
-                <div className="hidden md:block mx-2">Send</div>
-                <div className="visible md:hidden mx-2">
-                  <img src="/assets/send.png" width={28} />
-                </div>
-              </div>
-            </Button>
-          </div>
         </div>
 
         <div className="visible md:hidden">
@@ -87,6 +74,19 @@ export const SendMessageButtonAndInput = ({
             value={messageToSend}
           />
         </div>
+      </div>
+      <div className="flex h-[100px] items-center">
+        <Button
+          onClick={sendMessage}
+          className="bg-[#ffda59] ml-4 px-2 py-2 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg"
+        >
+          <div className="flex justify-center md:w-[80px]">
+            <div className="hidden md:block mx-2">Send</div>
+            <div className="visible md:hidden mx-2">
+              <img src="/assets/send.png" width={28} />
+            </div>
+          </div>
+        </Button>
       </div>
     </div>
   );
