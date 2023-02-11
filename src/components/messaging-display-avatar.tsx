@@ -61,7 +61,7 @@ export const MessagingDisplayAvatar: FC<{
     let profilePicUrl = "";
 
     if (!publicKey) {
-        setProfilePicUrl(DEFAULT_PROFILE_PIC_URL);
+          setProfilePicUrl(DEFAULT_PROFILE_PIC_URL);
       return;
     }
 
