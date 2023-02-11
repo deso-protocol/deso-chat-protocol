@@ -111,7 +111,7 @@ export const MessagingDisplayAvatar: FC<{
       <img
         src={profilePicUrl}
         style={{ height: `${diameter}px`, width: `${diameter}px` }}
-        className={`w-12 h-12 bg-white border-2 bg-no-repeat bg-center bg-cover rounded-full ${borderColor}`}
+        className={`w-12 h-12 bg-white bg-no-repeat bg-center bg-cover rounded-full ${borderColor}`}
         alt={publicKey}
         title={publicKey}
         onError={() => {

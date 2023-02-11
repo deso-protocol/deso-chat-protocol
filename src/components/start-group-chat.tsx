@@ -175,7 +175,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
   return (
     <Fragment>
-      <div className="flex text-lg items-center p-4 border-b border-blue-800/30 justify-between">
+      <div className="flex text-lg items-center p-4 border-b border-t mt-1 border-blue-800/30 justify-between">
         <h2 className="font-semibold text-xl text-white">My Chat</h2>
 
         <Button
@@ -184,7 +184,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           size="md"
         >
           <div className="flex items-center ">
-            <span className="mr-2">New Group Chat</span>
+            <span className="mr-2">Create Chat</span>
           </div>
         </Button>
       </div>
@@ -192,7 +192,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       <Dialog
         open={open}
         handler={handleOpen}
-        className="bg-[#050e1d] text-blue-100 border border-blue-600/20 min-w-none max-w-none w-[90%] md:w-[40%]"
+        className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
         <DialogHeader className="text-blue-100 p-5 border-b border-blue-600/20">
           Start New Group Chat
@@ -251,8 +251,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                         {member.text}
                       </span>
                       <Button
-                        size="sm"
-                        color="red"
+                        className="rounded-full mr-3 py-2 border text-red-200/60 bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm px-4"
                         onClick={() => removeMember(member.id)}
                       >
                         Remove

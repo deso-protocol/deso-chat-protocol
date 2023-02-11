@@ -8,6 +8,7 @@ import {
 } from "deso-protocol-types";
 import difference from "lodash/difference";
 import { FC, useContext, useEffect, useState } from "react";
+import { IoLockClosedOutline } from "react-icons/io5";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { desoAPI } from "services/desoAPI.service";
@@ -367,9 +368,9 @@ export const MessagingApp: FC = () => {
     : usernameByPublicKeyBase58Check;
 
   return (
-    <div className="h-full">
+    <div className="h-screen flex">
       {(!conversationsReady || !hasSetupMessaging(appUser) || isLoadingUser) && (
-        <div className="py-20">
+        <div className="m-auto relative -top-8">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
               {autoFetchConversations && (
@@ -394,7 +395,7 @@ export const MessagingApp: FC = () => {
                         <h2 className="text-2xl font-bold mb-3 text-white">
                           Set up your account
                         </h2>
-                        <p className="text-lg mb-5 text-blue-300/60">
+                        <p className="text-lg mb-6 text-blue-300/60">
                           It seems like your account needs more configuration to
                           be able to send messages. Press the button below to
                           set it up automatically
@@ -405,22 +406,27 @@ export const MessagingApp: FC = () => {
                         <h2 className="text-2xl font-bold mb-3 text-white">
                           DeSo Chat Protocol
                         </h2>
-                        <p className="text-lg mb-3 text-blue-300/60">
+                        <p className="text-md mb-5 text-blue-300/60">
                           Censorship-resistant and fully on-chain messaging
                           protocol — with end-to-end encrypted messaging support
-                          for direct messages and group chats.
+                          for direct messages and group chats. Message any wallet on DeSo or Ethereum.
                         </p>
-                        <p className="mb-5 text-lg text-blue-300/60">
+                        <p className="mb-6 text-md text-blue-300/60">
                           A truly{" "}
                           <strong className="text-blue-200">
-                            first-of-its kind.
+                            first of its kind.
                           </strong>
-                        </p>
+                        </p>                                           
                       </div>
                     )}
                   </div>
-
                   <MessagingSetupButton />
+                  <p className="mt-5 text-md text-blue-300/40">
+                    This chat framework is open-sourced. It can be found <a target="_blank" className="underline" href="https://github.com/deso-protocol/deso-chat-protocol">on Github</a>
+                  </p> 
+                  <p className="mt-1 text-md text-blue-300/40">
+                    Curious about building on DeSo? <a className="underline" href="https://docs.deso.org">Read our developer docs</a>
+                  </p> 
                 </>
               )}
 
@@ -453,7 +459,7 @@ export const MessagingApp: FC = () => {
             }`}
           >
             <header
-              className={`flex justify-between items-center relative px-5 md:px-4 h-[69px] ${
+              className={`flex justify-between items-center border-b border-b-blue-200/20 relative px-5 md:px-4 py-2 ${
                 !isGroupOwner ? "md:hidden" : ""
               }`}
             >
@@ -474,8 +480,8 @@ export const MessagingApp: FC = () => {
                   {getCurrentChatName()}
                 </div>
               )}
-              <div className="text-blue-300/70 hidden md:block">
-                You're the<b> owner of this group</b>
+              <div className="text-blue-300/70 items-center text-sm hidden md:block">
+                You're the<strong> owner of this group</strong>
               </div>
 
               <div className="flex justify-end">
@@ -513,11 +519,11 @@ export const MessagingApp: FC = () => {
             </header>
 
             <Card
-              className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
+              className={`pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-40px)] ${
                 isGroupOwner ? "" : "md:h-full"
               }`}
             >
-              <div className="border-none flex flex-col justify-between h-full">
+              <div className="border-none flex flex-col justify-between h-[calc(100%-60px)]">
                 <div className="max-h-[calc(100%-130px)] overflow-hidden">
                   {loading ? (
                     <ClipLoader

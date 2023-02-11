@@ -18,7 +18,7 @@ export const SendMessageButtonAndInput = ({
       return;
     }
     if (isSending) {
-      toast.warning('Please wait a second before sending another message');
+      toast.warning('Going too fast! Please wait a second before sending another message');
       return;
     }
     setIsSending(true);

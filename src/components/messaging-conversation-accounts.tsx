@@ -230,7 +230,7 @@ export const ETHSection: FC<{
   // }, [ethAddress, provider]);
 
   return (
-    <div className="relative inline-flex align-baseline font-sans text-[10px] font-bold uppercase center leading-none whitespace-nowrap py-1 px-2 rounded-lg select-none bg-blue-900 text-white">
+    <div className="relative inline-flex align-baseline font-sans text-[10px] font-bold uppercase center leading-none whitespace-nowrap py-1 px-2 rounded-lg select-none bg-blue-900/40 text-blue-200/80">
       <SaveToClipboard text={ensName ? ensName : ethAddress}>
         {ensName ? "ENS" : "ETH"}
         <i className="ml-1">
