@@ -312,7 +312,12 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                 <div
                   className={`${senderStyles} mt-auto mb-5 py-2 px-4 rounded-3xl text-white break-words inline-flex text-left relative items-center w-full`}
                 >
-                  <div className="text-md break-words whitespace-pre-wrap" id="message-text"><ReactLinkify>{messageToShow}</ReactLinkify></div>
+                  <div
+                    className="text-md break-words whitespace-pre-wrap"
+                    id="message-text"
+                  >
+                    <ReactLinkify>{messageToShow}</ReactLinkify>
+                  </div>
                 </div>
               </div>
               {IsSender && messagingDisplayAvatarAndTimestamp}
