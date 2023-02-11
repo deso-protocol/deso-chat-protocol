@@ -19,6 +19,7 @@ import { ConversationMap } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { shortenLongWord } from "./search-users";
 import ClipLoader from "react-spinners/ClipLoader";
+import ReactLinkify from "react-linkify";
 
 export interface MessagingBubblesProps {
   conversations: ConversationMap;
@@ -311,7 +312,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                 <div
                   className={`${senderStyles} mt-auto mb-5 py-2 px-4 rounded-3xl text-white break-words inline-flex text-left relative items-center w-full`}
                 >
-                  <div className="text-md break-words whitespace-pre-wrap">{messageToShow}</div>
+                  <div className="text-md break-words whitespace-pre-wrap" id="message-text"><ReactLinkify>{messageToShow}</ReactLinkify></div>
                 </div>
               </div>
               {IsSender && messagingDisplayAvatarAndTimestamp}
