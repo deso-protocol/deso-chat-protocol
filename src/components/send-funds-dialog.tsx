@@ -18,7 +18,7 @@ export interface StartGroupChatProps {
 }
 
 export const SendFundsDialog = ({ appUser, onClose }: StartGroupChatProps) => {
-  const formSubmit = (e: any) => {
+  const formSubmit = () => {
     alert("form submitted");
   };
   return (
@@ -44,8 +44,9 @@ export const SendFundsDialog = ({ appUser, onClose }: StartGroupChatProps) => {
                     </SaveToClipboard>
                   </div>
                 </div>
-                Click "Get $DESO" button below to add some through phone
-                verification. Otherwise you can send $DESO from another account.
+                Click &quot;Get $DESO&quot; button below to add some through
+                phone verification. Otherwise you can send $DESO from another
+                account.
               </div>
             </AlertNotification>
 

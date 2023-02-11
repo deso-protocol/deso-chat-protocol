@@ -2,18 +2,19 @@ import { identity, NOTIFICATION_EVENTS } from "@deso-core/identity";
 import { AppUser, UserContext, UserContextType } from "contexts/UserContext";
 import { AccessGroupEntryResponse } from "deso-protocol-types";
 import * as process from "process";
+import { RefreshContext } from "./contexts/RefreshContext";
 import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Header } from "./components/header";
 import { MessagingApp } from "./components/messaging-app";
 import { desoAPI } from "./services/desoAPI.service";
-import { getTransactionSpendingLimits } from "./utils/constants";
+import { DESO_NETWORK, getTransactionSpendingLimits } from "./utils/constants";
 
 identity.configure({
   identityURI: process.env.REACT_APP_IDENTITY_URL,
-  nodeURI: process.env.REACT_APP_API_URL?.replace("/api/v0", ""),
-  network: process.env.REACT_APP_IS_TESTNET ? "testnet" : "mainnet",
+  nodeURI: process.env.REACT_APP_NODE_URL,
+  network: DESO_NETWORK,
   spendingLimitOptions: getTransactionSpendingLimits(""),
 });
 
@@ -30,6 +31,7 @@ function App() {
         return { ...state, appUser: { ...currAppUser, accessGroupsOwned } };
       }),
   });
+  const [lockRefresh, setLockRefresh] = useState(false);
 
   useEffect(
     () => {
@@ -132,7 +134,6 @@ function App() {
         }
       });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       /*
         NOTE: it is very important that we DO NOT add dependencies here. We only want this to run ONCE
@@ -143,15 +144,17 @@ function App() {
 
   return (
     <UserContext.Provider value={userState}>
-      <div className="App">
-        <Header />
+      <RefreshContext.Provider value={{ lockRefresh, setLockRefresh }}>
+        <div className="App">
+          <Header />
 
-        <section className="h-[calc(100%-60px)] mt-[60px]">
-          <MessagingApp />
-        </section>
+          <section className="h-[calc(100%-60px)] mt-[60px]">
+            <MessagingApp />
+          </section>
 
-        <ToastContainer />
-      </div>
+          <ToastContainer />
+        </div>
+      </RefreshContext.Provider>
     </UserContext.Provider>
   );
 }

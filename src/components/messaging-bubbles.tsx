@@ -1,6 +1,7 @@
 import { UserContext } from "contexts/UserContext";
 import {
   ChatType,
+  DecryptedMessageEntryResponse,
   GetPaginatedMessagesForDmThreadResponse,
   GetPaginatedMessagesForGroupChatThreadResponse,
 } from "deso-protocol-types";
@@ -17,11 +18,14 @@ import {
 import { ConversationMap } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { shortenLongWord } from "./search-users";
+import ClipLoader from "react-spinners/ClipLoader";
+import ReactLinkify from "react-linkify";
 
 export interface MessagingBubblesProps {
   conversations: ConversationMap;
   conversationPublicKey: string;
   getUsernameByPublicKey: { [k: string]: string };
+  onScroll: (e: Array<DecryptedMessageEntryResponse>) => void;
 }
 
 function convertTstampToDateTime(tstampNanos: number) {
@@ -47,14 +51,11 @@ function convertTstampToDateTime(tstampNanos: number) {
   return date.toLocaleString("default", { hour: "numeric", minute: "numeric" });
 }
 
-export const MessagingBubblesAndAvatar: FC<{
-  conversations: ConversationMap;
-  conversationPublicKey: string;
-  getUsernameByPublicKey: { [k: string]: string };
-}> = ({
+export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
   conversations,
   conversationPublicKey,
   getUsernameByPublicKey,
+  onScroll,
 }: MessagingBubblesProps) => {
   const messageAreaRef = useRef<HTMLDivElement>(null);
   const { appUser } = useContext(UserContext);
@@ -73,34 +74,48 @@ export const MessagingBubblesAndAvatar: FC<{
       setAllowScrolling(false);
     }
 
-    if (isMobile) {
-      messageAreaRef.current!.classList.remove("overflow-auto");
-      messageAreaRef.current!.classList.add("overflow-hidden");
-    }
-
     setVisibleMessages(conversation.messages);
-  }, [conversation.messages, conversationPublicKey, isMobile]);
 
-  useEffect(() => {
-    const element = messageAreaRef.current!;
+    const scrollableArea = messageAreaRef.current;
+
+    if (!scrollableArea) {
+      return;
+    }
 
     if (isMobile) {
-      messageAreaRef.current!.classList.remove("overflow-hidden");
-      messageAreaRef.current!.classList.add("overflow-auto");
+      scrollableArea.classList.remove("overflow-auto");
+      scrollableArea.classList.add("overflow-hidden");
     }
 
-    if (isMobile && element.scrollTop !== 0) {
-      /*
-       * Always scroll to the last message on mobile, desktop browsers update scroller
-       * properly if it's staying on the very end
-       */
-      const scrollerStub = element.querySelector(".scroller-end-stub");
-      scrollerStub &&
-        scrollerStub.scrollIntoView({
-          behavior: "smooth",
-        });
+    const hasUnreadMessages =
+      visibleMessages.length &&
+      visibleMessages[0].MessageInfo.TimestampNanosString !==
+        conversation.messages[0].MessageInfo.TimestampNanosString;
+    const isLastMessageFromMe =
+      conversation.messages.length && conversation.messages[0].IsSender;
+
+    const element = scrollableArea;
+
+    if (isMobile) {
+      scrollableArea.classList.remove("overflow-hidden");
+      scrollableArea.classList.add("overflow-auto");
     }
-  }, [visibleMessages, isMobile]);
+
+    if (
+      hasUnreadMessages &&
+      isLastMessageFromMe &&
+      (isMobile || element.scrollTop !== 0)
+    ) {
+      // Always scroll to the last message if it's a new message from the current user
+      setTimeout(() => {
+        const scrollerStub = element.querySelector(".scroller-end-stub");
+        scrollerStub &&
+          scrollerStub.scrollIntoView({
+            behavior: "smooth",
+          });
+      }, 500);
+    }
+  }, [conversations, conversationPublicKey, isMobile]);
 
   if (Object.keys(conversations).length === 0 || conversationPublicKey === "") {
     return <div></div>;
@@ -186,7 +201,7 @@ export const MessagingBubblesAndAvatar: FC<{
       allMyAccessGroups
     );
 
-    setVisibleMessages((prev) => [...prev, ...decrypted]);
+    onScroll(decrypted);
   };
 
   return (
@@ -196,26 +211,38 @@ export const MessagingBubblesAndAvatar: FC<{
       id="scrollableArea"
     >
       <InfiniteScroll
-        dataLength={visibleMessages.length}
+        dataLength={conversation.messages.length}
         next={loadMore}
         style={{ display: "flex", flexDirection: "column-reverse" }}
         inverse={true}
         hasMore={allowScrolling}
-        loader={<h4 className="my-4">Loading...</h4>}
+        loader={
+          <h4 className="my-4 flex items-center justify-center">
+            <ClipLoader
+              color={"#6d4800"}
+              loading={true}
+              size={16}
+              className="mr-2"
+            />
+            Loading...
+          </h4>
+        }
         scrollableTarget="scrollableArea"
       >
         <div className="scroller-end-stub"></div>
 
         {visibleMessages.map((message, i: number) => {
           const messageToShow = message.DecryptedMessage || message.error;
-          let senderStyles = "bg-blue-200/20 text-blue-100 rounded-2xl rounded-tl-none rounded-bl-xl pl-5";
+          let senderStyles =
+            "bg-blue-200/20 text-blue-100 rounded-2xl rounded-tl-none rounded-bl-xl pl-5";
           const IsSender =
             message.IsSender ||
             message.SenderInfo.OwnerPublicKeyBase58Check ===
               appUser?.PublicKeyBase58Check;
 
           if (IsSender) {
-            senderStyles = "bg-blue-900/70 text-blue-100 rounded-2xl rounded-tr-none rounded-br-xl pl-5";
+            senderStyles =
+              "bg-blue-900/70 text-blue-100 rounded-2xl rounded-tr-none rounded-br-xl pl-5";
           }
           if (message.error) {
             senderStyles = "bg-red-500 text-red-100";
@@ -287,7 +314,12 @@ export const MessagingBubblesAndAvatar: FC<{
                 <div
                   className={`${senderStyles} mt-auto mb-5 py-2 px-4 text-white break-words inline-flex text-left relative items-center`}
                 >
-                  <div className="text-md break-words">{messageToShow}</div>
+                  <div
+                    className="text-md break-words whitespace-pre-wrap"
+                    id="message-text"
+                  >
+                    <ReactLinkify>{messageToShow}</ReactLinkify>
+                  </div>
                 </div>
               </div>
               {IsSender && messagingDisplayAvatarAndTimestamp}

@@ -164,7 +164,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
       return `${appUser.PublicKeyBase58Check}${accessGroupKeys.AccessGroupKeyName}`;
     } catch (e) {
-      console.log(e);
+      console.error(e);
       toast.error(
         "something went wrong while submitting the add members transaction"
       );

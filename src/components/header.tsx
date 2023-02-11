@@ -7,13 +7,23 @@ import {
 } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
 import { useContext } from "react";
-import { IoCopy, IoCopyOutline, IoExitOutline, IoHappyOutline, IoLogoGithub, IoPersonAddOutline } from "react-icons/io5";
+import {
+  IoCopy,
+  IoCopyOutline,
+  IoExitOutline,
+  IoHappyOutline,
+  IoLogoGithub,
+} from "react-icons/io5";
 import { formatDisplayName, getProfileURL } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
+import { RefreshContext } from "../contexts/RefreshContext";
+import { UserAccountList } from "./user-account-list";
+import { toast } from "react-toastify";
 
 export const Header = () => {
   const { appUser } = useContext(UserContext);
+  const { setLockRefresh } = useContext(RefreshContext);
 
   return (
     <header className="flex justify-between py-3 px-4 fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md">
@@ -56,7 +66,34 @@ export const Header = () => {
               </div>
             </MenuHandler>
 
-            <MenuList>
+            <MenuList className="max-w-[230px] w-[230px] p-2">
+              <div>
+                <div className="block px-2 pt-1 pb-2 flex justify-between items-center border-b">
+                  <span className="font-bold text-lg md:text-base">
+                    Profiles
+                  </span>
+
+                  <button
+                    className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold md:text-sm hover:text-white border py-1 px-2 border-blue-500 hover:border-transparent rounded outline-none"
+                    onClick={async () => {
+                      setLockRefresh(true);
+
+                      try {
+                        await identity.login();
+                      } catch (e) {
+                        toast.error(`Error logging in: ${e}`);
+                        console.error(e);
+                      }
+                      setLockRefresh(false);
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+
+                <UserAccountList />
+              </div>
+
               {appUser?.ProfileEntryResponse && (
                 <MenuItem className="flex items-center p-0">
                   <a
@@ -66,7 +103,7 @@ export const Header = () => {
                     className="w-full outline-0"
                   >
                     <div className="w-full flex items-center pt-[9px] pb-2 px-3">
-                      <IoHappyOutline className="mr-3 text-xl"/>
+                      <IoHappyOutline className="mr-3 text-xl" />
                       <span className="text-base">My profile</span>
                     </div>
                   </a>
@@ -77,12 +114,8 @@ export const Header = () => {
                 <MenuItem className="flex items-center pt-[9px] pb-2 px-3">
                   <SaveToClipboard
                     text={appUser.PublicKeyBase58Check}
-                    copyIcon={
-                      <IoCopyOutline className="text-xl"/>
-                    }
-                    copiedIcon={
-                      <IoCopy className="text-xl"/>
-                    }
+                    copyIcon={<IoCopyOutline className="text-xl" />}
+                    copiedIcon={<IoCopy className="text-xl" />}
                     className=""
                   >
                     <span className="text-base">Copy public key</span>
@@ -90,33 +123,37 @@ export const Header = () => {
                 </MenuItem>
               )}
 
-              <MenuItem
-                className="flex items-center"
-                onClick={() => identity.login()}
-              >
-               <IoPersonAddOutline className="mr-3 text-xl"/>
-                <span className="text-base">Switch user</span>
-              </MenuItem>
-
               <MenuItem className="flex items-center p-0">
                 <a
                   href="https://github.com/deso-protocol/deso-chat-protocol"
                   target="_blank"
                   rel="noreferrer"
                   className="w-full outline-0"
-                  >
-                    <div className="w-full flex items-center pt-[9px] pb-2 px-3">
-                      <IoLogoGithub className="mr-3 text-xl"/>
-                      <span className="text-base">Github code</span>
-                    </div>
-                  </a>
-                </MenuItem>
+                >
+                  <div className="w-full flex items-center pt-[9px] pb-2 px-3">
+                    <IoLogoGithub className="mr-3 text-xl" />
+                    <span className="text-base">Github code</span>
+                  </div>
+                </a>
+              </MenuItem>
 
               <MenuItem
                 className="flex items-center"
-                onClick={() => identity.logout()}
+                onClick={async () => {
+                  if (!appUser) return;
+
+                  setLockRefresh(true);
+
+                  try {
+                    await identity.logout();
+                  } catch (e) {
+                    toast.error(`Error logging out: ${e}`);
+                    console.error(e);
+                  }
+                  setLockRefresh(false);
+                }}
               >
-                <IoExitOutline className="mr-3 text-xl"/>
+                <IoExitOutline className="mr-3 text-xl" />
                 <span className="text-base">Logout</span>
               </MenuItem>
             </MenuList>
