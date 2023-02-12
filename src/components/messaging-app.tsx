@@ -199,10 +199,7 @@ export const MessagingApp: FC = () => {
         const newPublicKeyToUsernames: { [k: string]: string } = {};
 
         (usersStatelessResponse.UserList || []).forEach((u) => {
-          if (u.ProfileEntryResponse?.Username) {
-            newPublicKeyToUsernames[u.PublicKeyBase58Check] =
-              u.ProfileEntryResponse.Username;
-          }
+          newPublicKeyToUsernames[u.PublicKeyBase58Check] = u.ProfileEntryResponse?.Username || "";
         });
 
         setUsernameByPublicKeyBase58Check((state) => ({
@@ -285,14 +282,7 @@ export const MessagingApp: FC = () => {
       ...state,
       ...publicKeyToUsername,
     }));
-    await Promise.all(
-      DMChats.map((e) =>
-        updateUsernameToPublicKeyMapFromMessages(
-          e.messages,
-          e.firstMessagePublicKey
-        )
-      )
-    );
+    await updateUsernameToPublicKeyMapFromConversations(DMChats);
     await Promise.all(GroupChats.map((e) => fetchGroupMembers(e)));
 
     if (selectConversation) {
@@ -321,17 +311,15 @@ export const MessagingApp: FC = () => {
     }
   };
 
-  const updateUsernameToPublicKeyMapFromMessages = async (
-    messages: NewMessageEntryResponse[],
-    firstMessagePublicKey: string
-  ) => {
-    const newPublicKeysToGet = new Set<string>([firstMessagePublicKey]);
-
-    messages.forEach((m: NewMessageEntryResponse) => {
-      newPublicKeysToGet.add(m.RecipientInfo.OwnerPublicKeyBase58Check);
-      newPublicKeysToGet.add(m.SenderInfo.OwnerPublicKeyBase58Check);
+  const updateUsernameToPublicKeyMapFromConversations = async (DMChats: Conversation[]) => {
+    const newPublicKeysToGet = new Set<string>();
+    DMChats.map((e) => {
+      newPublicKeysToGet.add(e.firstMessagePublicKey);
+      e.messages.forEach((m: NewMessageEntryResponse) => {
+        newPublicKeysToGet.add(m.RecipientInfo.OwnerPublicKeyBase58Check);
+        newPublicKeysToGet.add(m.SenderInfo.OwnerPublicKeyBase58Check);
+      });
     });
-
     return await fetchUsersStateless(Array.from(newPublicKeysToGet));
   };
 
@@ -396,6 +384,10 @@ export const MessagingApp: FC = () => {
         },
       };
 
+      if (currentConvo && currentConvo.firstMessagePublicKey && usernameByPublicKeyBase58Check[currentConvo.firstMessagePublicKey] === undefined) {
+        await fetchUsersStateless([currentConvo.firstMessagePublicKey]);
+      }
+
       return {
         updatedConversations,
         pubKeyPlusGroupName,
@@ -453,7 +445,7 @@ export const MessagingApp: FC = () => {
     return (
       name ||
       shortenLongWord(
-        selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check
+        (selectedConversation.messages.length ? selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check : selectedConversation.firstMessagePublicKey)
       ) ||
       ""
     );
@@ -605,7 +597,7 @@ export const MessagingApp: FC = () => {
                 >
                   <img src="/assets/left-chevron.png" width={20} alt="back" />
                 </div>
-                {selectedConversation && selectedConversation.messages[0] && (
+                {selectedConversation && (selectedConversation.messages[0] || (!isGroupChat && selectedConversation.firstMessagePublicKey)) && (
                   <div className="text-white font-bold text-lg truncate px-2 md:hidden">
                     {!isGroupChat &&
                     !getCurrentChatName().startsWith(PUBLIC_KEY_PREFIX)
@@ -635,17 +627,13 @@ export const MessagingApp: FC = () => {
                     />
                   ) : (
                     selectedConversation &&
-                    selectedConversation.messages[0] && (
+                    selectedConversation.firstMessagePublicKey && (
                       <MessagingDisplayAvatar
                         username={
-                          activeChatUsersMap[
-                            selectedConversation.messages[0].RecipientInfo
-                              .OwnerPublicKeyBase58Check as string
-                          ]
+                          activeChatUsersMap[selectedConversation.firstMessagePublicKey]
                         }
                         publicKey={
-                          selectedConversation.messages[0].RecipientInfo
-                            .OwnerPublicKeyBase58Check
+                          selectedConversation.firstMessagePublicKey
                         }
                         diameter={40}
                       />
