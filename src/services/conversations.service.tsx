@@ -114,10 +114,10 @@ export const encryptAndSendNewMessage = async (
   messageToSend: string,
   senderPublicKeyBase58Check: string,
   RecipientPublicKeyBase58Check: string,
-  RecipientMessagingKeyName = "default-key",
-  SenderMessagingKeyName = "default-key"
+  RecipientMessagingKeyName = DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  SenderMessagingKeyName = DEFAULT_KEY_MESSAGING_GROUP_NAME
 ): Promise<string> => {
-  if (SenderMessagingKeyName !== "default-key") {
+  if (SenderMessagingKeyName !== DEFAULT_KEY_MESSAGING_GROUP_NAME) {
     return Promise.reject("sender must use default key for now");
   }
 
@@ -167,7 +167,7 @@ export const encryptAndSendNewMessage = async (
   };
 
   const tx = await (!RecipientMessagingKeyName ||
-  RecipientMessagingKeyName === "default-key"
+  RecipientMessagingKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME
     ? desoAPI.accessGroup.SendDmMessage(requestBody, { broadcast: false })
     : desoAPI.accessGroup.SendGroupChatMessage(requestBody, {
         broadcast: false,
@@ -176,9 +176,3 @@ export const encryptAndSendNewMessage = async (
 
   return signedTx.TxnHashHex;
 };
-
-export interface AccessGroupPrivateInfo {
-  AccessGroupPublicKeyBase58Check: string;
-  AccessGroupPrivateKeyHex: string;
-  AccessGroupKeyName: string;
-}
