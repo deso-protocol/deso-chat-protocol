@@ -199,7 +199,8 @@ export const MessagingApp: FC = () => {
         const newPublicKeyToUsernames: { [k: string]: string } = {};
 
         (usersStatelessResponse.UserList || []).forEach((u) => {
-          newPublicKeyToUsernames[u.PublicKeyBase58Check] = u.ProfileEntryResponse?.Username || "";
+          newPublicKeyToUsernames[u.PublicKeyBase58Check] =
+            u.ProfileEntryResponse?.Username || "";
         });
 
         setUsernameByPublicKeyBase58Check((state) => ({
@@ -311,7 +312,9 @@ export const MessagingApp: FC = () => {
     }
   };
 
-  const updateUsernameToPublicKeyMapFromConversations = async (DMChats: Conversation[]) => {
+  const updateUsernameToPublicKeyMapFromConversations = async (
+    DMChats: Conversation[]
+  ) => {
     const newPublicKeysToGet = new Set<string>();
     DMChats.map((e) => {
       newPublicKeysToGet.add(e.firstMessagePublicKey);
@@ -384,7 +387,12 @@ export const MessagingApp: FC = () => {
         },
       };
 
-      if (currentConvo && currentConvo.firstMessagePublicKey && usernameByPublicKeyBase58Check[currentConvo.firstMessagePublicKey] === undefined) {
+      if (
+        currentConvo &&
+        currentConvo.firstMessagePublicKey &&
+        usernameByPublicKeyBase58Check[currentConvo.firstMessagePublicKey] ===
+          undefined
+      ) {
         await fetchUsersStateless([currentConvo.firstMessagePublicKey]);
       }
 
@@ -445,7 +453,10 @@ export const MessagingApp: FC = () => {
     return (
       name ||
       shortenLongWord(
-        (selectedConversation.messages.length ? selectedConversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check : selectedConversation.firstMessagePublicKey)
+        selectedConversation.messages.length
+          ? selectedConversation.messages[0].RecipientInfo
+              .OwnerPublicKeyBase58Check
+          : selectedConversation.firstMessagePublicKey
       ) ||
       ""
     );
@@ -597,15 +608,18 @@ export const MessagingApp: FC = () => {
                 >
                   <img src="/assets/left-chevron.png" width={20} alt="back" />
                 </div>
-                {selectedConversation && (selectedConversation.messages[0] || (!isGroupChat && selectedConversation.firstMessagePublicKey)) && (
-                  <div className="text-white font-bold text-lg truncate px-2 md:hidden">
-                    {!isGroupChat &&
-                    !getCurrentChatName().startsWith(PUBLIC_KEY_PREFIX)
-                      ? "@"
-                      : ""}
-                    {getCurrentChatName()}
-                  </div>
-                )}
+                {selectedConversation &&
+                  (selectedConversation.messages[0] ||
+                    (!isGroupChat &&
+                      selectedConversation.firstMessagePublicKey)) && (
+                    <div className="text-white font-bold text-lg truncate px-2 md:hidden">
+                      {!isGroupChat &&
+                      !getCurrentChatName().startsWith(PUBLIC_KEY_PREFIX)
+                        ? "@"
+                        : ""}
+                      {getCurrentChatName()}
+                    </div>
+                  )}
                 <div
                   className={`text-blue-300/70 hidden ${
                     isGroupOwner ? "md:block" : "md:hidden"
@@ -630,11 +644,11 @@ export const MessagingApp: FC = () => {
                     selectedConversation.firstMessagePublicKey && (
                       <MessagingDisplayAvatar
                         username={
-                          activeChatUsersMap[selectedConversation.firstMessagePublicKey]
+                          activeChatUsersMap[
+                            selectedConversation.firstMessagePublicKey
+                          ]
                         }
-                        publicKey={
-                          selectedConversation.firstMessagePublicKey
-                        }
+                        publicKey={selectedConversation.firstMessagePublicKey}
                         diameter={40}
                       />
                     )
