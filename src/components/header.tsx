@@ -115,8 +115,8 @@ export const Header = () => {
                 <MenuItem className="flex items-center pt-[9px] pb-2 px-3">
                   <SaveToClipboard
                     text={appUser.PublicKeyBase58Check}
-                    copyIcon={<IoCopyOutline className="text-xl" />}
-                    copiedIcon={<IoCopy className="text-xl" />}
+                    copyIcon={<IoCopyOutline className="text-xl mr-2" />}
+                    copiedIcon={<IoCopy className="text-xl mr-2" />}
                     className=""
                   >
                     <span className="text-base">Copy public key</span>
