@@ -469,9 +469,13 @@ export const MessagingApp: FC = () => {
       ?.OwnerPublicKeyBase58Check === appUser.PublicKeyBase58Check;
   const isGroupOwner = isGroupChat && isChatOwner;
   const chatMembers = membersByGroupKey[selectedConversationPublicKey];
-  const dmOtherPartyPublicKey = !isGroupChat && selectedConversation && selectedConversation.messages.length ?
-    (selectedConversation.messages[0].IsSender ? selectedConversation.messages[0].RecipientInfo : selectedConversation.messages[0].SenderInfo).OwnerPublicKeyBase58Check
-  : "";
+  const dmOtherPartyPublicKey =
+    !isGroupChat && selectedConversation && selectedConversation.messages.length
+      ? (selectedConversation.messages[0].IsSender
+          ? selectedConversation.messages[0].RecipientInfo
+          : selectedConversation.messages[0].SenderInfo
+        ).OwnerPublicKeyBase58Check
+      : "";
   const activeChatUsersMap = isGroupChat
     ? Object.keys(chatMembers).reduce(
         (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
@@ -658,14 +662,13 @@ export const MessagingApp: FC = () => {
                     />
                   ) : (
                     selectedConversation &&
-                    selectedConversation.messages[0] &&
+                    selectedConversation.messages[0] && (
                       <MessagingDisplayAvatar
-                        username={
-                          activeChatUsersMap[dmOtherPartyPublicKey]
-                        }
+                        username={activeChatUsersMap[dmOtherPartyPublicKey]}
                         publicKey={dmOtherPartyPublicKey}
                         diameter={40}
                       />
+                    )
                   )}
                 </div>
               </header>

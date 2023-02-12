@@ -307,7 +307,9 @@ export const ManageMembersDialog = ({
                       />
                       <div className="flex justify-between items-center flex-1 overflow-auto">
                         <div className="mx-2 md:ml-4 max-w-[calc(100%-100px)]">
-                          <div className="font-medium truncate">{member.text}</div>
+                          <div className="font-medium truncate">
+                            {member.text}
+                          </div>
                           {isGroupOwner &&
                             currentMemberKeys.includes(member.id) && (
                               <div className="text-xs md:text-sm text-blue-300/80 mt-1">

@@ -41,7 +41,7 @@ export const getChatNameFromConversation = (
 ) => {
   return conversation.ChatType === ChatType.DM
     ? getUsernameByPublicKeyBase58Check[conversation.firstMessagePublicKey] ??
-    null
+        null
     : conversation.messages[0].RecipientInfo.AccessGroupKeyName;
 };
 
@@ -69,7 +69,7 @@ export const formatDisplayName = (user: User, prefix = "@") => {
 
 export const hasSetupMessaging = (user: AppUser | null) => {
   return !!user?.accessGroupsOwned?.find(
-    ({AccessGroupKeyName}) =>
+    ({ AccessGroupKeyName }) =>
       AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME
   );
 };
@@ -79,7 +79,7 @@ export const checkTransactionCompleted = (hashHex: string): Promise<void> => {
     setTimeout(async () => {
       desoAPI.transaction
         .getTransaction(hashHex)
-        .then(({TxnFound}) => {
+        .then(({ TxnFound }) => {
           if (TxnFound) {
             resolve();
           } else {

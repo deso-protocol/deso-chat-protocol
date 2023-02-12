@@ -30,7 +30,9 @@ export const Header = () => {
       <a href="/" className="flex items-center">
         <div className="text-left flex items-center">
           <img src="/assets/logo-white.svg" width={80} alt="deso-logo" />
-          <span className="text-blue-300/60 ml-3 text-sm md:text-base">Chat Protocol</span>
+          <span className="text-blue-300/60 ml-3 text-sm md:text-base">
+            Chat Protocol
+          </span>
         </div>
       </a>
 

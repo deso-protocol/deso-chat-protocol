@@ -260,9 +260,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
 
           const messagingDisplayAvatarAndTimestamp = (
             <div
-              className={`flex flex-col ${
-                IsSender ? "ml-3" : "mr-3"
-              } relative`}
+              className={`flex flex-col ${IsSender ? "ml-3" : "mr-3"} relative`}
             >
               <MessagingDisplayAvatar
                 username={
