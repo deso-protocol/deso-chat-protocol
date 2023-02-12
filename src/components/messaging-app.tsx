@@ -469,6 +469,9 @@ export const MessagingApp: FC = () => {
       ?.OwnerPublicKeyBase58Check === appUser.PublicKeyBase58Check;
   const isGroupOwner = isGroupChat && isChatOwner;
   const chatMembers = membersByGroupKey[selectedConversationPublicKey];
+  const dmOtherPartyPublicKey = !isGroupChat && selectedConversation && selectedConversation.messages.length ?
+    (selectedConversation.messages[0].IsSender ? selectedConversation.messages[0].RecipientInfo : selectedConversation.messages[0].SenderInfo).OwnerPublicKeyBase58Check
+  : "";
   const activeChatUsersMap = isGroupChat
     ? Object.keys(chatMembers).reduce(
         (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
@@ -636,7 +639,7 @@ export const MessagingApp: FC = () => {
                   </div>
                 )}
                 <div
-                  className={`text-blue-300/70 items-center text-sm hidden ${
+                  className={`text-blue-300/70 items-center hidden ${
                     isGroupOwner ? "md:block" : "md:hidden"
                   }`}
                 >
@@ -655,21 +658,14 @@ export const MessagingApp: FC = () => {
                     />
                   ) : (
                     selectedConversation &&
-                    selectedConversation.messages[0] && (
+                    selectedConversation.messages[0] &&
                       <MessagingDisplayAvatar
                         username={
-                          activeChatUsersMap[
-                            selectedConversation.messages[0].RecipientInfo
-                              .OwnerPublicKeyBase58Check as string
-                          ]
+                          activeChatUsersMap[dmOtherPartyPublicKey]
                         }
-                        publicKey={
-                          selectedConversation.messages[0].RecipientInfo
-                            .OwnerPublicKeyBase58Check
-                        }
+                        publicKey={dmOtherPartyPublicKey}
                         diameter={40}
                       />
-                    )
                   )}
                 </div>
               </header>

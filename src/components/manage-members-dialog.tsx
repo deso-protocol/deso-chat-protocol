@@ -232,8 +232,8 @@ export const ManageMembersDialog = ({
         onClick={handleOpen}
         className="text-blue-400 bg-transparent p-0 shadow-none hover:shadow-none flex items-center"
       >
-        <IoPeopleCircleOutline className="mr-2 text-xl" />
-        <span className="hidden items-center md:flex capitalize font-medium">
+        <IoPeopleCircleOutline className="mr-2 text-2xl" />
+        <span className="hidden items-center md:flex capitalize font-medium text-base">
           View Members
         </span>
       </Button>
@@ -281,7 +281,7 @@ export const ManageMembersDialog = ({
               )}
 
               <div
-                className="max-h-[400px] mt-3 pr-3 overflow-y-auto custom-scrollbar overflow-none"
+                className="max-h-[400px] mt-3 pr-3 overflow-y-auto custom-scrollbar overflow-hidden"
                 ref={membersAreaRef}
               >
                 {loading ? (
@@ -296,7 +296,7 @@ export const ManageMembersDialog = ({
                 ) : (
                   members.map((member) => (
                     <div
-                      className="flex p-2 md:p-4 items-center cursor-pointer text-white bg-blue-900/20 border border-blue-600/20 rounded-md my-2"
+                      className="flex p-1.5 md:p-4 items-center cursor-pointer text-white bg-blue-900/20 border border-blue-600/20 rounded-md my-2"
                       key={member.id}
                     >
                       <MessagingDisplayAvatar
@@ -305,9 +305,9 @@ export const ManageMembersDialog = ({
                         diameter={isMobile ? 40 : 50}
                         classNames="mx-0"
                       />
-                      <div className="flex justify-between items-center flex-1">
-                        <div className="ml-2 md:ml-4">
-                          <div className="font-medium">{member.text}</div>
+                      <div className="flex justify-between items-center flex-1 overflow-auto">
+                        <div className="mx-2 md:ml-4 max-w-[calc(100%-100px)]">
+                          <div className="font-medium truncate">{member.text}</div>
                           {isGroupOwner &&
                             currentMemberKeys.includes(member.id) && (
                               <div className="text-xs md:text-sm text-blue-300/80 mt-1">
@@ -319,7 +319,7 @@ export const ManageMembersDialog = ({
                           member.id !== appUser?.PublicKeyBase58Check && (
                             <Button
                               size="sm"
-                              className="rounded-full md:mr-3 px-3 py-2 border text-red-200/60 bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
+                              className="rounded-full mr-1 md:mr-3 px-3 py-2 border text-red-200/60 bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
                               onClick={() => removeMember(member.id)}
                             >
                               Remove

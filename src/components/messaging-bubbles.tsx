@@ -260,8 +260,8 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
 
           const messagingDisplayAvatarAndTimestamp = (
             <div
-              className={`flex items-center min-w-[60px] flex-col ${
-                IsSender ? "ml-3 md:ml-3" : "mr-3 md:mr-3"
+              className={`flex flex-col ${
+                IsSender ? "ml-3" : "mr-3"
               } relative`}
             >
               <MessagingDisplayAvatar
@@ -312,7 +312,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                   </div>
                 </header>
                 <div
-                  className={`${senderStyles} mt-auto mb-5 py-2 px-4 text-white break-words inline-flex text-left relative items-center`}
+                  className={`${senderStyles} mt-auto mb-2 md:mb-5 py-2 px-2 md:px-4 text-white break-words inline-flex text-left relative items-center`}
                 >
                   <div
                     className="text-md break-words whitespace-pre-wrap"

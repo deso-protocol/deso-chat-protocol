@@ -28,18 +28,17 @@ export const Header = () => {
   return (
     <header className="flex justify-between py-3 px-4 fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md">
       <a href="/" className="flex items-center">
-        <div className="text-left flex">
+        <div className="text-left flex items-center">
           <img src="/assets/logo-white.svg" width={80} alt="deso-logo" />
-          <span className="text-blue-300/60 ml-3">Chat Protocol</span>
+          <span className="text-blue-300/60 ml-3 text-sm md:text-base">Chat Protocol</span>
         </div>
       </a>
 
       <div className="flex items-center">
         <div className="flex items-center ml-2">
           {appUser && (
-            <div className="flex flex-col items-end pr-2">
+            <div className="flex flex-col items-end pr-1 md:pr-2">
               <div className="mb-0 text-blue-100 text-sm">
-                Hi,{" "}
                 <span className="font-semibold">
                   {formatDisplayName(appUser)}
                 </span>
@@ -61,7 +60,7 @@ export const Header = () => {
                 <MessagingDisplayAvatar
                   publicKey={appUser?.PublicKeyBase58Check}
                   diameter={35}
-                  classNames="ml-3"
+                  classNames="ml-1 md:ml-3"
                 />
               </div>
             </MenuHandler>
@@ -136,7 +135,6 @@ export const Header = () => {
                   </div>
                 </a>
               </MenuItem>
-
               <MenuItem
                 className="flex items-center"
                 onClick={async () => {

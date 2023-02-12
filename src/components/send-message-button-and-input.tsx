@@ -83,7 +83,7 @@ export const SendMessageButtonAndInput = ({
           <div className="flex justify-center md:w-[80px]">
             <div className="hidden md:block mx-2">Send</div>
             <div className="visible md:hidden mx-2">
-              <img src="/assets/send.png" width={28} />
+              <img src="/assets/send.png" width={28} alt="send" />
             </div>
           </div>
         </Button>
