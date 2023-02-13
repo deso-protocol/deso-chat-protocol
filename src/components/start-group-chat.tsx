@@ -175,7 +175,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
   return (
     <Fragment>
-      <div className="flex text-lg items-center p-4 border-b border-blue-800/30 justify-between">
+      <div className="flex text-lg items-center p-4 py-3 h-[69px] border-b border-t border-blue-800/30 justify-between">
         <h2 className="font-semibold text-xl text-white">My Chat</h2>
 
         <Button
@@ -184,7 +184,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
           size="md"
         >
           <div className="flex items-center ">
-            <span className="mr-2">New Group Chat</span>
+            <span>Create Chat</span>
           </div>
         </Button>
       </div>
@@ -192,29 +192,34 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       <Dialog
         open={open}
         handler={handleOpen}
-        className="bg-[#050e1d] text-blue-100 border border-gray-900 min-w-none max-w-none w-[90%] md:w-[40%]"
+        className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
-        <DialogHeader className="text-blue-100">
+        <DialogHeader className="text-blue-100 p-5 border-b border-blue-600/20">
           Start New Group Chat
         </DialogHeader>
 
         <form name="start-group-chat-form" onSubmit={formSubmit}>
-          <DialogBody divider>
+          <DialogBody divider className="border-none p-5">
             <div className="mb-4 md:mb-8">
               <div className="text-lg font-semibold mb-2 text-blue-100">
-                Chat details
+                Name
               </div>
 
               <Input
-                label="Chat Name"
                 value={chatName}
+                autoFocus={true}
+                label="Group name"
                 onChange={(e) => setChatName(e.target.value)}
-                className="text-blue-100 bg-blue-900/20"
+                className="text-blue-100 border-none focus:border-solid bg-blue-900/20"
               />
             </div>
 
             <div className="mb-4">
+              <div className="text-lg font-semibold mb-2 text-blue-100">
+                Add Users to Your Group Chat
+              </div>
               <SearchUsers
+                className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray border-transparent"
                 onSelected={(member) =>
                   addMember(member, () => {
                     setTimeout(() => {
@@ -228,27 +233,27 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
               />
 
               <div
-                className="max-h-[240px] overflow-y-auto custom-scrollbar"
+                className="max-h-[400px] mt-3 pr-3 overflow-y-auto custom-scrollbar overflow-hidden"
                 ref={membersAreaRef}
               >
                 {members.map((member) => (
                   <div
-                    className="flex p-2 items-center cursor-pointer text-white bg-blue-900/20 border border-gray-400 rounded-md my-2"
+                    className="flex p-1.5 md:p-4 items-center cursor-pointer text-white bg-blue-900/20 border border-blue-600/20 rounded-md my-2"
                     key={member.id}
                   >
                     <MessagingDisplayAvatar
                       username={member.text}
                       publicKey={member.id}
-                      diameter={isMobile ? 40 : 50}
+                      diameter={isMobile ? 40 : 44}
                       classNames="mx-0"
                     />
-                    <div className="flex justify-between align-center flex-1 text-blue-100">
-                      <span className="ml-2 md:ml-4 font-medium">
+                    <div className="flex justify-between align-center flex-1 text-blue-100 overflow-auto">
+                      <span className="mx-2 md:ml-4 font-medium truncate my-auto">
                         {member.text}
                       </span>
                       <Button
                         size="sm"
-                        color="red"
+                        className="rounded-full mr-1 md:mr-3 px-3 py-2 border text-white bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
                         onClick={() => removeMember(member.id)}
                       >
                         Remove
@@ -262,18 +267,14 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
           <DialogFooter>
             <Button
-              variant="text"
-              color="red"
               onClick={handleOpen}
-              className="mr-1"
+              className="rounded-full mr-3 py-2 bg-transparent border border-blue-600/60 shadow-none hover:shadow-none normal-case text-sm px-4"
             >
               <span>Cancel</span>
             </Button>
             <Button
-              variant="gradient"
-              color="green"
               type="submit"
-              className="flex items-center"
+              className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4"
               disabled={loading}
             >
               {loading && (

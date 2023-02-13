@@ -227,18 +227,18 @@ export const SearchUsers = ({
           />
         </div>
         <Combobox.Options
-          className={
-            "absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100"
-          }
+          className={`absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100 ${
+            loading || shownItems.length > 0 ? "border border-blue-900" : ""
+          }`}
         >
           <Combobox.Option
             value={false}
-            className="pointer-events-none bg-blue-900 text-blue-100"
+            className="pointer-events-none bg-[#050e1d] text-blue-100"
           >
             {loading && (
               <div className="flex justify-center">
                 <ClipLoader
-                  color={"white"}
+                  color={"#6d4800"}
                   loading={loading}
                   size={28}
                   className="my-4"
@@ -251,7 +251,7 @@ export const SearchUsers = ({
               <Combobox.Option key={id} value={id} as={Fragment}>
                 {({ active }) => (
                   <li
-                    className={`bg-blue-900 text-blue-100 hover:bg-blue-800 ${
+                    className={`bg-[#050e1d] text-blue-100 hover:bg-blue-800 ${
                       active && id ? "bg-gray-faint" : ""
                     }`}
                   >

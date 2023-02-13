@@ -225,14 +225,16 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
 
         {visibleMessages.map((message, i: number) => {
           const messageToShow = message.DecryptedMessage || message.error;
-          let senderStyles = "bg-blue-900/70 text-blue-100";
+          let senderStyles =
+            "bg-blue-200/20 text-blue-100 rounded-2xl rounded-tl-none rounded-bl-xl pl-5";
           const IsSender =
             message.IsSender ||
             message.SenderInfo.OwnerPublicKeyBase58Check ===
               appUser?.PublicKeyBase58Check;
 
           if (IsSender) {
-            senderStyles = "bg-blue-200/20 text-blue-100";
+            senderStyles =
+              "bg-blue-900/70 text-blue-100 rounded-2xl rounded-tr-none rounded-br-xl pl-5";
           }
           if (message.error) {
             senderStyles = "bg-red-500 text-red-100";
@@ -240,7 +242,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
 
           const timestamp = (
             <div
-              className={`whitespace-nowrap text-xs text-blue-100/30 mt-1 ${
+              className={`whitespace-nowrap text-xs text-blue-100/30 mt-2 ${
                 IsSender ? "text-right" : "text-left"
               }`}
             >
@@ -250,9 +252,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
 
           const messagingDisplayAvatarAndTimestamp = (
             <div
-              className={`flex flex-col ${
-                IsSender ? "ml-3 md:ml-5" : "mr-3 md:mr-5"
-              } relative`}
+              className={`flex flex-col ${IsSender ? "ml-3" : "mr-3"} relative`}
             >
               <MessagingDisplayAvatar
                 username={
@@ -272,7 +272,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
             <div
               className={`mx-0 last:pt-4 ${
                 IsSender ? "ml-auto justify-end" : "mr-auto justify-start"
-              } max-w-[75%] mb-4 inline-flex items-center text-left`}
+              } max-w-[75%] mb-4 inline-flex items-start top-[20px] text-left`}
               key={`message-${i}`}
             >
               {!IsSender && messagingDisplayAvatarAndTimestamp}
@@ -280,13 +280,13 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                 className={`w-full ${IsSender ? "text-right" : "text-left"}`}
               >
                 <header
-                  className={`flex items-center justify-end mb-[3px] mx-1 ${
+                  className={`flex items-center justify-end mb-[3px] ${
                     IsSender ? "flex-row" : "flex-row-reverse"
                   }`}
                 >
                   <span className="mx-1"> </span>
                   <div className="text-sm mb-1">
-                    <p className="text-blue-300/80">
+                    <p className="text-blue-300/80 text-xs">
                       {getUsernameByPublicKey[
                         message.SenderInfo.OwnerPublicKeyBase58Check
                       ]
@@ -302,7 +302,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                   </div>
                 </header>
                 <div
-                  className={`${senderStyles} mt-auto mb-5 py-2 px-4 rounded-3xl text-white break-words inline-flex text-left relative items-center w-full`}
+                  className={`${senderStyles} mt-auto mb-2 md:mb-5 py-2 px-2 md:px-4 text-white break-words inline-flex text-left relative items-center`}
                 >
                   <div
                     className="text-md break-words whitespace-pre-wrap"

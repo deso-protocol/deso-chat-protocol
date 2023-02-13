@@ -479,14 +479,13 @@ export const MessagingApp: FC = () => {
         {}
       )
     : usernameByPublicKeyBase58Check;
-
   return (
     <div className="h-full">
       {(!conversationsReady ||
         !hasSetupMessaging(appUser) ||
         isLoadingUser ||
         loading) && (
-        <div className="py-20">
+        <div className="m-auto relative top-8">
           <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
             <CardBody>
               {(autoFetchConversations || isLoadingUser || loading) && (
@@ -514,7 +513,7 @@ export const MessagingApp: FC = () => {
                           <h2 className="text-2xl font-bold mb-3 text-white">
                             Set up your account
                           </h2>
-                          <p className="text-lg mb-5 text-blue-300/60">
+                          <p className="text-lg mb-6 text-blue-300/60">
                             It seems like your account needs more configuration
                             to be able to send messages. Press the button below
                             to set it up automatically
@@ -525,22 +524,44 @@ export const MessagingApp: FC = () => {
                           <h2 className="text-2xl font-bold mb-3 text-white">
                             DeSo Chat Protocol
                           </h2>
-                          <p className="text-lg mb-3 text-blue-300/60">
+                          <p className="text-md mb-5 text-blue-300/60">
                             Censorship-resistant and fully on-chain messaging
                             protocol — with end-to-end encrypted messaging
-                            support for direct messages and group chats.
+                            support for direct messages and group chats. Message
+                            any wallet on DeSo or Ethereum.
                           </p>
-                          <p className="mb-5 text-lg text-blue-300/60">
+                          <p className="mb-6 text-md text-blue-300/60">
                             A truly{" "}
                             <strong className="text-blue-200">
-                              first-of-its kind.
+                              first of its kind.
                             </strong>
                           </p>
                         </div>
                       )}
                     </div>
-
                     <MessagingSetupButton />
+                    <p className="mt-5 text-md text-blue-300/40">
+                      This chat framework is open-sourced. It can be found{" "}
+                      <a
+                        target="_blank"
+                        className="underline hover:text-blue-300/80"
+                        href="https://github.com/deso-protocol/deso-chat-protocol"
+                        rel="noreferrer"
+                      >
+                        on Github
+                      </a>
+                    </p>
+                    <p className="mt-1 text-md text-blue-300/40">
+                      Curious about building on DeSo?{" "}
+                      <a
+                        target="_blank"
+                        className="underline hover:text-blue-300/80"
+                        href="https://docs.deso.org"
+                        rel="noreferrer"
+                      >
+                        Read our developer docs
+                      </a>
+                    </p>
                   </>
                 )}
 
@@ -572,6 +593,7 @@ export const MessagingApp: FC = () => {
                   setSelectedConversationPublicKey(key);
 
                   setLoadingConversation(true);
+                  setLockRefresh(true);
 
                   try {
                     const { updatedConversations, pubKeyPlusGroupName } =
@@ -580,6 +602,7 @@ export const MessagingApp: FC = () => {
                     setPubKeyPlusGroupName(pubKeyPlusGroupName);
                   } finally {
                     setLoadingConversation(false);
+                    setLockRefresh(false);
                   }
                 }}
                 membersByGroupKey={membersByGroupKey}
@@ -599,7 +622,7 @@ export const MessagingApp: FC = () => {
               <header
                 className={`flex justify-between ${
                   !isGroupChat ? "md:hidden" : ""
-                } items-center relative px-5 md:px-4 h-[69px]`}
+                } items-center border-b border-t border-blue-200/20 relative px-5 md:px-4 h-[69px]`}
               >
                 <div
                   className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
@@ -622,13 +645,12 @@ export const MessagingApp: FC = () => {
                     </div>
                   )}
                 <div
-                  className={`text-blue-300/70 hidden ${
+                  className={`text-blue-300/70 items-center hidden ${
                     isGroupOwner ? "md:block" : "md:hidden"
                   }`}
                 >
-                  You're the<b> owner of this group</b>
+                  You're the<strong> owner of this group</strong>
                 </div>
-
                 <div
                   className={`flex justify-end ${
                     !isGroupOwner ? "md:w-full" : ""
@@ -659,7 +681,7 @@ export const MessagingApp: FC = () => {
 
               <Card
                 className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
-                  isGroupOwner ? "" : "md:h-full"
+                  isGroupChat ? "" : "md:h-full"
                 }`}
               >
                 <div className="border-none flex flex-col justify-between h-full">

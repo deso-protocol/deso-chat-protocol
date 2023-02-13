@@ -14,7 +14,7 @@ export const copyTextToClipboard = async (text: string) => {
 };
 
 export const getProfileURL = (username: string | undefined): string => {
-  return username ? `${process.env.REACT_APP_NODE_URL}/u/${username}` : "";
+  return username ? `${process.env.REACT_APP_PROFILE_URL}/u/${username}` : "";
 };
 
 export const desoNanosToDeso = (nanos: number | string | bigint) => {
