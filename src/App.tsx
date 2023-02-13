@@ -148,7 +148,7 @@ function App() {
         <div className="App">
           <Header />
 
-          <section className="h-[calc(100%-60px)] mt-[60px]">
+          <section className="h-[calc(100%-64px)] mt-[64px]">
             <MessagingApp />
           </section>
 

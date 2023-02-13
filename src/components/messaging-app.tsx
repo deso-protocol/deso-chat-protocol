@@ -621,7 +621,7 @@ export const MessagingApp: FC = () => {
               <header
                 className={`flex justify-between ${
                   !isGroupChat ? "md:hidden" : ""
-                } items-center border-b border-b-blue-200/20 relative px-5 md:px-4 h-[69px]`}
+                } items-center border-b border-t border-blue-200/20 relative px-5 md:px-4 h-[69px]`}
               >
                 <div
                   className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
