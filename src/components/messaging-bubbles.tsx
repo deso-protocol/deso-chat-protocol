@@ -10,7 +10,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { toast } from "react-toastify";
 import { desoAPI } from "services/desoAPI.service";
 import { useMobile } from "../hooks/useMobile";
-import { decryptAccessGroupMessages } from "../services/conversations.service";
+import { decryptAccessGroupMessagesWithRetry } from "../services/conversations.service";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   MESSAGES_ONE_REQUEST_LIMIT,
@@ -58,7 +58,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
   onScroll,
 }: MessagingBubblesProps) => {
   const messageAreaRef = useRef<HTMLDivElement>(null);
-  const { appUser } = useContext(UserContext);
+  const { appUser, allAccessGroups, setAllAccessGroups } = useContext(UserContext);
   const conversation = conversations[conversationPublicKey] ?? { messages: [] };
   const [allowScrolling, setAllowScrolling] = useState<boolean>(true);
   const [visibleMessages, setVisibleMessages] = useState(conversation.messages);
@@ -136,11 +136,8 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       visibleMessages[visibleMessages.length - 1].MessageInfo
         .TimestampNanosString;
 
-    const [myAccessGroups, dmOrGroupChatMessages] = await Promise.all([
-      desoAPI.accessGroup.GetAllUserAccessGroups({
-        PublicKeyBase58Check: appUser.PublicKeyBase58Check,
-      }),
-      conversation.ChatType === ChatType.DM
+    const dmOrGroupChatMessages =
+      await (conversation.ChatType === ChatType.DM
         ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
             UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
             UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
@@ -162,14 +159,9 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
                 .AccessGroupKeyName,
             StartTimeStampString,
             MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-          }),
-    ]);
-    const allMyAccessGroups = Array.from(
-      new Set([
-        ...(myAccessGroups.AccessGroupsOwned || []),
-        ...(myAccessGroups.AccessGroupsMember || []),
-      ])
-    );
+          })
+      )
+    ;
 
     const messages =
       conversation.ChatType === ChatType.DM
@@ -196,10 +188,12 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       return;
     }
 
-    const decrypted = await decryptAccessGroupMessages(
+    const [decrypted, updatedAccessGroups] = await decryptAccessGroupMessagesWithRetry(
+      appUser.PublicKeyBase58Check,
       messages,
-      allMyAccessGroups
+      allAccessGroups,
     );
+    setAllAccessGroups(updatedAccessGroups);
 
     onScroll(decrypted);
   };

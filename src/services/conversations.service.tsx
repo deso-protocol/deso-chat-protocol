@@ -1,4 +1,4 @@
-import { identity } from "@deso-core/identity";
+import { identity, publicKeyToBase58Check } from "@deso-core/identity";
 import {
   AccessGroupEntryResponse,
   ChatType,
@@ -16,10 +16,11 @@ import { checkTransactionCompleted } from "../utils/helpers";
 import { ConversationMap } from "../utils/types";
 
 export const getConversationsNewMap = async (
-  userPublicKeyBase58Check: string
-): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
-  const [decryptedMessageResponses, publicKeyToProfileEntryResponseMap] =
-    await getConversationNew(userPublicKeyBase58Check);
+  userPublicKeyBase58Check: string,
+  allAccessGroups: AccessGroupEntryResponse[],
+): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap, AccessGroupEntryResponse[]]> => {
+  const [decryptedMessageResponses, publicKeyToProfileEntryResponseMap, newAllAccessGroups] =
+    await getConversationNew(userPublicKeyBase58Check, allAccessGroups);
   const Conversations: ConversationMap = {};
   decryptedMessageResponses.forEach((dmr) => {
     const otherInfo =
@@ -47,41 +48,33 @@ export const getConversationsNewMap = async (
       ChatType: dmr.ChatType,
     };
   });
-  return [Conversations, publicKeyToProfileEntryResponseMap];
+  return [Conversations, publicKeyToProfileEntryResponseMap, newAllAccessGroups];
 };
 
 export const getConversationNew = async (
-  userPublicKeyBase58Check: string
+  userPublicKeyBase58Check: string,
+  allAccessGroups: AccessGroupEntryResponse[],
 ): Promise<
-  [DecryptedMessageEntryResponse[], PublicKeyToProfileEntryResponseMap]
+  [DecryptedMessageEntryResponse[], PublicKeyToProfileEntryResponseMap, AccessGroupEntryResponse[]]
 > => {
-  const [messages, { AccessGroupsOwned, AccessGroupsMember }] =
-    await Promise.all([
-      desoAPI.accessGroup.GetAllUserMessageThreads({
-        UserPublicKeyBase58Check: userPublicKeyBase58Check,
-      }),
-      desoAPI.accessGroup.GetAllUserAccessGroups({
-        PublicKeyBase58Check: userPublicKeyBase58Check,
-      }),
-    ]);
-
-  const allAccessGroups = Array.from(
-    new Set([...(AccessGroupsOwned || []), ...(AccessGroupsMember || [])])
-  );
-  const decryptedMessageEntries = await decryptAccessGroupMessages(
+  const messages = await desoAPI.accessGroup.GetAllUserMessageThreads({
+    UserPublicKeyBase58Check: userPublicKeyBase58Check,
+  });
+  const [decryptedMessageEntries, updatedAllAccessGroups] = await decryptAccessGroupMessagesWithRetry(
+    userPublicKeyBase58Check,
     messages.MessageThreads,
-    allAccessGroups
+    allAccessGroups,
   );
-
-  return [decryptedMessageEntries, messages.PublicKeyToProfileEntryResponse];
+  return [decryptedMessageEntries, messages.PublicKeyToProfileEntryResponse, updatedAllAccessGroups];
 };
 
 export const getConversations = async (
-  userPublicKeyBase58Check: string
-): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap]> => {
+  userPublicKeyBase58Check: string,
+  allAccessGroups: AccessGroupEntryResponse[],
+): Promise<[ConversationMap, PublicKeyToProfileEntryResponseMap, AccessGroupEntryResponse[]]> => {
   try {
-    let [Conversations, publicKeyToProfileEntryResponseMap] =
-      await getConversationsNewMap(userPublicKeyBase58Check);
+    let [Conversations, publicKeyToProfileEntryResponseMap, newAllAccessGroups] =
+      await getConversationsNewMap(userPublicKeyBase58Check, allAccessGroups);
 
     if (Object.keys(Conversations).length === 0) {
       const txnHashHex = await encryptAndSendNewMessage(
@@ -90,15 +83,41 @@ export const getConversations = async (
         USER_TO_SEND_MESSAGE_TO
       );
       await checkTransactionCompleted(txnHashHex);
-      [Conversations, publicKeyToProfileEntryResponseMap] =
-        await getConversationsNewMap(userPublicKeyBase58Check);
+      [Conversations, publicKeyToProfileEntryResponseMap, newAllAccessGroups] =
+        await getConversationsNewMap(userPublicKeyBase58Check, allAccessGroups);
     }
-    return [Conversations, publicKeyToProfileEntryResponseMap];
+    return [Conversations, publicKeyToProfileEntryResponseMap, newAllAccessGroups];
   } catch (e: any) {
     toast.error(e.toString());
     console.error(e);
-    return [{}, {}];
+    return [{}, {}, []];
   }
+};
+
+export const decryptAccessGroupMessagesWithRetry = async (
+  publicKeyBase58Check: string,
+  messages: NewMessageEntryResponse[],
+  accessGroups: AccessGroupEntryResponse[]
+  ): Promise<[DecryptedMessageEntryResponse[], AccessGroupEntryResponse[]]> => {
+  let decryptedMessageEntries = await decryptAccessGroupMessages(
+    messages,
+    accessGroups,
+  );
+
+  // Naive approach to figuring out which access groups we need to fetch.
+  const accessGroupsToFetch = decryptedMessageEntries.filter((dmr) => dmr.error === "Error: access group key not found for group message");
+  if (accessGroupsToFetch.length > 0) {
+    const newAllAccessGroups = await desoAPI.accessGroup.GetAllUserAccessGroups({
+      PublicKeyBase58Check: publicKeyBase58Check,
+    });
+    accessGroups = (newAllAccessGroups.AccessGroupsOwned || []).concat((newAllAccessGroups.AccessGroupsMember || []));
+    decryptedMessageEntries = await decryptAccessGroupMessages(
+      messages,
+      accessGroups,
+    );
+  }
+
+  return [decryptedMessageEntries, accessGroups];
 };
 
 export const decryptAccessGroupMessages = (
