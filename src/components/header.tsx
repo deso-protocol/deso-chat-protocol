@@ -26,7 +26,7 @@ export const Header = () => {
   const { setLockRefresh } = useContext(RefreshContext);
 
   return (
-    <header className="flex justify-between py-3 px-4 fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md">
+    <header className="flex justify-between py-3 px-4 h-[64px] fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md">
       <a href="/" className="flex items-center">
         <div className="text-left flex items-center">
           <img src="/assets/logo-white.svg" width={80} alt="deso-logo" />

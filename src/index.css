@@ -107,3 +107,8 @@ textarea:not(:focus) ~ label::after {
 #message-text > a {
   text-decoration: underline;
 }
+
+input::placeholder {
+  font-size: 0.875rem;
+  color: #607D8A !important;
+}

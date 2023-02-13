@@ -592,6 +592,7 @@ export const MessagingApp: FC = () => {
                   setSelectedConversationPublicKey(key);
 
                   setLoadingConversation(true);
+                  setLockRefresh(true);
 
                   try {
                     const { updatedConversations, pubKeyPlusGroupName } =
@@ -600,6 +601,7 @@ export const MessagingApp: FC = () => {
                     setPubKeyPlusGroupName(pubKeyPlusGroupName);
                   } finally {
                     setLoadingConversation(false);
+                    setLockRefresh(false);
                   }
                 }}
                 membersByGroupKey={membersByGroupKey}
@@ -619,7 +621,7 @@ export const MessagingApp: FC = () => {
               <header
                 className={`flex justify-between ${
                   !isGroupChat ? "md:hidden" : ""
-                } items-center border-b border-b-blue-200/20 relative px-5 md:px-4 h-[69px]`}
+                } items-center border-b border-t border-blue-200/20 relative px-5 md:px-4 h-[69px]`}
               >
                 <div
                   className="cursor-pointer py-4 pl-0 pr-6 md:hidden"
@@ -678,7 +680,7 @@ export const MessagingApp: FC = () => {
 
               <Card
                 className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
-                  isGroupOwner ? "" : "md:h-full"
+                  isGroupChat ? "" : "md:h-full"
                 }`}
               >
                 <div className="border-none flex flex-col justify-between h-full">
