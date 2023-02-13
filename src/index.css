@@ -110,5 +110,5 @@ textarea:not(:focus) ~ label::after {
 
 input::placeholder {
   font-size: 0.875rem;
-  color: #607D8A !important;
+  color: #607d8a !important;
 }

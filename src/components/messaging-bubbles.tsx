@@ -141,10 +141,9 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
           UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          PartyGroupOwnerPublicKeyBase58Check: (conversation.messages[0]
-            .IsSender
-            ? conversation.messages[0].RecipientInfo
-            : conversation.messages[0].SenderInfo
+          PartyGroupOwnerPublicKeyBase58Check: (visibleMessages[0].IsSender
+            ? visibleMessages[0].RecipientInfo
+            : visibleMessages[0].SenderInfo
           ).OwnerPublicKeyBase58Check,
           PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           StartTimeStampString,
@@ -185,13 +184,13 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       return;
     }
 
-    const [decrypted, updatedAccessGroups] =
+    const { decrypted, updatedAllAccessGroups } =
       await decryptAccessGroupMessagesWithRetry(
         appUser.PublicKeyBase58Check,
         messages,
         allAccessGroups
       );
-    setAllAccessGroups(updatedAccessGroups);
+    setAllAccessGroups(updatedAllAccessGroups);
 
     onScroll(decrypted);
   };

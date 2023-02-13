@@ -118,14 +118,14 @@ export const MessagingApp: FC = () => {
       ) {
         return;
       }
-      const [res, , updatedAllAccessGroups] = await getConversations(
+      const { conversations, updatedAllAccessGroups } = await getConversations(
         appUser.PublicKeyBase58Check,
         allAccessGroups
       );
       setAllAccessGroups(updatedAllAccessGroups);
       const { updatedConversations, pubKeyPlusGroupName } =
         await getConversation(selectedConversationPublicKey, {
-          ...res,
+          ...conversations,
           [selectedConversationPublicKey]:
             conversations[selectedConversationPublicKey],
         });
@@ -250,10 +250,13 @@ export const MessagingApp: FC = () => {
       toast.error("You must be logged in to use this feature");
       return;
     }
-    const [res, publicKeyToProfileEntryResponseMap, updatedAllAccessGroups] =
-      await getConversations(appUser.PublicKeyBase58Check, allAccessGroups);
+    const {
+      conversations,
+      publicKeyToProfileEntryResponseMap,
+      updatedAllAccessGroups,
+    } = await getConversations(appUser.PublicKeyBase58Check, allAccessGroups);
     setAllAccessGroups(updatedAllAccessGroups);
-    let conversationsResponse = res || {};
+    let conversationsResponse = conversations || {};
     const keyToUse =
       selectedKey ||
       (!userChange && selectedConversationPublicKey) ||
@@ -361,14 +364,14 @@ export const MessagingApp: FC = () => {
           StartTimeStamp: new Date().valueOf() * 1e6,
         });
 
-      const [decrypted, updatedAccessGroups] =
+      const { decrypted, updatedAllAccessGroups } =
         await decryptAccessGroupMessagesWithRetry(
           appUser.PublicKeyBase58Check,
           messages.ThreadMessages,
           allAccessGroups
         );
 
-      setAllAccessGroups(updatedAccessGroups);
+      setAllAccessGroups(updatedAllAccessGroups);
 
       const updatedConversations = {
         ...currentConversations,
@@ -415,13 +418,13 @@ export const MessagingApp: FC = () => {
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         });
 
-      const [decrypted, updatedAccessGroups] =
+      const { decrypted, updatedAllAccessGroups } =
         await decryptAccessGroupMessagesWithRetry(
           appUser.PublicKeyBase58Check,
           messages.GroupChatMessages,
           allAccessGroups
         );
-      setAllAccessGroups(updatedAccessGroups);
+      setAllAccessGroups(updatedAllAccessGroups);
 
       const updatedConversations = {
         ...currentConversations,
