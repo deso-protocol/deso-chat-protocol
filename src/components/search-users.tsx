@@ -233,12 +233,12 @@ export const SearchUsers = ({
         >
           <Combobox.Option
             value={false}
-            className="pointer-events-none bg-blue-900 text-blue-100"
+            className="pointer-events-none bg-[#050e1d] text-blue-100"
           >
             {loading && (
               <div className="flex justify-center">
                 <ClipLoader
-                  color={"white"}
+                  color={"#6d4800"}
                   loading={loading}
                   size={28}
                   className="my-4"

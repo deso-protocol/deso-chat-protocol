@@ -306,7 +306,7 @@ export const ManageMembersDialog = ({
                         classNames="mx-0"
                       />
                       <div className="flex justify-between items-center flex-1 overflow-auto">
-                        <div className="mx-2 md:ml-4 max-w-[calc(100%-100px)]">
+                        <div className="mx-2 md:ml-4 max-w-[calc(100%-105px)]">
                           <div className="font-medium truncate">
                             {member.text}
                           </div>
