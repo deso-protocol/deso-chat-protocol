@@ -10,6 +10,7 @@ import { Header } from "./components/header";
 import { MessagingApp } from "./components/messaging-app";
 import { desoAPI } from "./services/desoAPI.service";
 import { DESO_NETWORK, getTransactionSpendingLimits } from "./utils/constants";
+import { uniqBy } from "lodash";
 
 identity.configure({
   identityURI: process.env.REACT_APP_IDENTITY_URL,
@@ -30,6 +31,29 @@ function App() {
         const currAppUser = state.appUser;
         return { ...state, appUser: { ...currAppUser, accessGroupsOwned } };
       }),
+    setAllAccessGroups: (newAllAccessGroups: AccessGroupEntryResponse[]) => {
+      setUserState((state) => {
+        if (!state.appUser) {
+          throw new Error("cannot set access groups without a logged in user!");
+        }
+
+        const allAccessGroups = uniqBy(
+          state.allAccessGroups.concat(newAllAccessGroups),
+          (group) => {
+            return (
+              group.AccessGroupOwnerPublicKeyBase58Check +
+              group.AccessGroupKeyName
+            );
+          }
+        );
+
+        return {
+          ...state,
+          allAccessGroups,
+        };
+      });
+    },
+    allAccessGroups: [],
   });
   const [lockRefresh, setLockRefresh] = useState(false);
 
@@ -77,17 +101,21 @@ function App() {
               PublicKeyBase58Check: currentUser.publicKey,
             }),
           ])
-            .then(([userRes, { AccessGroupsOwned }]) => {
+            .then(([userRes, { AccessGroupsOwned, AccessGroupsMember }]) => {
               const user = userRes.UserList?.[0] ?? null;
               const appUser: AppUser | null = user && {
                 ...user,
                 messagingPublicKeyBase58Check,
                 accessGroupsOwned: AccessGroupsOwned,
               };
+              const allAccessGroups = (AccessGroupsOwned || []).concat(
+                AccessGroupsMember || []
+              );
 
               setUserState((state) => ({
                 ...state,
                 appUser,
+                allAccessGroups,
               }));
 
               return user;

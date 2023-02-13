@@ -9,7 +9,9 @@ export type AppUser = User & {
 export interface UserContextType {
   appUser: AppUser | null;
   isLoadingUser: boolean;
-  setAccessGroups: (groups: AccessGroupEntryResponse[]) => void;
+  setAccessGroups: (groupsOwned: AccessGroupEntryResponse[]) => void;
+  setAllAccessGroups: (groups: AccessGroupEntryResponse[]) => void;
+  allAccessGroups: AccessGroupEntryResponse[];
 }
 
 export const UserContext = createContext<UserContextType>({
@@ -18,4 +20,8 @@ export const UserContext = createContext<UserContextType>({
   setAccessGroups: () => {
     return;
   },
+  setAllAccessGroups: () => {
+    return;
+  },
+  allAccessGroups: [],
 });

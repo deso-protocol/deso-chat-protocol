@@ -13,7 +13,7 @@ import { toast } from "react-toastify";
 import { desoAPI } from "services/desoAPI.service";
 import { useMobile } from "../hooks/useMobile";
 import {
-  decryptAccessGroupMessages,
+  decryptAccessGroupMessagesWithRetry,
   encryptAndSendNewMessage,
   getConversations,
 } from "../services/conversations.service";
@@ -47,7 +47,8 @@ import { RefreshContext } from "../contexts/RefreshContext";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
-  const { appUser, isLoadingUser } = useContext(UserContext);
+  const { appUser, isLoadingUser, allAccessGroups, setAllAccessGroups } =
+    useContext(UserContext);
   const { lockRefresh, setLockRefresh } = useContext(RefreshContext);
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
     useState<{ [key: string]: string }>({});
@@ -117,11 +118,14 @@ export const MessagingApp: FC = () => {
       ) {
         return;
       }
-
-      const [res] = await getConversations(appUser.PublicKeyBase58Check);
+      const { conversations, updatedAllAccessGroups } = await getConversations(
+        appUser.PublicKeyBase58Check,
+        allAccessGroups
+      );
+      setAllAccessGroups(updatedAllAccessGroups);
       const { updatedConversations, pubKeyPlusGroupName } =
         await getConversation(selectedConversationPublicKey, {
-          ...res,
+          ...conversations,
           [selectedConversationPublicKey]:
             conversations[selectedConversationPublicKey],
         });
@@ -246,10 +250,13 @@ export const MessagingApp: FC = () => {
       toast.error("You must be logged in to use this feature");
       return;
     }
-    const [res, publicKeyToProfileEntryResponseMap] = await getConversations(
-      appUser.PublicKeyBase58Check
-    );
-    let conversationsResponse = res || {};
+    const {
+      conversations,
+      publicKeyToProfileEntryResponseMap,
+      updatedAllAccessGroups,
+    } = await getConversations(appUser.PublicKeyBase58Check, allAccessGroups);
+    setAllAccessGroups(updatedAllAccessGroups);
+    let conversationsResponse = conversations || {};
     const keyToUse =
       selectedKey ||
       (!userChange && selectedConversationPublicKey) ||
@@ -345,16 +352,6 @@ export const MessagingApp: FC = () => {
     }
     const convo = currentConvo.messages;
 
-    const myAccessGroups = await desoAPI.accessGroup.GetAllUserAccessGroups({
-      PublicKeyBase58Check: appUser.PublicKeyBase58Check,
-    });
-    const allMyAccessGroups = Array.from(
-      new Set([
-        ...(myAccessGroups.AccessGroupsOwned || []),
-        ...(myAccessGroups.AccessGroupsMember || []),
-      ])
-    );
-
     if (currentConvo.ChatType === ChatType.DM) {
       const messages =
         await desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
@@ -367,10 +364,14 @@ export const MessagingApp: FC = () => {
           StartTimeStamp: new Date().valueOf() * 1e6,
         });
 
-      const decrypted = await decryptAccessGroupMessages(
-        messages.ThreadMessages,
-        allMyAccessGroups
-      );
+      const { decrypted, updatedAllAccessGroups } =
+        await decryptAccessGroupMessagesWithRetry(
+          appUser.PublicKeyBase58Check,
+          messages.ThreadMessages,
+          allAccessGroups
+        );
+
+      setAllAccessGroups(updatedAllAccessGroups);
 
       const updatedConversations = {
         ...currentConversations,
@@ -417,10 +418,13 @@ export const MessagingApp: FC = () => {
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         });
 
-      const decrypted = await decryptAccessGroupMessages(
-        messages.GroupChatMessages,
-        allMyAccessGroups
-      );
+      const { decrypted, updatedAllAccessGroups } =
+        await decryptAccessGroupMessagesWithRetry(
+          appUser.PublicKeyBase58Check,
+          messages.GroupChatMessages,
+          allAccessGroups
+        );
+      setAllAccessGroups(updatedAllAccessGroups);
 
       const updatedConversations = {
         ...currentConversations,

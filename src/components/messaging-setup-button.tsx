@@ -10,7 +10,8 @@ import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";
 
 export const MessagingSetupButton = () => {
-  const { appUser, isLoadingUser, setAccessGroups } = useContext(UserContext);
+  const { appUser, isLoadingUser, setAccessGroups, setAllAccessGroups } =
+    useContext(UserContext);
   const [isSettingUpMessage, setIsSettingUpMessaging] =
     useState<boolean>(false);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
@@ -92,16 +93,19 @@ export const MessagingSetupButton = () => {
 
           await identity.signAndSubmit(tx);
 
-          const accessGroups =
-            await desoAPI.accessGroup.GetAllUserAccessGroupsOwned({
+          const { AccessGroupsOwned, AccessGroupsMember } =
+            await desoAPI.accessGroup.GetAllUserAccessGroups({
               PublicKeyBase58Check: appUser.PublicKeyBase58Check,
             });
 
-          if (!accessGroups.AccessGroupsOwned) {
+          if (!AccessGroupsOwned) {
             throw new Error("did not get any access groups");
           }
 
-          setAccessGroups(accessGroups.AccessGroupsOwned);
+          setAccessGroups(AccessGroupsOwned);
+          setAllAccessGroups(
+            AccessGroupsOwned.concat(AccessGroupsMember || [])
+          );
         } catch (e: any) {
           toast.error("Something went wrong when setting up the account");
           console.error(e);
