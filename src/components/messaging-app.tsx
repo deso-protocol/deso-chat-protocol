@@ -47,7 +47,8 @@ import { RefreshContext } from "../contexts/RefreshContext";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
-  const { appUser, isLoadingUser, allAccessGroups, setAllAccessGroups } = useContext(UserContext);
+  const { appUser, isLoadingUser, allAccessGroups, setAllAccessGroups } =
+    useContext(UserContext);
   const { lockRefresh, setLockRefresh } = useContext(RefreshContext);
   const [usernameByPublicKeyBase58Check, setUsernameByPublicKeyBase58Check] =
     useState<{ [key: string]: string }>({});
@@ -117,7 +118,10 @@ export const MessagingApp: FC = () => {
       ) {
         return;
       }
-      const [res, , updatedAllAccessGroups] = await getConversations(appUser.PublicKeyBase58Check, allAccessGroups);
+      const [res, , updatedAllAccessGroups] = await getConversations(
+        appUser.PublicKeyBase58Check,
+        allAccessGroups
+      );
       setAllAccessGroups(updatedAllAccessGroups);
       const { updatedConversations, pubKeyPlusGroupName } =
         await getConversation(selectedConversationPublicKey, {
@@ -246,10 +250,8 @@ export const MessagingApp: FC = () => {
       toast.error("You must be logged in to use this feature");
       return;
     }
-    const [res, publicKeyToProfileEntryResponseMap, updatedAllAccessGroups] = await getConversations(
-      appUser.PublicKeyBase58Check,
-      allAccessGroups,
-    );
+    const [res, publicKeyToProfileEntryResponseMap, updatedAllAccessGroups] =
+      await getConversations(appUser.PublicKeyBase58Check, allAccessGroups);
     setAllAccessGroups(updatedAllAccessGroups);
     let conversationsResponse = res || {};
     const keyToUse =
@@ -359,11 +361,12 @@ export const MessagingApp: FC = () => {
           StartTimeStamp: new Date().valueOf() * 1e6,
         });
 
-      const [decrypted, updatedAccessGroups] = await decryptAccessGroupMessagesWithRetry(
-        appUser.PublicKeyBase58Check,
-        messages.ThreadMessages,
-        allAccessGroups,
-      );
+      const [decrypted, updatedAccessGroups] =
+        await decryptAccessGroupMessagesWithRetry(
+          appUser.PublicKeyBase58Check,
+          messages.ThreadMessages,
+          allAccessGroups
+        );
 
       setAllAccessGroups(updatedAccessGroups);
 
@@ -412,11 +415,12 @@ export const MessagingApp: FC = () => {
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         });
 
-      const [decrypted, updatedAccessGroups] = await decryptAccessGroupMessagesWithRetry(
-        appUser.PublicKeyBase58Check,
-        messages.GroupChatMessages,
-        allAccessGroups,
-      );
+      const [decrypted, updatedAccessGroups] =
+        await decryptAccessGroupMessagesWithRetry(
+          appUser.PublicKeyBase58Check,
+          messages.GroupChatMessages,
+          allAccessGroups
+        );
       setAllAccessGroups(updatedAccessGroups);
 
       const updatedConversations = {

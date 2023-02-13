@@ -23,9 +23,7 @@ function App() {
   const [userState, setUserState] = useState<UserContextType>({
     appUser: null,
     isLoadingUser: true,
-    setAccessGroups: (
-      accessGroupsOwned: AccessGroupEntryResponse[],
-    ) =>
+    setAccessGroups: (accessGroupsOwned: AccessGroupEntryResponse[]) =>
       setUserState((state) => {
         if (!state.appUser) {
           throw new Error("cannot set access groups without a logged in user!");
@@ -50,9 +48,15 @@ function App() {
           throw new Error("cannot set access groups without a logged in user!");
         }
 
-        const allAccessGroups = uniqBy(state.allAccessGroups.concat(newAllAccessGroups), (group) => {
-          return group.AccessGroupOwnerPublicKeyBase58Check + group.AccessGroupKeyName;
-        });
+        const allAccessGroups = uniqBy(
+          state.allAccessGroups.concat(newAllAccessGroups),
+          (group) => {
+            return (
+              group.AccessGroupOwnerPublicKeyBase58Check +
+              group.AccessGroupKeyName
+            );
+          }
+        );
 
         return {
           ...state,
@@ -115,7 +119,9 @@ function App() {
                 messagingPublicKeyBase58Check,
                 accessGroupsOwned: AccessGroupsOwned,
               };
-              const allAccessGroups = (AccessGroupsOwned || []).concat(AccessGroupsMember || []);
+              const allAccessGroups = (AccessGroupsOwned || []).concat(
+                AccessGroupsMember || []
+              );
 
               setUserState((state) => ({
                 ...state,

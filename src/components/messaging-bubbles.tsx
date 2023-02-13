@@ -58,7 +58,8 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
   onScroll,
 }: MessagingBubblesProps) => {
   const messageAreaRef = useRef<HTMLDivElement>(null);
-  const { appUser, allAccessGroups, setAllAccessGroups } = useContext(UserContext);
+  const { appUser, allAccessGroups, setAllAccessGroups } =
+    useContext(UserContext);
   const conversation = conversations[conversationPublicKey] ?? { messages: [] };
   const [allowScrolling, setAllowScrolling] = useState<boolean>(true);
   const [visibleMessages, setVisibleMessages] = useState(conversation.messages);
@@ -136,33 +137,29 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       visibleMessages[visibleMessages.length - 1].MessageInfo
         .TimestampNanosString;
 
-    const dmOrGroupChatMessages =
-      await (conversation.ChatType === ChatType.DM
-        ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
-            UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-            UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-            PartyGroupOwnerPublicKeyBase58Check: (conversation.messages[0]
-              .IsSender
-              ? conversation.messages[0].RecipientInfo
-              : conversation.messages[0].SenderInfo
-            ).OwnerPublicKeyBase58Check,
-            PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-            StartTimeStampString,
-            MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-          })
-        : desoAPI.accessGroup.GetPaginatedMessagesForGroupChatThread({
-            UserPublicKeyBase58Check:
-              visibleMessages[visibleMessages.length - 1].RecipientInfo
-                .OwnerPublicKeyBase58Check,
-            AccessGroupKeyName:
-              visibleMessages[visibleMessages.length - 1].RecipientInfo
-                .AccessGroupKeyName,
-            StartTimeStampString,
-            MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-          })
-      )
-    ;
-
+    const dmOrGroupChatMessages = await (conversation.ChatType === ChatType.DM
+      ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
+          UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+          UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+          PartyGroupOwnerPublicKeyBase58Check: (conversation.messages[0]
+            .IsSender
+            ? conversation.messages[0].RecipientInfo
+            : conversation.messages[0].SenderInfo
+          ).OwnerPublicKeyBase58Check,
+          PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+          StartTimeStampString,
+          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+        })
+      : desoAPI.accessGroup.GetPaginatedMessagesForGroupChatThread({
+          UserPublicKeyBase58Check:
+            visibleMessages[visibleMessages.length - 1].RecipientInfo
+              .OwnerPublicKeyBase58Check,
+          AccessGroupKeyName:
+            visibleMessages[visibleMessages.length - 1].RecipientInfo
+              .AccessGroupKeyName,
+          StartTimeStampString,
+          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+        }));
     const messages =
       conversation.ChatType === ChatType.DM
         ? (dmOrGroupChatMessages as GetPaginatedMessagesForDmThreadResponse)
@@ -188,11 +185,12 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
       return;
     }
 
-    const [decrypted, updatedAccessGroups] = await decryptAccessGroupMessagesWithRetry(
-      appUser.PublicKeyBase58Check,
-      messages,
-      allAccessGroups,
-    );
+    const [decrypted, updatedAccessGroups] =
+      await decryptAccessGroupMessagesWithRetry(
+        appUser.PublicKeyBase58Check,
+        messages,
+        allAccessGroups
+      );
     setAllAccessGroups(updatedAccessGroups);
 
     onScroll(decrypted);

@@ -103,7 +103,9 @@ export const MessagingSetupButton = () => {
           }
 
           setAccessGroups(AccessGroupsOwned);
-          setAllAccessGroups(AccessGroupsOwned.concat(AccessGroupsMember || []));
+          setAllAccessGroups(
+            AccessGroupsOwned.concat(AccessGroupsMember || [])
+          );
         } catch (e: any) {
           toast.error("Something went wrong when setting up the account");
           console.error(e);
