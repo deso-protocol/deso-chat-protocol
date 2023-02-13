@@ -252,7 +252,8 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                         {member.text}
                       </span>
                       <Button
-                        className="rounded-full mr-1 md:mr-3 px-3 py-2 border text-red-200/60 bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
+                        size="sm"
+                        className="rounded-full mr-1 md:mr-3 px-3 py-2 border text-white bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
                         onClick={() => removeMember(member.id)}
                       >
                         Remove
