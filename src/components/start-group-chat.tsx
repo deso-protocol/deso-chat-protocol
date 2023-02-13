@@ -175,7 +175,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
   return (
     <Fragment>
-      <div className="flex text-lg items-center p-4 border-b border-t mt-1 border-blue-800/30 justify-between">
+      <div className="flex text-lg items-center p-4 py-3 h-[69px] border-b border-t border-blue-800/30 justify-between">
         <h2 className="font-semibold text-xl text-white">My Chat</h2>
 
         <Button
@@ -208,9 +208,9 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
               <Input
                 value={chatName}
                 autoFocus={true}
-                label="Name"
+                label="Group name"
                 onChange={(e) => setChatName(e.target.value)}
-                className="text-blue-100 border-none bg-blue-900/20"
+                className="text-blue-100 border-none focus:border-solid bg-blue-900/20"
               />
             </div>
 
