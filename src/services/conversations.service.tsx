@@ -1,4 +1,4 @@
-import { identity, publicKeyToBase58Check } from "@deso-core/identity";
+import { identity } from "@deso-core/identity";
 import {
   AccessGroupEntryResponse,
   ChatType,

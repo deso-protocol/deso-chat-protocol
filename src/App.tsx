@@ -29,16 +29,11 @@ function App() {
           throw new Error("cannot set access groups without a logged in user!");
         }
         const currAppUser = state.appUser;
-        const newAccessGroupsOwned = Array.from(
-          new Set(
-            (currAppUser.accessGroupsOwned || []).concat(accessGroupsOwned)
-          )
-        );
         return {
           ...state,
           appUser: {
             ...currAppUser,
-            accessGroupsOwned: newAccessGroupsOwned,
+            accessGroupsOwned,
           },
         };
       }),
