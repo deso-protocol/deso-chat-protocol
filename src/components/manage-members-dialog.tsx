@@ -15,6 +15,7 @@ import { UserContext } from "contexts/UserContext";
 import { AccessGroupEntryResponse } from "deso-protocol-types";
 import difference from "lodash/difference";
 import React, { Fragment, useContext, useRef, useState } from "react";
+import { IoPeopleCircleOutline } from "react-icons/io5";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
@@ -225,21 +226,16 @@ export const ManageMembersDialog = ({
     );
   };
 
-  const title = isGroupOwner ? "Manage Group" : "View Members";
-
   return (
     <Fragment>
       <Button
         onClick={handleOpen}
-        className="bg-blue-700/40 hover:bg-blue-700/70 relative z-10 text-white rounded-full hover:shadow-none normal-case text-xs shadow-none px-3 py-1 md:px-6 md:py-3"
+        className="text-blue-400 bg-transparent p-0 shadow-none hover:shadow-none flex items-center"
       >
-        <span className="hidden md:block">{title}</span>
-        <img
-          className="visible md:hidden"
-          src="/assets/members.png"
-          alt="manage-members"
-          width={24}
-        />
+        <IoPeopleCircleOutline className="mr-2 text-2xl" />
+        <span className="hidden items-center md:flex capitalize font-medium text-base">
+          View Members
+        </span>
       </Button>
 
       <Dialog
@@ -247,30 +243,30 @@ export const ManageMembersDialog = ({
         handler={handleOpen}
         className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
-        <DialogHeader className="text-blue-100">{title}</DialogHeader>
-
+        <DialogHeader className="text-blue-100 p-5 border-b border-blue-600/20">
+          <div className="flex justify-between w-full items-center">
+            <span>
+              All Members (
+              {loading ? (
+                <ClipLoader color={"#6d4800"} loading={true} size={16} />
+              ) : (
+                currentMemberKeys.length
+              )}
+              )
+            </span>
+            <div className="text-sm text-right font-normal text-blue-300/60">
+              <strong className="text-blue-300/80">Group Name</strong>
+              <br />
+              {groupName}
+            </div>
+          </div>
+        </DialogHeader>
         <form name="start-group-chat-form" onSubmit={formSubmit}>
-          <DialogBody divider>
-            <div className="mb-4">
-              <div className="mb-4 md:mb-8">
-                <div className="mb-2 text-blue-100">
-                  Chat: <span className="font-semibold">{groupName}</span>
-                </div>
-
-                <div className="mb-2 text-blue-100">
-                  Current participants:{" "}
-                  <span className="font-semibold">
-                    {loading ? (
-                      <ClipLoader color={"#6d4800"} loading={true} size={16} />
-                    ) : (
-                      currentMemberKeys.length
-                    )}
-                  </span>
-                </div>
-              </div>
-
+          <DialogBody divider className="border-none p-5 pb-0">
+            <div className="mb-0">
               {isGroupOwner && (
                 <SearchUsers
+                  className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray border-transparent"
                   onSelected={(member) =>
                     addMember(member, () => {
                       setTimeout(() => {
@@ -285,7 +281,7 @@ export const ManageMembersDialog = ({
               )}
 
               <div
-                className="max-h-[240px] overflow-y-auto custom-scrollbar"
+                className="max-h-[400px] mt-3 pr-3 overflow-y-auto custom-scrollbar overflow-hidden"
                 ref={membersAreaRef}
               >
                 {loading ? (
@@ -300,7 +296,7 @@ export const ManageMembersDialog = ({
                 ) : (
                   members.map((member) => (
                     <div
-                      className="flex p-2 items-center cursor-pointer bg-blue-900/20 border text-white border-gray-400 rounded-md my-2"
+                      className="flex p-1.5 md:p-4 items-center cursor-pointer text-white bg-blue-900/20 border border-blue-600/20 rounded-md my-2"
                       key={member.id}
                     >
                       <MessagingDisplayAvatar
@@ -309,19 +305,23 @@ export const ManageMembersDialog = ({
                         diameter={isMobile ? 40 : 50}
                         classNames="mx-0"
                       />
-                      <div className="flex justify-between align-center flex-1">
-                        <div className="ml-2 md:ml-4">
-                          <div className="font-medium">{member.text}</div>
+                      <div className="flex justify-between items-center flex-1 overflow-auto">
+                        <div className="mx-2 md:ml-4 max-w-[calc(100%-105px)]">
+                          <div className="font-medium truncate">
+                            {member.text}
+                          </div>
                           {isGroupOwner &&
                             currentMemberKeys.includes(member.id) && (
-                              <div className="text-xs">Already in the chat</div>
+                              <div className="text-xs md:text-sm text-blue-300/80 mt-1">
+                                Already in the chat
+                              </div>
                             )}
                         </div>
                         {isGroupOwner &&
                           member.id !== appUser?.PublicKeyBase58Check && (
                             <Button
                               size="sm"
-                              color="red"
+                              className="rounded-full mr-1 md:mr-3 px-3 py-2 border text-white bg-red-400/20 hover:bg-red-400/30 border-red-600/60 shadow-none hover:shadow-none normal-case text-sm md:px-4"
                               onClick={() => removeMember(member.id)}
                             >
                               Remove
@@ -335,22 +335,18 @@ export const ManageMembersDialog = ({
             </div>
           </DialogBody>
 
-          <DialogFooter>
+          <DialogFooter className="border-t border-blue-600/20">
             {isGroupOwner && (
               <>
                 <Button
-                  variant="text"
-                  color="red"
                   onClick={handleOpen}
-                  className="mr-1"
+                  className="rounded-full mr-3 py-2 bg-transparent border border-blue-600/60 shadow-none hover:shadow-none normal-case text-sm px-4"
                 >
                   <span>Cancel</span>
                 </Button>
                 <Button
-                  variant="gradient"
-                  color="green"
                   type="submit"
-                  className="flex items-center"
+                  className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4"
                   disabled={updating}
                 >
                   {updating && (
