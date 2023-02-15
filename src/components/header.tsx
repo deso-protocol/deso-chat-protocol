@@ -20,6 +20,7 @@ import { SaveToClipboard } from "./shared/save-to-clipboard";
 import { RefreshContext } from "../contexts/RefreshContext";
 import { UserAccountList } from "./user-account-list";
 import { toast } from "react-toastify";
+import { celebrate } from "../services/confetti.service";
 
 export const Header = () => {
   const { appUser } = useContext(UserContext);
@@ -81,6 +82,9 @@ export const Header = () => {
 
                       try {
                         await identity.login();
+                        if (identity.snapshot().currentUser?.publicKey === "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" || identity.snapshot().currentUser?.publicKey === "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt") {
+                          celebrate();
+                        }
                       } catch (e) {
                         toast.error(`Error logging in: ${e}`);
                         console.error(e);

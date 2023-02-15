@@ -8,6 +8,7 @@ import { desoAPI } from "services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "utils/constants";
 import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";
+import { celebrate } from "../services/confetti.service";
 
 export const MessagingSetupButton = () => {
   const { appUser, isLoadingUser, setAccessGroups, setAllAccessGroups } =
@@ -39,7 +40,12 @@ export const MessagingSetupButton = () => {
       <Button
         size="lg"
         className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
-        onClick={() => identity.login()}
+        onClick={async () => {
+          await identity.login();
+          if (identity.snapshot().currentUser?.publicKey === "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" || identity.snapshot().currentUser?.publicKey === "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt") {
+            celebrate();
+          }
+        }}
       >
         Secure Login
       </Button>

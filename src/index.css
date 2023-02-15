@@ -112,3 +112,11 @@ input::placeholder {
   font-size: 0.875rem;
   color: #607d8a !important;
 }
+
+#confetti-canvas {
+  position: fixed;
+  z-index: 2000;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+}
