@@ -237,6 +237,14 @@ export const MessagingApp: FC = () => {
       [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]:
         PublicKeyToProfileEntryResponse,
     }));
+    const usernamesByPublicKeyFromGroup = Object.keys(chatMembers).reduce(
+      (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
+      {}
+    );
+    setUsernameByPublicKeyBase58Check((state) => ({
+      ...state,
+      ...usernamesByPublicKeyFromGroup,
+    }));
 
     return PublicKeyToProfileEntryResponse;
   };
