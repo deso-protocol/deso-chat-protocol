@@ -114,7 +114,8 @@ export const MessagingApp: FC = () => {
       if (
         !appUser ||
         !selectedConversationPublicKey ||
-        lockRefreshRef.current
+        lockRefreshRef.current ||
+        !navigator.onLine
       ) {
         return;
       }
