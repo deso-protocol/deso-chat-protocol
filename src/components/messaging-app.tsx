@@ -237,7 +237,7 @@ export const MessagingApp: FC = () => {
       [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]:
         PublicKeyToProfileEntryResponse,
     }));
-    const usernamesByPublicKeyFromGroup = Object.keys(chatMembers).reduce(
+    const usernamesByPublicKeyFromGroup = Object.keys(chatMembers || {}).reduce(
       (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
       {}
     );
@@ -486,7 +486,7 @@ export const MessagingApp: FC = () => {
   const isGroupOwner = isGroupChat && isChatOwner;
   const chatMembers = membersByGroupKey[selectedConversationPublicKey];
   const activeChatUsersMap = isGroupChat
-    ? Object.keys(chatMembers).reduce(
+    ? Object.keys(chatMembers || {}).reduce(
         (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
         {}
       )
