@@ -63,10 +63,16 @@ export const MessagingApp: FC = () => {
     [groupKey: string]: PublicKeyToProfileEntryResponseMap;
   }>({});
   const { isMobile } = useMobile();
+
+  // Dependencies of useInterval must use `useRef` to get the most recent state
   const lockRefreshRef = useRef(lockRefresh); // reference to lockRefresh that keeps current state in setInterval
+  const selectedConversationPublicKeyRef = useRef(
+    selectedConversationPublicKey
+  );
 
   useEffect(() => {
     lockRefreshRef.current = lockRefresh;
+    selectedConversationPublicKeyRef.current = selectedConversationPublicKey;
   });
 
   useEffect(() => {
@@ -111,6 +117,8 @@ export const MessagingApp: FC = () => {
 
   useInterval(
     async () => {
+      const initConversationKey = selectedConversationPublicKey;
+
       if (
         !appUser ||
         !selectedConversationPublicKey ||
@@ -133,7 +141,8 @@ export const MessagingApp: FC = () => {
 
       if (
         !lockRefreshRef.current &&
-        conversations[selectedConversationPublicKey]
+        conversations[selectedConversationPublicKey] &&
+        initConversationKey === selectedConversationPublicKeyRef.current
       ) {
         // Live updates to the current conversation.
         // We get the last processed message and inject the unread messages into existing conversation
@@ -236,6 +245,14 @@ export const MessagingApp: FC = () => {
       ...state,
       [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]:
         PublicKeyToProfileEntryResponse,
+    }));
+    const usernamesByPublicKeyFromGroup = Object.keys(chatMembers || {}).reduce(
+      (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
+      {}
+    );
+    setUsernameByPublicKeyBase58Check((state) => ({
+      ...state,
+      ...usernamesByPublicKeyFromGroup,
     }));
 
     return PublicKeyToProfileEntryResponse;
@@ -478,7 +495,7 @@ export const MessagingApp: FC = () => {
   const isGroupOwner = isGroupChat && isChatOwner;
   const chatMembers = membersByGroupKey[selectedConversationPublicKey];
   const activeChatUsersMap = isGroupChat
-    ? Object.keys(chatMembers).reduce(
+    ? Object.keys(chatMembers || {}).reduce(
         (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
         {}
       )
