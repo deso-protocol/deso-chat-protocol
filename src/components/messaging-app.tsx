@@ -63,10 +63,16 @@ export const MessagingApp: FC = () => {
     [groupKey: string]: PublicKeyToProfileEntryResponseMap;
   }>({});
   const { isMobile } = useMobile();
+
+  // Dependencies of useInterval must use `useRef` to get the most recent state
   const lockRefreshRef = useRef(lockRefresh); // reference to lockRefresh that keeps current state in setInterval
+  const selectedConversationPublicKeyRef = useRef(
+    selectedConversationPublicKey
+  );
 
   useEffect(() => {
     lockRefreshRef.current = lockRefresh;
+    selectedConversationPublicKeyRef.current = selectedConversationPublicKey;
   });
 
   useEffect(() => {
@@ -111,6 +117,8 @@ export const MessagingApp: FC = () => {
 
   useInterval(
     async () => {
+      const initConversationKey = selectedConversationPublicKey;
+
       if (
         !appUser ||
         !selectedConversationPublicKey ||
@@ -133,7 +141,8 @@ export const MessagingApp: FC = () => {
 
       if (
         !lockRefreshRef.current &&
-        conversations[selectedConversationPublicKey]
+        conversations[selectedConversationPublicKey] &&
+        initConversationKey === selectedConversationPublicKeyRef.current
       ) {
         // Live updates to the current conversation.
         // We get the last processed message and inject the unread messages into existing conversation
