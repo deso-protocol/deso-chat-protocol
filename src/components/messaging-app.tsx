@@ -114,7 +114,8 @@ export const MessagingApp: FC = () => {
       if (
         !appUser ||
         !selectedConversationPublicKey ||
-        lockRefreshRef.current
+        lockRefreshRef.current ||
+        !navigator.onLine
       ) {
         return;
       }
@@ -235,6 +236,14 @@ export const MessagingApp: FC = () => {
       ...state,
       [`${OwnerPublicKeyBase58Check}${AccessGroupKeyName}`]:
         PublicKeyToProfileEntryResponse,
+    }));
+    const usernamesByPublicKeyFromGroup = Object.keys(chatMembers).reduce(
+      (acc, curr) => ({ ...acc, [curr]: chatMembers[curr]?.Username || "" }),
+      {}
+    );
+    setUsernameByPublicKeyBase58Check((state) => ({
+      ...state,
+      ...usernamesByPublicKeyFromGroup,
     }));
 
     return PublicKeyToProfileEntryResponse;
