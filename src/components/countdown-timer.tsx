@@ -23,11 +23,11 @@ export const CountdownTimer = () => {
     <div className="h-full w-full z-100 relative bg-black justify-center items-center flex">
       <div>
         <strong className="text-9xl text-red-500">
-          <span className="border border-red-500 p-4">00</span>
+          <span className="border border-red-500 p-4 pulsate">00</span>
           <span className="p-4">:</span>
-          <span className="border border-red-500 p-4">00</span>
+          <span className="border border-red-500 p-4 pulsate">00</span>
           <span className="p-4">:</span>
-          <span className="border border-red-500 p-4">0{seconds}</span>
+          <span className="border border-red-500 p-4 pulsate">0{seconds}</span>
         </strong>
       </div>
     </div>
