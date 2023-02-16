@@ -82,7 +82,12 @@ export const Header = () => {
 
                       try {
                         await identity.login();
-                        if (identity.snapshot().currentUser?.publicKey === "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" || identity.snapshot().currentUser?.publicKey === "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt") {
+                        if (
+                          identity.snapshot().currentUser?.publicKey ===
+                            "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" ||
+                          identity.snapshot().currentUser?.publicKey ===
+                            "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt"
+                        ) {
                           celebrate();
                         }
                       } catch (e) {

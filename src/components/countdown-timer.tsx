@@ -19,8 +19,7 @@ export const CountdownTimer = () => {
     }
   }, 1000);
 
-  return (
-    seconds >= 0 ? (
+  return seconds >= 0 ? (
     <div className="h-full w-full z-100 relative bg-black justify-center items-center flex">
       <div>
         <strong className="text-9xl text-red-500">
@@ -32,6 +31,7 @@ export const CountdownTimer = () => {
         </strong>
       </div>
     </div>
-    ) : <></>
+  ) : (
+    <></>
   );
 };

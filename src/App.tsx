@@ -176,14 +176,15 @@ function App() {
       <RefreshContext.Provider value={{ lockRefresh, setLockRefresh }}>
         <div className="App">
           <Header />
-          {
-            (userState.appUser?.PublicKeyBase58Check === "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" ||
-            userState.appUser?.PublicKeyBase58Check === "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt") &&
+          {(userState.appUser?.PublicKeyBase58Check ===
+            "BC1YLfhQ8scqfcEotsTVxjCeGEXPdKaK26fKZ6SdmnA9dRB9Qe3Go8b" ||
+            userState.appUser?.PublicKeyBase58Check ===
+              "tBCKUpeA3to5i9jdn2pQmnt4dqR1e65xBQPUp7ZWnXxgN66qnyvnpt") && (
             <>
               <CountdownTimer />
               <canvas id="confetti-canvas"></canvas>
             </>
-          }
+          )}
           <section className="h-[calc(100%-64px)] mt-[64px]">
             <MessagingApp />
           </section>

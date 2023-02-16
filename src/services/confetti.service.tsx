@@ -1,3 +1,5 @@
+import ConfettiGenerator from "confetti-js";
+
 export enum ConfettiSvg {
   DIAMOND = "diamond",
   BOMB = "bomb",
@@ -13,7 +15,6 @@ const svgToProps = {
   [ConfettiSvg.COMET]: { size: 18, weight: 1 },
   [ConfettiSvg.LAMBO]: { size: 18, weight: 1 },
 };
-import ConfettiGenerator from "confetti-js";
 
 export const celebrate = (svgList: ConfettiSvg[] = []) => {
   const canvasID = "confetti-canvas";
@@ -29,7 +30,10 @@ export const celebrate = (svgList: ConfettiSvg[] = []) => {
   };
   if (svgList.length > 0) {
     confettiSettings["props"] = svgList.map((svg) => {
-      return { ...{ type: "svg", src: `/assets/${svg}.svg` }, ...svgToProps[svg] };
+      return {
+        ...{ type: "svg", src: `/assets/${svg}.svg` },
+        ...svgToProps[svg],
+      };
     });
     if (svgList.indexOf(ConfettiSvg.DIAMOND) >= 0) {
       confettiSettings.clock = 150;
