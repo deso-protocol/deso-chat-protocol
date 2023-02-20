@@ -4,7 +4,6 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
-  Input,
 } from "@material-tailwind/react";
 import { SearchUsers } from "components/search-users";
 import { UserContext } from "contexts/UserContext";
@@ -29,6 +28,7 @@ import { useMobile } from "../hooks/useMobile";
 import { encryptAndSendNewMessage } from "../services/conversations.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
+import { MyInput } from "./form/my-input";
 
 export interface StartGroupChatProps {
   onSuccess: (pubKey: string) => void;
@@ -39,6 +39,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chatName, setChatName] = useState<string>("");
+  const [formTouched, setFormTouched] = useState<boolean>(false);
   const { members, addMember, removeMember, onPairMissing } = useMembers(
     setLoading,
     open
@@ -51,23 +52,24 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
   useEffect(() => {
     if (!open) {
       setChatName("");
+      setFormTouched(false);
     }
   }, [open]);
+
+  const isNameValid = () => {
+    return chatName && chatName.trim();
+  };
+
+  const areMembersValid = () => {
+    return Array.isArray(members) && members.length > 0;
+  };
 
   const formSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const isInputValid = chatName && chatName.trim();
-    if (!isInputValid) {
-      toast.error("Chat name must be provided");
-    }
+    setFormTouched(true);
 
-    const areMembersDefined = Array.isArray(members) && members.length > 0;
-    if (!areMembersDefined) {
-      toast.error("At least one member should be added");
-    }
-
-    const formValid = isInputValid && areMembersDefined;
+    const formValid = isNameValid() && areMembersValid();
     if (!formValid) {
       return;
     }
@@ -193,16 +195,16 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         <form name="start-group-chat-form" onSubmit={formSubmit}>
           <DialogBody divider className="border-none p-5">
             <div className="mb-4 md:mb-8">
-              <div className="text-lg font-semibold mb-2 text-blue-100">
-                Name
-              </div>
-
-              <Input
+              <MyInput
+                label="Name"
+                error={
+                  formTouched && !isNameValid()
+                    ? "Group name must be defined"
+                    : ""
+                }
+                placeholder="Group name"
                 value={chatName}
-                autoFocus={true}
-                label="Group name"
-                onChange={(e) => setChatName(e.target.value)}
-                className="text-blue-100 border-none focus:border-solid bg-blue-900/20"
+                setValue={setChatName}
               />
             </div>
 
@@ -211,7 +213,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                 Add Users to Your Group Chat
               </div>
               <SearchUsers
-                className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray border-transparent"
+                className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray"
                 onSelected={(member) =>
                   addMember(member, () => {
                     setTimeout(() => {
@@ -222,10 +224,15 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
                     }, 0);
                   })
                 }
+                error={
+                  formTouched && !areMembersValid()
+                    ? "At least one memeber must be added"
+                    : ""
+                }
               />
 
               <div
-                className="max-h-[400px] mt-3 pr-3 overflow-y-auto custom-scrollbar overflow-hidden"
+                className="max-h-[400px] mt-1 pr-3 overflow-y-auto custom-scrollbar overflow-hidden"
                 ref={membersAreaRef}
               >
                 {members.map((member) => (

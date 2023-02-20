@@ -17,6 +17,7 @@ import {
   isMaybeETHAddress,
 } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
+import { MyErrorLabel } from "./form/my-error-label";
 
 export const shortenLongWord = (
   key: string | null,
@@ -55,6 +56,7 @@ interface SearchUsersProps {
   hasPersistentDisplayValue?: boolean;
   initialValue?: string;
   onSelected: (item: SearchMenuItem | null) => void;
+  error?: string;
   onFocus?: () => void;
   onBlur?: () => void;
   onTyping?: any;
@@ -66,6 +68,7 @@ export const SearchUsers = ({
   hasPersistentDisplayValue = false,
   initialValue = "",
   onSelected,
+  error,
   onFocus,
   onBlur,
   onTyping,
@@ -198,7 +201,11 @@ export const SearchUsers = ({
           <Combobox.Input
             placeholder={placeholder}
             spellCheck={false}
-            className={`w-full ring:border-blue-600 rounded-md ${className} text-blue-100 bg-blue-900/20`}
+            className={`w-full rounded-md ${className} text-blue-100 bg-blue-900/20 ${
+              error
+                ? "border border-red-500"
+                : "ring:border-blue-600 border-transparent"
+            }`}
             onChange={async (ev) => {
               const name = ev.target.value.trim();
 
@@ -219,6 +226,8 @@ export const SearchUsers = ({
             onFocus={onFocus}
             onBlur={onBlur}
           />
+
+          <MyErrorLabel error={error} />
         </div>
         <Combobox.Options
           className={`absolute z-10 w-full bg-white text-black max-h-80 mt-1 rounded-md overflow-y-scroll custom-scrollbar bg-blue-900/20 text-blue-100 ${

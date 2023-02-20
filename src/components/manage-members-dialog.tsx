@@ -257,7 +257,7 @@ export const ManageMembersDialog = ({
             <div className="mb-0">
               {isGroupOwner && (
                 <SearchUsers
-                  className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray border-transparent"
+                  className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray"
                   onSelected={(member) =>
                     addMember(member, () => {
                       setTimeout(() => {
