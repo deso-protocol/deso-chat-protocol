@@ -1,5 +1,9 @@
 import { UserContext } from "contexts/UserContext";
 import {
+  getPaginatedDMThread,
+  getPaginatedGroupChatThread,
+} from "deso-protocol";
+import {
   ChatType,
   DecryptedMessageEntryResponse,
   GetPaginatedMessagesForDmThreadResponse,
@@ -7,8 +11,9 @@ import {
 } from "deso-protocol-types";
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
+import ReactLinkify from "react-linkify";
+import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/desoAPI.service";
 import { useMobile } from "../hooks/useMobile";
 import { decryptAccessGroupMessagesWithRetry } from "../services/conversations.service";
 import {
@@ -18,8 +23,6 @@ import {
 import { ConversationMap } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { shortenLongWord } from "./search-users";
-import ClipLoader from "react-spinners/ClipLoader";
-import ReactLinkify from "react-linkify";
 
 export interface MessagingBubblesProps {
   conversations: ConversationMap;
@@ -138,7 +141,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
         .TimestampNanosString;
 
     const dmOrGroupChatMessages = await (conversation.ChatType === ChatType.DM
-      ? desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
+      ? getPaginatedDMThread({
           UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
           UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
           PartyGroupOwnerPublicKeyBase58Check: (visibleMessages[0].IsSender
@@ -146,10 +149,11 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
             : visibleMessages[0].SenderInfo
           ).OwnerPublicKeyBase58Check,
           PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+          // FIXME:
           StartTimeStampString,
           MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
         })
-      : desoAPI.accessGroup.GetPaginatedMessagesForGroupChatThread({
+      : getPaginatedGroupChatThread({
           UserPublicKeyBase58Check:
             visibleMessages[visibleMessages.length - 1].RecipientInfo
               .OwnerPublicKeyBase58Check,

@@ -1,19 +1,18 @@
 import { Combobox } from "@headlessui/react";
+import { getProfiles, getSingleProfile, identity } from "deso-protocol";
 import { ProfileEntryResponse } from "deso-protocol-types";
 import { ethers } from "ethers";
 import debounce from "lodash/debounce";
 import { Fragment, useContext, useEffect, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "../services/desoAPI.service";
-import { DESO_NETWORK } from "../utils/constants";
+import { UserContext } from "../contexts/UserContext";
 import {
   isMaybeDeSoPublicKey,
   isMaybeENSName,
   isMaybeETHAddress,
 } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { UserContext } from "../contexts/UserContext";
 
 export const shortenLongWord = (
   key: string | null,
@@ -82,7 +81,7 @@ export const SearchUsers = ({
   const searchForPublicKey = async (
     publicKey: string
   ): Promise<SearchMenuItem> => {
-    const res = await desoAPI.user.getSingleProfile({
+    const res = await getSingleProfile({
       PublicKeyBase58Check: publicKey,
       NoErrorOnMissing: true,
     });
@@ -97,53 +96,27 @@ export const SearchUsers = ({
     return item;
   };
 
-  const recoverETHAddress = async (ethAddress: string): Promise<string> => {
-    const network = DESO_NETWORK;
-    // If it barks like an ETH address, give it a shot.
-    let desoPublicKey: string;
-    try {
-      // We try to recover from mainnet first.
-      desoPublicKey = await desoAPI.ethereum.ethAddressToDeSoPublicKey(
-        ethAddress,
-        network,
-        "homestead"
-      );
-    } catch (e) {
-      try {
-        // If it fails on mainnet, we try goerli
-        desoPublicKey = await desoAPI.ethereum.ethAddressToDeSoPublicKey(
-          ethAddress,
-          network,
-          "goerli"
-        );
-      } catch (err) {
-        return Promise.reject(
-          `unable to recover DeSo public key from ETH address ${ethAddress}`
-        );
-      }
-    }
-    return desoPublicKey;
-  };
-
-  const getProfiles = async (query: string) => {
+  const _getProfiles = async (query: string) => {
     // TODO: find way to not pound infura API.
     if (isMaybeENSName(query)) {
       const ethAddress = await provider.resolveName(query);
       if (!ethAddress) {
         return Promise.reject(`unable to resolve ENS name ${query}`);
       }
-      const desoPublicKey = await recoverETHAddress(ethAddress);
+      const desoPublicKey = await identity.ethereumAddressToDesoAddress(
+        ethAddress
+      );
       await searchForPublicKey(desoPublicKey);
       return;
     } else if (isMaybeETHAddress(query)) {
-      const desoPublicKey = await recoverETHAddress(query);
+      const desoPublicKey = await identity.ethereumAddressToDesoAddress(query);
       await searchForPublicKey(desoPublicKey);
       return;
     } else if (isMaybeDeSoPublicKey(query)) {
       await searchForPublicKey(query);
       return;
     }
-    const res = await desoAPI.user.getProfiles({
+    const res = await getProfiles({
       PublicKeyBase58Check: "",
       Username: "",
       UsernamePrefix: query,
@@ -167,7 +140,7 @@ export const SearchUsers = ({
 
   const getProfilesDebounced = debounce(async (q: string) => {
     setLoading(true);
-    await getProfiles(q)
+    await _getProfiles(q)
       .catch((e) => {
         console.error(e);
         toast.error(e);

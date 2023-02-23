@@ -1,18 +1,28 @@
-import { identity, NOTIFICATION_EVENTS } from "@deso-core/identity";
 import { AppUser, UserContext, UserContextType } from "contexts/UserContext";
-import { AccessGroupEntryResponse } from "deso-protocol-types";
+import {
+  configure,
+  createAccessGroup,
+  getAllAccessGroups,
+  getUsersStateless,
+  identity,
+  NOTIFICATION_EVENTS,
+} from "deso-protocol";
+import { AccessGroupEntryResponse, User } from "deso-protocol-types";
+import { uniqBy } from "lodash";
 import * as process from "process";
-import { RefreshContext } from "./contexts/RefreshContext";
 import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Header } from "./components/header";
 import { MessagingApp } from "./components/messaging-app";
-import { desoAPI } from "./services/desoAPI.service";
-import { DESO_NETWORK, getTransactionSpendingLimits } from "./utils/constants";
-import { uniqBy } from "lodash";
+import { RefreshContext } from "./contexts/RefreshContext";
+import {
+  DEFAULT_KEY_MESSAGING_GROUP_NAME,
+  DESO_NETWORK,
+  getTransactionSpendingLimits,
+} from "./utils/constants";
 
-identity.configure({
+configure({
   identityURI: process.env.REACT_APP_IDENTITY_URL,
   nodeURI: process.env.REACT_APP_NODE_URL,
   network: DESO_NETWORK,
@@ -96,29 +106,71 @@ function App() {
 
           setUserState((state) => ({ ...state, isLoadingUser: true }));
           Promise.all([
-            fetchAppUserData(currentUser.publicKey),
-            desoAPI.accessGroup.GetAllUserAccessGroups({
+            getUser(currentUser.publicKey),
+            getAllAccessGroups({
               PublicKeyBase58Check: currentUser.publicKey,
             }),
           ])
             .then(([userRes, { AccessGroupsOwned, AccessGroupsMember }]) => {
-              const user = userRes.UserList?.[0] ?? null;
-              const appUser: AppUser | null = user && {
-                ...user,
-                messagingPublicKeyBase58Check,
-                accessGroupsOwned: AccessGroupsOwned,
-              };
-              const allAccessGroups = (AccessGroupsOwned || []).concat(
-                AccessGroupsMember || []
-              );
+              // if the user doesn't have a default group, they are not set up for messaging yet.
+              // we'll do that automatically for them.
+              if (
+                !AccessGroupsOwned?.find(
+                  ({ AccessGroupKeyName }) =>
+                    AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME
+                )
+              ) {
+                return createAccessGroup({
+                  AccessGroupOwnerPublicKeyBase58Check: currentUser.publicKey,
+                  AccessGroupPublicKeyBase58Check:
+                    messagingPublicKeyBase58Check,
+                  AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+                  MinFeeRateNanosPerKB: 1000,
+                }).then(() => {
+                  // QUESTION: do we need to wait for the create tx to show up on
+                  // the node before calling to retrieve the access groups? This
+                  // has been live for a bit and seems fine...
+                  return getAllAccessGroups({
+                    PublicKeyBase58Check: currentUser.publicKey,
+                  }).then((groups) => {
+                    const user: User | null = userRes.UserList?.[0] ?? null;
+                    const appUser: AppUser | null = user && {
+                      ...user,
+                      messagingPublicKeyBase58Check,
+                      accessGroupsOwned: groups.AccessGroupsOwned,
+                    };
+                    const allAccessGroups = (AccessGroupsOwned || []).concat(
+                      AccessGroupsMember || []
+                    );
 
-              setUserState((state) => ({
-                ...state,
-                appUser,
-                allAccessGroups,
-              }));
+                    setUserState((state) => ({
+                      ...state,
+                      appUser,
+                      allAccessGroups,
+                    }));
 
-              return user;
+                    return user;
+                  });
+                });
+              } else {
+                const user: User | null = userRes.UserList?.[0] ?? null;
+                const appUser: AppUser | null = user && {
+                  ...user,
+                  messagingPublicKeyBase58Check,
+                  accessGroupsOwned: AccessGroupsOwned,
+                };
+                const allAccessGroups = (AccessGroupsOwned || []).concat(
+                  AccessGroupsMember || []
+                );
+
+                setUserState((state) => ({
+                  ...state,
+                  appUser,
+                  allAccessGroups,
+                }));
+
+                return user;
+              }
             })
             .then((user) => {
               if (!user) return;
@@ -130,7 +182,7 @@ function App() {
               window.clearInterval(pollingIntervalId);
               if (user.BalanceNanos === 0) {
                 pollingIntervalId = window.setInterval(async () => {
-                  fetchAppUserData(currentUser.publicKey).then((res) => {
+                  getUser(currentUser.publicKey).then((res) => {
                     const user = res.UserList?.[0];
                     if (user && user.BalanceNanos > 0) {
                       setUserState((state) => ({
@@ -187,8 +239,8 @@ function App() {
   );
 }
 
-const fetchAppUserData = async (publicKey: string) =>
-  desoAPI.user.getUserStateless({
+const getUser = async (publicKey: string) =>
+  getUsersStateless({
     PublicKeysBase58Check: [publicKey],
     SkipForLeaderboard: true,
     IncludeBalance: true,

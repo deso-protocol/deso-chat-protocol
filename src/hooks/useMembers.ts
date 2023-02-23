@@ -1,4 +1,8 @@
 import { UserContext } from "contexts/UserContext";
+import {
+  getBulkAccessGroups,
+  getPaginatedAccessGroupMembers,
+} from "deso-protocol";
 import { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
@@ -7,7 +11,6 @@ import {
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
 } from "utils/constants";
 import { nameOrFormattedKey, SearchMenuItem } from "../components/search-users";
-import { desoAPI } from "../services/desoAPI.service";
 import { Conversation } from "../utils/types";
 
 export function useMembers(
@@ -30,16 +33,14 @@ export function useMembers(
     } else if (conversation) {
       setLoading(true);
 
-      desoAPI.accessGroup
-        .GetPaginatedAccessGroupMembers({
-          AccessGroupOwnerPublicKeyBase58Check:
-            conversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check,
-          AccessGroupKeyName:
-            conversation.messages[0].RecipientInfo.AccessGroupKeyName,
-          MaxMembersToFetch:
-            MAX_MEMBERS_TO_REQUEST_IN_GROUP +
-            MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
-        })
+      getPaginatedAccessGroupMembers({
+        AccessGroupOwnerPublicKeyBase58Check:
+          conversation.messages[0].RecipientInfo.OwnerPublicKeyBase58Check,
+        AccessGroupKeyName:
+          conversation.messages[0].RecipientInfo.AccessGroupKeyName,
+        MaxMembersToFetch:
+          MAX_MEMBERS_TO_REQUEST_IN_GROUP + MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
+      })
         .then((res) => {
           // Keep the current user on top
           const currUserIndex = (
@@ -86,15 +87,14 @@ export function useMembers(
     }
 
     try {
-      const { PairsNotFound } =
-        await desoAPI.accessGroup.GetBulkAccessGroupEntries({
-          GroupOwnerAndGroupKeyNamePairs: [
-            {
-              GroupOwnerPublicKeyBase58Check: member.id,
-              GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-            },
-          ],
-        });
+      const { PairsNotFound } = await getBulkAccessGroups({
+        GroupOwnerAndGroupKeyNamePairs: [
+          {
+            GroupOwnerPublicKeyBase58Check: member.id,
+            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+          },
+        ],
+      });
 
       if ((PairsNotFound || []).length > 0) {
         onPairMissing();

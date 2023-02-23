@@ -6,11 +6,10 @@ import {
   TabsHeader,
   Tooltip,
 } from "@material-tailwind/react";
-import { ChatType, ProfileEntryResponse } from "deso-protocol-types";
+import { ChatType, identity, ProfileEntryResponse } from "deso-protocol";
 import { ethers } from "ethers";
 import sortBy from "lodash/sortBy";
 import { FC, useState } from "react";
-import { desoAPI } from "services/desoAPI.service";
 import {
   MAX_MEMBERS_IN_GROUP_SUMMARY_SHOWN,
   MAX_MEMBERS_TO_REQUEST_IN_GROUP,
@@ -133,7 +132,8 @@ export const MessagingConversationAccount: FC<{
                         <header className="flex items-center justify-between">
                           <div className="text-left ml-2 text-blue-100 font-semibold">
                             {isDM && chatName ? "@" : ""}
-                            {shortenLongWord(chatName, 7, 7) || shortenLongWord(publicKey)}
+                            {shortenLongWord(chatName, 7, 7) ||
+                              shortenLongWord(publicKey)}
                           </div>
 
                           {isDM && (
@@ -226,8 +226,7 @@ export const ETHSection: FC<{
   provider: ethers.providers.InfuraProvider;
 }> = ({ desoPublicKey }) => {
   const [ensName] = useState<string | null>(null);
-  const ethAddress =
-    desoAPI.ethereum.desoAddressToEthereumAddress(desoPublicKey);
+  const ethAddress = identity.desoAddressToEthereumAddress(desoPublicKey);
 
   // Disabling ENS name display for now
   // useEffect(() => {
