@@ -56,8 +56,7 @@ export function useMembers(
           setMembers(
             sortedMembers.map((publicKey) => ({
               id: publicKey,
-              profile:
-                res.PublicKeyToProfileEntryResponse[publicKey] ?? undefined,
+              profile: res.PublicKeyToProfileEntryResponse[publicKey] ?? null,
               text: nameOrFormattedKey(
                 res.PublicKeyToProfileEntryResponse[publicKey],
                 publicKey

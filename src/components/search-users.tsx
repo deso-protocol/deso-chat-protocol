@@ -42,7 +42,7 @@ export const nameOrFormattedKey = (
 
 export interface SearchMenuItem {
   id: string;
-  profile: ProfileEntryResponse | undefined;
+  profile: ProfileEntryResponse | null;
   text: string;
 }
 
@@ -83,12 +83,12 @@ export const SearchUsers = ({
   ): Promise<SearchMenuItem> => {
     const res = await getSingleProfile({
       PublicKeyBase58Check: publicKey,
-      NoErrorOnMissing: true,
     });
+
     const item = {
       id: publicKey,
-      profile: res.Profile ?? undefined,
-      text: nameOrFormattedKey(res.Profile, publicKey),
+      profile: res?.Profile,
+      text: nameOrFormattedKey(res?.Profile, publicKey),
     };
     await onSelected(item);
     setInputValue("");
@@ -98,24 +98,39 @@ export const SearchUsers = ({
 
   const _getProfiles = async (query: string) => {
     // TODO: find way to not pound infura API.
-    if (isMaybeENSName(query)) {
-      const ethAddress = await provider.resolveName(query);
-      if (!ethAddress) {
-        return Promise.reject(`unable to resolve ENS name ${query}`);
+    try {
+      if (isMaybeENSName(query)) {
+        const ethAddress = await provider.resolveName(query);
+        if (!ethAddress) {
+          return Promise.reject(`unable to resolve ENS name ${query}`);
+        }
+        const desoPublicKey = await identity.ethereumAddressToDesoAddress(
+          ethAddress
+        );
+        await searchForPublicKey(desoPublicKey);
+        return;
+      } else if (isMaybeETHAddress(query)) {
+        const desoPublicKey = await identity.ethereumAddressToDesoAddress(
+          query
+        );
+        await searchForPublicKey(desoPublicKey);
+        return;
+      } else if (isMaybeDeSoPublicKey(query)) {
+        await searchForPublicKey(query);
+        return;
       }
-      const desoPublicKey = await identity.ethereumAddressToDesoAddress(
-        ethAddress
-      );
-      await searchForPublicKey(desoPublicKey);
-      return;
-    } else if (isMaybeETHAddress(query)) {
-      const desoPublicKey = await identity.ethereumAddressToDesoAddress(query);
-      await searchForPublicKey(desoPublicKey);
-      return;
-    } else if (isMaybeDeSoPublicKey(query)) {
-      await searchForPublicKey(query);
-      return;
+    } catch (e: any) {
+      if (
+        e?.message
+          ?.toString()
+          .startsWith(
+            "GetSingleProfile: could not find profile for username or public key"
+          )
+      ) {
+        return;
+      }
     }
+
     const res = await getProfiles({
       PublicKeyBase58Check: "",
       Username: "",
