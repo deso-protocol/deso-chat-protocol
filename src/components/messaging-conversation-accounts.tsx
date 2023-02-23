@@ -133,7 +133,7 @@ export const MessagingConversationAccount: FC<{
                         <header className="flex items-center justify-between">
                           <div className="text-left ml-2 text-blue-100 font-semibold">
                             {isDM && chatName ? "@" : ""}
-                            {chatName || shortenLongWord(publicKey)}
+                            {shortenLongWord(chatName, 7, 7) || shortenLongWord(publicKey)}
                           </div>
 
                           {isDM && (
