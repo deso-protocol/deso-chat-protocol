@@ -39,6 +39,7 @@ export const MessagingConversationAccount: FC<{
   rehydrateConversation,
   membersByGroupKey,
 }) => {
+  // TODO: move to identity package
   const provider = new ethers.providers.InfuraProvider("homestead"); //, process.env.REACT_APP_INFURA_API_KEY);
   const activeTab = { className: "bg-blue-800" };
   return (

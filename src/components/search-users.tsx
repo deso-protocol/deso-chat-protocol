@@ -70,6 +70,8 @@ export const SearchUsers = ({
   const [menuItems, setMenuItems] = useState<SearchMenuItem[]>();
   const [inputValue, setInputValue] = useState(initialValue);
   const [loading, setLoading] = useState(false);
+  // TODO: we should roll this into the identity package since we already need
+  // the ethers package there to recover the public key from a signature.
   const provider = new ethers.providers.InfuraProvider("homestead"); //, process.env.REACT_APP_INFURA_API_KEY);
 
   const { appUser } = useContext(UserContext);
