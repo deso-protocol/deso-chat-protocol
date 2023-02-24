@@ -2,7 +2,7 @@ import {
   ChatType,
   DecryptedMessageEntryResponse,
   SubmitTransactionResponse,
-} from "deso-protocol-types";
+} from "deso-protocol";
 
 export interface Conversation {
   firstMessagePublicKey: string;

@@ -1,7 +1,5 @@
-import { identity } from "@deso-core/identity";
 import { MenuItem } from "@material-tailwind/react";
-import { getUsersStateless } from "deso-protocol";
-import { User } from "deso-protocol-types";
+import { getUsersStateless, identity, User } from "deso-protocol";
 import orderBy from "lodash/orderBy";
 import { useContext, useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";

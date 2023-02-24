@@ -1,4 +1,3 @@
-import { identity } from "@deso-core/identity";
 import {
   Menu,
   MenuHandler,
@@ -6,6 +5,7 @@ import {
   MenuList,
 } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
+import { identity } from "deso-protocol";
 import { useContext } from "react";
 import {
   IoCopy,
@@ -14,12 +14,12 @@ import {
   IoHappyOutline,
   IoLogoGithub,
 } from "react-icons/io5";
+import { toast } from "react-toastify";
+import { RefreshContext } from "../contexts/RefreshContext";
 import { formatDisplayName, getProfileURL } from "../utils/helpers";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SaveToClipboard } from "./shared/save-to-clipboard";
-import { RefreshContext } from "../contexts/RefreshContext";
 import { UserAccountList } from "./user-account-list";
-import { toast } from "react-toastify";
 
 export const Header = () => {
   const { appUser } = useContext(UserContext);

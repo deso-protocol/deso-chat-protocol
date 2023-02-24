@@ -1,7 +1,6 @@
-import { identity } from "@deso-core/identity";
 import { Button } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
-import { createAccessGroup, getAllAccessGroups } from "deso-protocol";
+import { createAccessGroup, getAllAccessGroups, identity } from "deso-protocol";
 import { useContext, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";

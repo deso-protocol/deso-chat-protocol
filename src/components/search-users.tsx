@@ -1,6 +1,10 @@
 import { Combobox } from "@headlessui/react";
-import { getProfiles, getSingleProfile, identity } from "deso-protocol";
-import { ProfileEntryResponse } from "deso-protocol-types";
+import {
+  getProfiles,
+  getSingleProfile,
+  identity,
+  ProfileEntryResponse,
+} from "deso-protocol";
 import { ethers } from "ethers";
 import debounce from "lodash/debounce";
 import { Fragment, useContext, useEffect, useState } from "react";

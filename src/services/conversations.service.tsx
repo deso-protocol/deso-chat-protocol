@@ -1,19 +1,17 @@
-import { identity } from "@deso-core/identity";
 import {
+  AccessGroupEntryResponse,
+  ChatType,
   checkPartyAccessGroups,
+  DecryptedMessageEntryResponse,
   getAllAccessGroups,
   getAllMessageThreads,
+  identity,
+  NewMessageEntryResponse,
+  PublicKeyToProfileEntryResponseMap,
   sendDMMessage,
   sendGroupChatMessage,
   waitForTransactionFound,
 } from "deso-protocol";
-import {
-  AccessGroupEntryResponse,
-  ChatType,
-  DecryptedMessageEntryResponse,
-  NewMessageEntryResponse,
-  PublicKeyToProfileEntryResponseMap,
-} from "deso-protocol-types";
 import { toast } from "react-toastify";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,

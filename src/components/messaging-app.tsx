@@ -1,17 +1,15 @@
 import { Card, CardBody } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
 import {
+  ChatType,
+  DecryptedMessageEntryResponse,
   getPaginatedAccessGroupMembers,
   getPaginatedDMThread,
   getPaginatedGroupChatThread,
   getUsersStateless,
-} from "deso-protocol";
-import {
-  ChatType,
-  DecryptedMessageEntryResponse,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
-} from "deso-protocol-types";
+} from "deso-protocol";
 import { useInterval } from "hooks/useInterval";
 import difference from "lodash/difference";
 import { FC, useContext, useEffect, useRef, useState } from "react";

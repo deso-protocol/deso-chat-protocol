@@ -1,4 +1,3 @@
-import { encrypt, identity } from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -12,7 +11,9 @@ import { UserContext } from "contexts/UserContext";
 import {
   addAccessGroupMembers,
   createAccessGroup,
+  encrypt,
   getBulkAccessGroups,
+  identity,
 } from "deso-protocol";
 import React, {
   Fragment,

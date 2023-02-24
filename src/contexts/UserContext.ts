@@ -1,4 +1,4 @@
-import { AccessGroupEntryResponse, User } from "deso-protocol-types";
+import { AccessGroupEntryResponse, User } from "deso-protocol";
 import { createContext } from "react";
 
 export type AppUser = User & {

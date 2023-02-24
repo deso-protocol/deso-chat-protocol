@@ -1,13 +1,14 @@
 import { AppUser, UserContext, UserContextType } from "contexts/UserContext";
 import {
+  AccessGroupEntryResponse,
   configure,
   createAccessGroup,
   getAllAccessGroups,
   getUsersStateless,
   identity,
   NOTIFICATION_EVENTS,
+  User,
 } from "deso-protocol";
-import { AccessGroupEntryResponse, User } from "deso-protocol-types";
 import { uniqBy } from "lodash";
 import * as process from "process";
 import { useEffect, useState } from "react";

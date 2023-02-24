@@ -1,14 +1,12 @@
 import { UserContext } from "contexts/UserContext";
 import {
-  getPaginatedDMThread,
-  getPaginatedGroupChatThread,
-} from "deso-protocol";
-import {
   ChatType,
   DecryptedMessageEntryResponse,
+  getPaginatedDMThread,
+  getPaginatedGroupChatThread,
   GetPaginatedMessagesForDmThreadResponse,
   GetPaginatedMessagesForGroupChatThreadResponse,
-} from "deso-protocol-types";
+} from "deso-protocol";
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import ReactLinkify from "react-linkify";

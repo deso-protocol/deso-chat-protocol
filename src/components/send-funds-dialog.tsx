@@ -1,4 +1,3 @@
-import { identity } from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -6,6 +5,7 @@ import {
   DialogHeader,
 } from "@material-tailwind/react";
 import { AppUser } from "contexts/UserContext";
+import { identity } from "deso-protocol";
 import { Fragment } from "react";
 import { desoNanosToDeso } from "../utils/helpers";
 import { shortenLongWord } from "./search-users";
