@@ -1,10 +1,9 @@
-import { identity } from "@deso-core/identity";
 import { Button } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
+import { createAccessGroup, getAllAccessGroups, identity } from "deso-protocol";
 import { useContext, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "utils/constants";
 import { hasSetupMessaging } from "utils/helpers";
 import { SendFundsDialog } from "./send-funds-dialog";
@@ -77,24 +76,16 @@ export const MessagingSetupButton = () => {
       onClick={async () => {
         setIsSettingUpMessaging(true);
         try {
-          const tx = await desoAPI.accessGroup.CreateAccessGroup(
-            {
-              AccessGroupOwnerPublicKeyBase58Check:
-                appUser.PublicKeyBase58Check,
-              AccessGroupPublicKeyBase58Check:
-                appUser.messagingPublicKeyBase58Check,
-              AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-              MinFeeRateNanosPerKB: 1000,
-            },
-            {
-              broadcast: false,
-            }
-          );
-
-          await identity.signAndSubmit(tx);
+          await createAccessGroup({
+            AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+            AccessGroupPublicKeyBase58Check:
+              appUser.messagingPublicKeyBase58Check,
+            AccessGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+            MinFeeRateNanosPerKB: 1000,
+          });
 
           const { AccessGroupsOwned, AccessGroupsMember } =
-            await desoAPI.accessGroup.GetAllUserAccessGroups({
+            await getAllAccessGroups({
               PublicKeyBase58Check: appUser.PublicKeyBase58Check,
             });
 

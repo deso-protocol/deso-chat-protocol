@@ -1,7 +1,6 @@
 import { shortenLongWord } from "components/search-users";
 import { AppUser } from "contexts/UserContext";
-import { ChatType, User } from "deso-protocol-types";
-import { desoAPI } from "services/desoAPI.service";
+import { ChatType, User } from "deso-protocol";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   PUBLIC_KEY_LENGTH,
@@ -72,21 +71,4 @@ export const hasSetupMessaging = (user: AppUser | null) => {
     ({ AccessGroupKeyName }) =>
       AccessGroupKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME
   );
-};
-
-export const checkTransactionCompleted = (hashHex: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(async () => {
-      desoAPI.transaction
-        .getTransaction(hashHex)
-        .then(({ TxnFound }) => {
-          if (TxnFound) {
-            resolve();
-          } else {
-            resolve(checkTransactionCompleted(hashHex));
-          }
-        })
-        .catch(() => reject(new Error("Error when getting transaction")));
-    }, 150);
-  });
 };

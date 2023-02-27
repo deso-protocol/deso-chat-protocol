@@ -3,14 +3,19 @@ import { UserContext } from "contexts/UserContext";
 import {
   ChatType,
   DecryptedMessageEntryResponse,
+  getPaginatedAccessGroupMembers,
+  getPaginatedDMThread,
+  getPaginatedGroupChatThread,
+  getUsersStateless,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
-} from "deso-protocol-types";
+} from "deso-protocol";
+import { useInterval } from "hooks/useInterval";
 import difference from "lodash/difference";
 import { FC, useContext, useEffect, useRef, useState } from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/desoAPI.service";
+import { RefreshContext } from "../contexts/RefreshContext";
 import { useMobile } from "../hooks/useMobile";
 import {
   decryptAccessGroupMessagesWithRetry,
@@ -42,8 +47,6 @@ import { MessagingConversationButton } from "./messaging-conversation-button";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { MessagingSetupButton } from "./messaging-setup-button";
 import { shortenLongWord } from "./search-users";
-import { useInterval } from "hooks/useInterval";
-import { RefreshContext } from "../contexts/RefreshContext";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
 
 export const MessagingApp: FC = () => {
@@ -204,25 +207,23 @@ export const MessagingApp: FC = () => {
       return Promise.resolve(usernameByPublicKeyBase58Check);
     }
 
-    return await desoAPI.user
-      .getUsersStateless({
-        PublicKeysBase58Check: Array.from(newPublicKeysToGet),
-        SkipForLeaderboard: true,
-      })
-      .then((usersStatelessResponse) => {
-        const newPublicKeyToUsernames: { [k: string]: string } = {};
+    return getUsersStateless({
+      PublicKeysBase58Check: Array.from(newPublicKeysToGet),
+      SkipForLeaderboard: true,
+    }).then((usersStatelessResponse) => {
+      const newPublicKeyToUsernames: { [k: string]: string } = {};
 
-        (usersStatelessResponse.UserList || []).forEach((u) => {
-          newPublicKeyToUsernames[u.PublicKeyBase58Check] =
-            u.ProfileEntryResponse?.Username || "";
-        });
-
-        setUsernameByPublicKeyBase58Check((state) => ({
-          ...state,
-          ...newPublicKeyToUsernames,
-        }));
-        return usernameByPublicKeyBase58Check;
+      (usersStatelessResponse.UserList || []).forEach((u) => {
+        newPublicKeyToUsernames[u.PublicKeyBase58Check] =
+          u.ProfileEntryResponse?.Username || "";
       });
+
+      setUsernameByPublicKeyBase58Check((state) => ({
+        ...state,
+        ...newPublicKeyToUsernames,
+      }));
+      return usernameByPublicKeyBase58Check;
+    });
   };
 
   const fetchGroupMembers = async (conversation: Conversation) => {
@@ -234,7 +235,7 @@ export const MessagingApp: FC = () => {
       conversation.messages[0].RecipientInfo;
 
     const { PublicKeyToProfileEntryResponse } =
-      await desoAPI.accessGroup.GetPaginatedAccessGroupMembers({
+      await getPaginatedAccessGroupMembers({
         AccessGroupOwnerPublicKeyBase58Check: OwnerPublicKeyBase58Check,
         AccessGroupKeyName,
         MaxMembersToFetch:
@@ -371,16 +372,14 @@ export const MessagingApp: FC = () => {
     const convo = currentConvo.messages;
 
     if (currentConvo.ChatType === ChatType.DM) {
-      const messages =
-        await desoAPI.accessGroup.GetPaginatedMessagesForDmThread({
-          UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-          UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          PartyGroupOwnerPublicKeyBase58Check:
-            currentConvo.firstMessagePublicKey,
-          PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-          StartTimeStamp: new Date().valueOf() * 1e6,
-        });
+      const messages = await getPaginatedDMThread({
+        UserGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+        UserGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+        PartyGroupOwnerPublicKeyBase58Check: currentConvo.firstMessagePublicKey,
+        PartyGroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+        MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+        StartTimeStamp: new Date().valueOf() * 1e6,
+      });
 
       const { decrypted, updatedAllAccessGroups } =
         await decryptAccessGroupMessagesWithRetry(
@@ -427,14 +426,13 @@ export const MessagingApp: FC = () => {
         };
       }
       const firstMessage = convo[0];
-      const messages =
-        await desoAPI.accessGroup.GetPaginatedMessagesForGroupChatThread({
-          UserPublicKeyBase58Check:
-            firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
-          AccessGroupKeyName: firstMessage.RecipientInfo.AccessGroupKeyName,
-          StartTimeStamp: firstMessage.MessageInfo.TimestampNanos * 10,
-          MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
-        });
+      const messages = await getPaginatedGroupChatThread({
+        UserPublicKeyBase58Check:
+          firstMessage.RecipientInfo.OwnerPublicKeyBase58Check,
+        AccessGroupKeyName: firstMessage.RecipientInfo.AccessGroupKeyName,
+        StartTimeStamp: firstMessage.MessageInfo.TimestampNanos * 10,
+        MaxMessagesToFetch: MESSAGES_ONE_REQUEST_LIMIT,
+      });
 
       const { decrypted, updatedAllAccessGroups } =
         await decryptAccessGroupMessagesWithRetry(

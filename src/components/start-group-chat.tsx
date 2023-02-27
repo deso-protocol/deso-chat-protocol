@@ -1,4 +1,3 @@
-import { encrypt, identity } from "@deso-core/identity";
 import {
   Button,
   Dialog,
@@ -9,6 +8,13 @@ import {
 } from "@material-tailwind/react";
 import { SearchUsers } from "components/search-users";
 import { UserContext } from "contexts/UserContext";
+import {
+  addAccessGroupMembers,
+  createAccessGroup,
+  encrypt,
+  getBulkAccessGroups,
+  identity,
+} from "deso-protocol";
 import React, {
   Fragment,
   useContext,
@@ -21,7 +27,6 @@ import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
 import { useMobile } from "../hooks/useMobile";
 import { encryptAndSendNewMessage } from "../services/conversations.service";
-import { desoAPI } from "../services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 
@@ -88,36 +93,30 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
 
     setLoading(true);
 
+    // TODO: maybe we should wrap all this up under a single convenience function in the deso-protocol package.
     try {
       const accessGroupKeys = await identity.accessGroupStandardDerivation(
         groupName
       );
-      const createGroupTx = await desoAPI.accessGroup.CreateAccessGroup(
-        {
-          AccessGroupKeyName: groupName,
-          AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-          AccessGroupPublicKeyBase58Check:
-            accessGroupKeys.AccessGroupPublicKeyBase58Check,
-          MinFeeRateNanosPerKB: 1000,
-        },
-        {
-          broadcast: false,
-        }
-      );
 
-      await identity.signAndSubmit(createGroupTx);
+      await createAccessGroup({
+        AccessGroupKeyName: groupName,
+        AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+        AccessGroupPublicKeyBase58Check:
+          accessGroupKeys.AccessGroupPublicKeyBase58Check,
+        MinFeeRateNanosPerKB: 1000,
+      });
 
       const groupMembersArray = Array.from(
         new Set([...memberKeys, appUser.PublicKeyBase58Check])
       );
 
-      const { AccessGroupEntries, PairsNotFound } =
-        await desoAPI.accessGroup.GetBulkAccessGroupEntries({
-          GroupOwnerAndGroupKeyNamePairs: groupMembersArray.map((key) => ({
-            GroupOwnerPublicKeyBase58Check: key,
-            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          })),
-        });
+      const { AccessGroupEntries, PairsNotFound } = await getBulkAccessGroups({
+        GroupOwnerAndGroupKeyNamePairs: groupMembersArray.map((key) => ({
+          GroupOwnerPublicKeyBase58Check: key,
+          GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+        })),
+      });
 
       if (PairsNotFound?.length) {
         onPairMissing();
@@ -138,19 +137,12 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
         })
       );
 
-      await identity.signAndSubmit(
-        await desoAPI.accessGroup.AddAccessGroupMembers(
-          {
-            AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-            AccessGroupKeyName: groupName,
-            AccessGroupMemberList: groupMemberList,
-            MinFeeRateNanosPerKB: 1000,
-          },
-          {
-            broadcast: false,
-          }
-        )
-      );
+      await addAccessGroupMembers({
+        AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+        AccessGroupKeyName: groupName,
+        AccessGroupMemberList: groupMemberList,
+        MinFeeRateNanosPerKB: 1000,
+      });
 
       // And we'll send a message just so it pops up for convenience
       // In this case we'll send it to ourselves. In most cases the

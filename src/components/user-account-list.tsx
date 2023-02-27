@@ -1,14 +1,12 @@
-import { User } from "deso-protocol-types";
-import { useContext, useEffect, useState } from "react";
-import orderBy from "lodash/orderBy";
-import { MessagingDisplayAvatar } from "./messaging-display-avatar";
-import { formatDisplayName } from "../utils/helpers";
-import { UserContext } from "../contexts/UserContext";
-import { identity } from "@deso-core/identity";
-import { desoAPI } from "../services/desoAPI.service";
-import { ClipLoader } from "react-spinners";
 import { MenuItem } from "@material-tailwind/react";
+import { getUsersStateless, identity, User } from "deso-protocol";
+import orderBy from "lodash/orderBy";
+import { useContext, useEffect, useState } from "react";
+import { ClipLoader } from "react-spinners";
 import { toast } from "react-toastify";
+import { UserContext } from "../contexts/UserContext";
+import { formatDisplayName } from "../utils/helpers";
+import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 
 const COLLAPSED_ACCOUNTS_NUM = 3;
 const EXPANDED_ACCOUNTS_NUM = 10;
@@ -39,7 +37,7 @@ const UserAccountList = () => {
       setLoading(true);
 
       try {
-        const res = await desoAPI.user.getUsersStateless({
+        const res = await getUsersStateless({
           PublicKeysBase58Check: loggedInUserKeys,
           SkipForLeaderboard: true,
         });
