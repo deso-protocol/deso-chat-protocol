@@ -76,7 +76,6 @@ export const MessagingSetupButton = () => {
       onClick={async () => {
         setIsSettingUpMessaging(true);
         try {
-          // TODO: can we do this automatically
           await createAccessGroup({
             AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
             AccessGroupPublicKeyBase58Check:
@@ -85,9 +84,6 @@ export const MessagingSetupButton = () => {
             MinFeeRateNanosPerKB: 1000,
           });
 
-          // TODO: do we need to wait for the tx to show up on the node before
-          // calling to retrieve the access groups? This has been live for a bit
-          // and seems fine...
           const { AccessGroupsOwned, AccessGroupsMember } =
             await getAllAccessGroups({
               PublicKeyBase58Check: appUser.PublicKeyBase58Check,
