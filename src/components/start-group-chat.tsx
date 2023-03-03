@@ -29,6 +29,7 @@ import { encryptAndSendNewMessage } from "../services/conversations.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { MyInput } from "./form/my-input";
+import useKeyDown from "../hooks/useKeyDown";
 
 export interface StartGroupChatProps {
   onSuccess: (pubKey: string) => void;
@@ -48,6 +49,12 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
   const { isMobile } = useMobile();
 
   const handleOpen = () => setOpen(!open);
+
+  useKeyDown(() => {
+    if (open) {
+      setOpen(false);
+    }
+  }, ["Escape"]);
 
   useEffect(() => {
     if (!open) {
@@ -162,9 +169,9 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       toast.error(
         "something went wrong while submitting the add members transaction"
       );
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -186,6 +193,9 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
       <Dialog
         open={open}
         handler={handleOpen}
+        dismiss={{
+          enabled: false,
+        }}
         className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
         <DialogHeader className="text-blue-100 p-5 border-b border-blue-600/20">
@@ -273,7 +283,7 @@ export const StartGroupChat = ({ onSuccess }: StartGroupChatProps) => {
             </Button>
             <Button
               type="submit"
-              className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4"
+              className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4 flex items-center"
               disabled={loading}
             >
               {loading && (
