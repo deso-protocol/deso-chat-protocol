@@ -1,5 +1,7 @@
-import { DeSoNetwork } from "deso-protocol-types";
-import { TransactionSpendingLimitResponseOptions } from "@deso-core/identity";
+import {
+  DeSoNetwork,
+  TransactionSpendingLimitResponseOptions,
+} from "deso-protocol";
 
 export const getTransactionSpendingLimits = (
   publicKey: string

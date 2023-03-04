@@ -1,18 +1,22 @@
-import { identity } from "@deso-core/identity";
 import {
   AccessGroupEntryResponse,
   ChatType,
+  checkPartyAccessGroups,
   DecryptedMessageEntryResponse,
+  getAllAccessGroups,
+  getAllMessageThreads,
+  identity,
   NewMessageEntryResponse,
   PublicKeyToProfileEntryResponseMap,
-} from "deso-protocol-types";
+  sendDMMessage,
+  sendGroupChatMessage,
+  waitForTransactionFound,
+} from "deso-protocol";
 import { toast } from "react-toastify";
-import { desoAPI } from "services/desoAPI.service";
 import {
   DEFAULT_KEY_MESSAGING_GROUP_NAME,
   USER_TO_SEND_MESSAGE_TO,
 } from "../utils/constants";
-import { checkTransactionCompleted } from "../utils/helpers";
 import { ConversationMap } from "../utils/types";
 
 export const getConversationsNewMap = async (
@@ -70,7 +74,7 @@ export const getConversationNew = async (
   publicKeyToProfileEntryResponseMap: PublicKeyToProfileEntryResponseMap;
   updatedAllAccessGroups: AccessGroupEntryResponse[];
 }> => {
-  const messages = await desoAPI.accessGroup.GetAllUserMessageThreads({
+  const messages = await getAllMessageThreads({
     UserPublicKeyBase58Check: userPublicKeyBase58Check,
   });
   const { decrypted, updatedAllAccessGroups } =
@@ -108,7 +112,7 @@ export const getConversations = async (
         userPublicKeyBase58Check,
         USER_TO_SEND_MESSAGE_TO
       );
-      await checkTransactionCompleted(txnHashHex);
+      await waitForTransactionFound(txnHashHex);
       const getConversationsNewMapResponse = await getConversationsNewMap(
         userPublicKeyBase58Check,
         allAccessGroups
@@ -153,11 +157,9 @@ export const decryptAccessGroupMessagesWithRetry = async (
     (dmr) => dmr.error === "Error: access group key not found for group message"
   );
   if (accessGroupsToFetch.length > 0) {
-    const newAllAccessGroups = await desoAPI.accessGroup.GetAllUserAccessGroups(
-      {
-        PublicKeyBase58Check: publicKeyBase58Check,
-      }
-    );
+    const newAllAccessGroups = await getAllAccessGroups({
+      PublicKeyBase58Check: publicKeyBase58Check,
+    });
     accessGroups = (newAllAccessGroups.AccessGroupsOwned || []).concat(
       newAllAccessGroups.AccessGroupsMember || []
     );
@@ -193,7 +195,7 @@ export const encryptAndSendNewMessage = async (
     return Promise.reject("sender must use default key for now");
   }
 
-  const response = await desoAPI.accessGroup.CheckPartyAccessGroups({
+  const response = await checkPartyAccessGroups({
     SenderPublicKeyBase58Check: senderPublicKeyBase58Check,
     SenderAccessGroupKeyName: SenderMessagingKeyName,
     RecipientPublicKeyBase58Check: RecipientPublicKeyBase58Check,
@@ -213,6 +215,7 @@ export const encryptAndSendNewMessage = async (
       messageToSend
     );
   } else {
+    // TODO: get rid of this buffer reference.
     message = Buffer.from(messageToSend).toString("hex");
     isUnencrypted = true;
     ExtraData["unencrypted"] = "true";
@@ -238,13 +241,13 @@ export const encryptAndSendNewMessage = async (
     MinFeeRateNanosPerKB: 1000,
   };
 
-  const tx = await (!RecipientMessagingKeyName ||
-  RecipientMessagingKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME
-    ? desoAPI.accessGroup.SendDmMessage(requestBody, { broadcast: false })
-    : desoAPI.accessGroup.SendGroupChatMessage(requestBody, {
-        broadcast: false,
-      }));
-  const signedTx = await identity.signAndSubmit(tx);
+  const isDM =
+    !RecipientMessagingKeyName ||
+    RecipientMessagingKeyName === DEFAULT_KEY_MESSAGING_GROUP_NAME;
 
-  return signedTx.TxnHashHex;
+  const { submittedTransactionResponse } = await (isDM
+    ? sendDMMessage(requestBody)
+    : sendGroupChatMessage(requestBody));
+
+  return submittedTransactionResponse.TxnHashHex;
 };

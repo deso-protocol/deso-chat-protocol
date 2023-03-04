@@ -1,10 +1,4 @@
 import {
-  AccessGroupPrivateInfo,
-  encrypt,
-  identity,
-  publicKeyToBase58Check,
-} from "@deso-core/identity";
-import {
   Button,
   Dialog,
   DialogBody,
@@ -12,7 +6,18 @@ import {
   DialogHeader,
 } from "@material-tailwind/react";
 import { UserContext } from "contexts/UserContext";
-import { AccessGroupEntryResponse } from "deso-protocol-types";
+import {
+  AccessGroupEntryResponse,
+  AccessGroupPrivateInfo,
+  addAccessGroupMembers,
+  encrypt,
+  getAllAccessGroupsMemberOnly,
+  getBulkAccessGroups,
+  identity,
+  publicKeyToBase58Check,
+  removeAccessGroupMembers,
+  waitForTransactionFound,
+} from "deso-protocol";
 import difference from "lodash/difference";
 import React, { Fragment, useContext, useRef, useState } from "react";
 import { IoPeopleCircleOutline } from "react-icons/io5";
@@ -20,9 +25,7 @@ import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
 import { useMobile } from "../hooks/useMobile";
-import { desoAPI } from "../services/desoAPI.service";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
-import { checkTransactionCompleted } from "../utils/helpers";
 import { Conversation } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SearchUsers } from "./search-users";
@@ -78,6 +81,7 @@ export const ManageMembersDialog = ({
     handleOpen();
   };
 
+  // TODO: migrate this to the deso-protocol library as a convenience wrapper
   const addMembers = async (groupName: string, memberKeys: Array<string>) => {
     if (!appUser) {
       return Promise.reject(new Error("You are not logged in."));
@@ -92,10 +96,9 @@ export const ManageMembersDialog = ({
         // the standard derivation could have been computed incorrectly. This way we know that
         // the new member will have the same encryption key as the rest of the group.
         try {
-          const resp =
-            await desoAPI.accessGroup.GetAllUserAccessGroupsMemberOnly({
-              PublicKeyBase58Check: appUser.PublicKeyBase58Check,
-            });
+          const resp = await getAllAccessGroupsMemberOnly({
+            PublicKeyBase58Check: appUser.PublicKeyBase58Check,
+          });
 
           const encryptedKey = (resp.AccessGroupsMember ?? []).find(
             (accessGroupEntry) =>
@@ -124,32 +127,26 @@ export const ManageMembersDialog = ({
           );
         }
 
-        const tx = await desoAPI.accessGroup.AddAccessGroupMembers(
-          {
-            AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
-            AccessGroupKeyName: groupName,
-            AccessGroupMemberList: await Promise.all(
-              (groupEntries || []).map(async (accessGroupEntry) => {
-                return {
-                  AccessGroupMemberPublicKeyBase58Check:
-                    accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
-                  AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
-                  EncryptedKey: await encrypt(
-                    accessGroupEntry.AccessGroupPublicKeyBase58Check,
-                    accessGroupKeyInfo.AccessGroupPrivateKeyHex
-                  ),
-                };
-              })
-            ),
-            MinFeeRateNanosPerKB: 1000,
-          },
-          {
-            broadcast: false,
-          }
-        );
+        const { submittedTransactionResponse } = await addAccessGroupMembers({
+          AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
+          AccessGroupKeyName: groupName,
+          AccessGroupMemberList: await Promise.all(
+            (groupEntries || []).map(async (accessGroupEntry) => {
+              return {
+                AccessGroupMemberPublicKeyBase58Check:
+                  accessGroupEntry.AccessGroupOwnerPublicKeyBase58Check,
+                AccessGroupMemberKeyName: accessGroupEntry.AccessGroupKeyName,
+                EncryptedKey: await encrypt(
+                  accessGroupEntry.AccessGroupPublicKeyBase58Check,
+                  accessGroupKeyInfo.AccessGroupPrivateKeyHex
+                ),
+              };
+            })
+          ),
+          MinFeeRateNanosPerKB: 1000,
+        });
 
-        const signedTx = await identity.signAndSubmit(tx);
-        return checkTransactionCompleted(signedTx.TxnHashHex);
+        return waitForTransactionFound(submittedTransactionResponse.TxnHashHex);
       }
     );
   };
@@ -167,7 +164,7 @@ export const ManageMembersDialog = ({
       groupName,
       memberKeys,
       async (groupEntries?: Array<AccessGroupEntryResponse>) => {
-        const tx = await desoAPI.accessGroup.RemoveAccessGroupMembers(
+        const { submittedTransactionResponse } = await removeAccessGroupMembers(
           {
             AccessGroupOwnerPublicKeyBase58Check: appUser.PublicKeyBase58Check,
             AccessGroupKeyName: groupName,
@@ -182,15 +179,10 @@ export const ManageMembersDialog = ({
               }
             ),
             MinFeeRateNanosPerKB: 1000,
-          },
-          {
-            broadcast: false,
           }
         );
 
-        const signedTx = await identity.signAndSubmit(tx);
-
-        return checkTransactionCompleted(signedTx.TxnHashHex);
+        return waitForTransactionFound(submittedTransactionResponse.TxnHashHex);
       }
     );
   };
@@ -206,15 +198,14 @@ export const ManageMembersDialog = ({
       return Promise.resolve();
     }
 
-    const { AccessGroupEntries, PairsNotFound } =
-      await desoAPI.accessGroup.GetBulkAccessGroupEntries({
-        GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
-          return {
-            GroupOwnerPublicKeyBase58Check: pubKey,
-            GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
-          };
-        }),
-      });
+    const { AccessGroupEntries, PairsNotFound } = await getBulkAccessGroups({
+      GroupOwnerAndGroupKeyNamePairs: memberKeys.map((pubKey) => {
+        return {
+          GroupOwnerPublicKeyBase58Check: pubKey,
+          GroupKeyName: DEFAULT_KEY_MESSAGING_GROUP_NAME,
+        };
+      }),
+    });
 
     if (PairsNotFound?.length) {
       onPairMissing();

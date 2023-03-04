@@ -1,6 +1,6 @@
+import { buildProfilePictureUrl } from "deso-protocol";
 import toMaterialStyle from "material-color-hash";
 import { FC, ReactElement, useEffect, useState } from "react";
-import { desoAPI } from "../services/desoAPI.service";
 import { getProfileURL } from "../utils/helpers";
 
 function ConditionalLink({
@@ -85,10 +85,9 @@ export const MessagingDisplayAvatar: FC<{
     if (!publicKey) {
       return DEFAULT_PROFILE_PIC_URL;
     }
-    return `${desoAPI.user.getSingleProfilePicture(
-      publicKey,
-      `${window.location.href}${DEFAULT_PROFILE_PIC_URL}`
-    )}`;
+    return buildProfilePictureUrl(publicKey, {
+      fallbackImageUrl: `${window.location.href}${DEFAULT_PROFILE_PIC_URL}`,
+    });
   };
 
   if (!profilePicUrl) {
