@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { KeyboardEvent, useState } from "react";
 import { Button, Textarea } from "@material-tailwind/react";
 import { toast } from "react-toastify";
 
@@ -35,6 +35,16 @@ export const SendMessageButtonAndInput = ({
     setIsSending(false);
   };
 
+  // Pressing the Enter key during Japanese conversion has prevented the message from being sent in the middle of the conversion.
+  // The same phenomenon should occur in Chinese and other languages.
+  // We have also confirmed that it works in English.
+  const canSend = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+      return true;
+    }
+    return false;
+  };
+
   return (
     <div className="flex justify-center items-start w-full p-0 pb-2 md:p-4 md:pb-2">
       <div className="flex-1">
@@ -50,12 +60,12 @@ export const SendMessageButtonAndInput = ({
                 setMessageToSend(e.target.value);
               }}
               onKeyDown={async (e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (canSend(e)) {
                   await sendMessage();
                 }
               }}
               onKeyUp={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
+                if (canSend(e)) {
                   setMessageToSend(messageToSend.trim());
                 }
               }}
