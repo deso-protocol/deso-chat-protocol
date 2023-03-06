@@ -29,6 +29,7 @@ import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { Conversation } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SearchUsers } from "./search-users";
+import useKeyDown from "../hooks/useKeyDown";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void;
@@ -52,6 +53,12 @@ export const ManageMembersDialog = ({
 
   const handleOpen = () => setOpen(!open);
   const groupName = conversation.messages[0].RecipientInfo.AccessGroupKeyName;
+
+  useKeyDown(() => {
+    if (open) {
+      setOpen(false);
+    }
+  }, ["Escape"]);
 
   const formSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -232,6 +239,9 @@ export const ManageMembersDialog = ({
       <Dialog
         open={open}
         handler={handleOpen}
+        dismiss={{
+          enabled: false,
+        }}
         className="bg-[#050e1d] text-blue-100 border border-blue-900 min-w-none max-w-none w-[90%] md:w-[40%]"
       >
         <DialogHeader className="text-blue-100 p-5 border-b border-blue-600/20">
@@ -257,7 +267,7 @@ export const ManageMembersDialog = ({
             <div className="mb-0">
               {isGroupOwner && (
                 <SearchUsers
-                  className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray border-transparent"
+                  className="text-white placeholder:text-blue-100 bg-blue-900/20 placeholder-gray"
                   onSelected={(member) =>
                     addMember(member, () => {
                       setTimeout(() => {
@@ -337,7 +347,7 @@ export const ManageMembersDialog = ({
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4"
+                  className="bg-[#ffda59] text-[#6d4800] rounded-full py-2 hover:shadow-none normal-case text-sm px-4 flex items-center"
                   disabled={updating}
                 >
                   {updating && (
