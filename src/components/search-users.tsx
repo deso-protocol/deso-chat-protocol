@@ -92,6 +92,7 @@ export const SearchUsers = ({
   ): Promise<SearchMenuItem> => {
     const res = await getSingleProfile({
       PublicKeyBase58Check: publicKey,
+      NoErrorOnMissing: true,
     });
 
     const item = {

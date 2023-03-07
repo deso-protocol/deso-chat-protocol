@@ -20,7 +20,7 @@ import {
 } from "deso-protocol";
 import difference from "lodash/difference";
 import React, { Fragment, useContext, useRef, useState } from "react";
-import { IoPeopleCircleOutline } from "react-icons/io5";
+import { IoCloseCircleOutline, IoPeopleCircleOutline } from "react-icons/io5";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
 import { useMembers } from "../hooks/useMembers";
@@ -255,10 +255,18 @@ export const ManageMembersDialog = ({
               )}
               )
             </span>
-            <div className="text-sm text-right font-normal text-blue-300/60">
-              <strong className="text-blue-300/80">Group Name</strong>
-              <br />
-              {groupName}
+            <div className="text-sm text-right font-normal text-blue-300/60 flex">
+              <div>
+                <strong className="text-blue-300/80">Group Name</strong>
+                <br />
+                {groupName}
+              </div>
+              {
+                !isGroupOwner &&
+                <div className="pl-2">
+                  <IoCloseCircleOutline className="text-2xl cursor-pointer" onClick={() => setOpen(false)}></IoCloseCircleOutline>
+                </div>
+              }
             </div>
           </div>
         </DialogHeader>
