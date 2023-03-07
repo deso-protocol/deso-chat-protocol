@@ -22,7 +22,6 @@ RUN npm install
 
 COPY tailwind.config.js .
 COPY tsconfig.json .
-COPY config-overrides.js .
 COPY src ./src
 COPY public ./public
 COPY nginx.conf .
