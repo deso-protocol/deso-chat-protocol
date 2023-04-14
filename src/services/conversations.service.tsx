@@ -249,5 +249,9 @@ export const encryptAndSendNewMessage = async (
     ? sendDMMessage(requestBody)
     : sendGroupChatMessage(requestBody));
 
+  if (!submittedTransactionResponse) {
+    throw new Error("Failed to submit transaction for sending message.");
+  }
+
   return submittedTransactionResponse.TxnHashHex;
 };
