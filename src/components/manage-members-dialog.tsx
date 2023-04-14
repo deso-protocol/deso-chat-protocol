@@ -23,13 +23,13 @@ import React, { Fragment, useContext, useRef, useState } from "react";
 import { IoCloseCircleOutline, IoPeopleCircleOutline } from "react-icons/io5";
 import ClipLoader from "react-spinners/ClipLoader";
 import { toast } from "react-toastify";
+import useKeyDown from "../hooks/useKeyDown";
 import { useMembers } from "../hooks/useMembers";
 import { useMobile } from "../hooks/useMobile";
 import { DEFAULT_KEY_MESSAGING_GROUP_NAME } from "../utils/constants";
 import { Conversation } from "../utils/types";
 import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { SearchUsers } from "./search-users";
-import useKeyDown from "../hooks/useKeyDown";
 
 export interface ManageMembersDialogProps {
   onSuccess: () => void;
@@ -153,6 +153,12 @@ export const ManageMembersDialog = ({
           MinFeeRateNanosPerKB: 1000,
         });
 
+        if (!submittedTransactionResponse) {
+          throw new Error(
+            "Failed to submit transaction to add members to group."
+          );
+        }
+
         return waitForTransactionFound(submittedTransactionResponse.TxnHashHex);
       }
     );
@@ -188,6 +194,12 @@ export const ManageMembersDialog = ({
             MinFeeRateNanosPerKB: 1000,
           }
         );
+
+        if (!submittedTransactionResponse) {
+          throw new Error(
+            "Failed to submit transaction to update group members."
+          );
+        }
 
         return waitForTransactionFound(submittedTransactionResponse.TxnHashHex);
       }
@@ -261,12 +273,14 @@ export const ManageMembersDialog = ({
                 <br />
                 {groupName}
               </div>
-              {
-                !isGroupOwner &&
+              {!isGroupOwner && (
                 <div className="pl-2">
-                  <IoCloseCircleOutline className="text-2xl cursor-pointer" onClick={() => setOpen(false)}></IoCloseCircleOutline>
+                  <IoCloseCircleOutline
+                    className="text-2xl cursor-pointer"
+                    onClick={() => setOpen(false)}
+                  ></IoCloseCircleOutline>
                 </div>
-              }
+              )}
             </div>
           </div>
         </DialogHeader>
