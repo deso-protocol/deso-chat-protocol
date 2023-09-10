@@ -547,13 +547,13 @@ export const MessagingApp: FC = () => {
       )
     : usernameByPublicKeyBase58Check;
   return (
-    <div className="h-full">
-      <div className="bg-gradient"></div>
+    <div className="h-full">      
       {(!conversationsReady ||
         !hasSetupMessaging(appUser) ||
         isLoadingUser ||
         loading) && (
-        <div className="m-auto relative top-8">
+        <div className="m-auto relative top-8 overflow-hidden pt-[30px] pb-[50px]">
+          <div className="bg-gradient"></div>
           <Card className="w-full lg:max-w-[1200px] m-auto bg-transparent p-0 shadow-none">
             <CardBody>
               {(autoFetchConversations || isLoadingUser || loading) && (
@@ -563,7 +563,7 @@ export const MessagingApp: FC = () => {
                   </span>
                   <br />
                   <ClipLoader
-                    color={"#6d4800"}
+                    color={"#0d3679"}
                     loading={true}
                     size={44}
                     className="mt-4"
@@ -593,13 +593,16 @@ export const MessagingApp: FC = () => {
                             <h2 className="text-3xl lg:text-3xl font-semibold mb-6 text-white">
                               Chat with anyone, on DeSo or Ethereum. Without the risk of being censored.
                             </h2>
-                            <p className="text-md mb-5 text-blue-300/60">
+                            <p className="text-sm mb-5 text-blue-300/60">
                               DeSo Chat Protocol is a censorship-resistant messaging
                               protocol built on top of the DeSo blockchain. It enables fully decentralized cross-chain 
-                              messaging between DeSo and Ethereum wallets (and soon, Solana). This is possible due to DeSo's infinite-state & derived keys architecture.
+                              messaging between DeSo and Ethereum wallets (and soon, Solana). 
                             </p>
-                            <p className="text-md mb-5 text-blue-300/60">
-                              Messages are stored directly on-chain, at an average cost of ~$0.000002 (<em>basically free</em>), with end-to-end encryption, and support for DMs & group chats — including on-chain social, identity, creator coins, tokens & NFTs.
+                            <p className="text-sm mb-5 text-blue-300/60">
+                              This is possible due to DeSo's infinite-state blockchain & derived keys cryptography.
+                            </p>
+                            <p className="text-sm mb-5 text-blue-300/60">
+                              Messages are stored directly on-chain, at an average cost of ~$0.000002 (<em>basically free</em>), with end-to-end encryption, and support for DMs & group chats — including fully on-chain social, identity, creator coins, tokens & NFTs.
                             </p>                            
                           </div>
                         )}
@@ -641,10 +644,10 @@ export const MessagingApp: FC = () => {
                           Founding Fathers (Group Chat)
                         </div>
                       </div>
-                      <div className="p-6">
+                      <div className="p-6 bg-black/30">
                         <MockBubble
                           username="@MrWashington.deso"
-                          text="Gents, have a taste of freedom."
+                          text="Gents, please have a taste of freedom."
                           timestamp="9:40pm"
                           avatar="/assets/avatar-george.png"
                           direction="receiver"
@@ -712,7 +715,7 @@ export const MessagingApp: FC = () => {
         appUser &&
         !isLoadingUser &&
         !loading && (
-          <div className="flex h-full">
+          <div className="flex h-full border-t border-blue-300/20">
             <Card className="w-full md:w-[400px] border-r border-blue-800/30 bg-black/40 rounded-none border-solid shrink-0">
               <MessagingConversationAccount
                 rehydrateConversation={rehydrateConversation}
@@ -810,7 +813,7 @@ export const MessagingApp: FC = () => {
               </header>
 
               <Card
-                className={`p-4 pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
+                className={`pr-2 rounded-none w-[100%] bg-transparent ml-[calc-400px] pb-0 h-[calc(100%-69px)] ${
                   isGroupChat ? "" : "md:h-full"
                 }`}
               >
@@ -818,7 +821,7 @@ export const MessagingApp: FC = () => {
                   <div className="max-h-[calc(100%-130px)] overflow-hidden">
                     {loadingConversation ? (
                       <ClipLoader
-                        color={"#6d4800"}
+                        color={"#0d3679"}
                         loading={true}
                         size={44}
                         className="mt-4"

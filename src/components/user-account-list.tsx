@@ -107,7 +107,7 @@ const UserAccountList = () => {
     >
       {loading ? (
         <div className="flex justify-center my-2 h-[29px]">
-          <ClipLoader color={"#6d4800"} loading={true} size={24} />
+          <ClipLoader color={"#0d3679"} loading={true} size={24} />
         </div>
       ) : (
         <>

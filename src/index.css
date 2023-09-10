@@ -117,13 +117,13 @@ input::placeholder {
 .bg-gradient {
   background: linear-gradient(27deg,#07081400 30%,#06f 54%,#000c2100);
   background-repeat: no-repeat;
-  height: 616px;
+  height: 416px;
   opacity: .15;
   position: absolute;
   width: 100vw;
   z-index: 0;
   transform: rotate(-10deg) scale(1.5);
-  top: 700px;
+  top: 500px;
 }
 
 .iphone-container {

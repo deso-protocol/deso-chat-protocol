@@ -24,7 +24,7 @@ export const MessagingSetupButton = () => {
     return (
       <div className="flex justify-center">
         <ClipLoader
-          color={"#6d4800"}
+          color={"#0d3679"}
           loading={true}
           size={44}
           className="mt-4"

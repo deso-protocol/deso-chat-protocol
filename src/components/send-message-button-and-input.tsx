@@ -46,12 +46,12 @@ export const SendMessageButtonAndInput = ({
   };
 
   return (
-    <div className="flex justify-center items-start w-full p-0 pb-2 md:p-4 md:pb-2">
+    <div className="relative flex justify-center items-start w-full p-0 pb-2 md:p-4 md:pb-2">
       <div className="flex-1">
         <div className="hidden md:block relative">
           <div className="relative">
-            <p className="text-left text-blue-300/40 mb-3 text-xs">
-              Press Shift + Return for paragraph breaks
+            <p className="text-left text-blue-300/60 mb-3 text-xs">
+              Press <code className="text-blue-300">Shift + Return</code> for paragraph breaks.
             </p>
             <Textarea
               className="p-2 pr-[200px] text-blue-100 bg-black/70 border-blue-gray-100 focus:shadow-none border-none focus:border-solid flex-1"
@@ -85,7 +85,7 @@ export const SendMessageButtonAndInput = ({
           />
         </div>
       </div>
-      <div className="flex h-[100px] items-center">
+      <div className="flex h-[100px] items-center absolute right-[10px] top-[10px] lg:right-[30px] lg:top-[30px]">
         <Button
           onClick={sendMessage}
           className="bg-[#ffda59] ml-4 px-2 py-2 text-[#6d4800] center rounded-full hover:shadow-none normal-case text-lg"
@@ -93,7 +93,7 @@ export const SendMessageButtonAndInput = ({
           <div className="flex justify-center md:w-[80px]">
             <div className="hidden md:block mx-2">Send</div>
             <div className="visible md:hidden mx-2">
-              <img src="/assets/send.png" width={28} alt="send" />
+              <img src="/assets/send.png" width={18} alt="send" />
             </div>
           </div>
         </Button>
