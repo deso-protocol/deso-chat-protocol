@@ -13,7 +13,7 @@ body {
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  -moz-osx-font-smoothing: grayscale;  
 }
 
 /*
@@ -39,7 +39,8 @@ body,
 body,
 .App {
   width: 100vw;
-  background-color: #050e1d;
+  background-color: #040609;
+  background-image: linear-gradient(0deg,#040609,#040609 10%,#050e1d 40%,#050e1d);
   overflow: hidden;
 }
 
@@ -112,3 +113,21 @@ input::placeholder {
   font-size: 0.875rem;
   color: #607d8a !important;
 }
+
+.bg-gradient {
+  background: linear-gradient(27deg,#07081400 30%,#06f 54%,#000c2100);
+  background-repeat: no-repeat;
+  height: 616px;
+  opacity: .15;
+  position: absolute;
+  width: 100vw;
+  z-index: 0;
+  transform: rotate(-10deg) scale(1.5);
+  top: 700px;
+}
+
+.iphone-container {
+  border-radius: 40px;
+  height: 760px;
+}
+

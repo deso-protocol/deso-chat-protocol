@@ -40,7 +40,7 @@ export const MessagingSetupButton = () => {
         className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
         onClick={() => identity.login()}
       >
-        Secure Login
+        Login with DeSo or Ethereum
       </Button>
     );
   }

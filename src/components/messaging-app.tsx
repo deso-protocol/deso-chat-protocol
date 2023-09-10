@@ -48,6 +48,54 @@ import { MessagingDisplayAvatar } from "./messaging-display-avatar";
 import { MessagingSetupButton } from "./messaging-setup-button";
 import { shortenLongWord } from "./search-users";
 import { SendMessageButtonAndInput } from "./send-message-button-and-input";
+import { IoCheckmarkCircle } from "react-icons/io5";
+
+export const MockBubble: FC<{
+    username: string;
+    avatar: string;
+    timestamp: string;
+    text: string;
+    direction: string;
+  }> = ({
+    username,
+    avatar,
+    timestamp,
+    text,
+    direction = "left",
+  }) => {
+  return (
+    <>
+      { direction == "receiver" && (
+        <div className="flex flex-row items-start gap-3">
+          <div className="flex flex-col w-[60px] top-2 relative justify-center items-center">
+            <img src={avatar} className="w-[38px] rounded-full mb-2"/>
+            <span className="whitespace-nowrap text-xs text-blue-100/30">{timestamp}</span>
+          </div>
+          <div className="flex flex-col items-start">
+            <div className="mb-2 text-blue-300/80 text-xs">{username}</div>
+            <div className="text-xs w-auto bg-blue-200/20 rounded-2xl rounded-tl-none rounded-bl-xl pl-5 mt-auto mb-2 md:mb-5 py-2 px-2 md:px-4 text-white break-words flex text-left relative items-center">
+              <div className="text-white text-sm">{text}</div>
+            </div>
+          </div>
+        </div>
+      )}
+      { direction == "sender" && (
+        <div className="flex flex-row-reverse items-start gap-3">
+          <div className="flex flex-col w-[60px] justify-center items-center">
+            <img src={avatar} className="w-[38px] rounded-full mb-2"/>
+            <span className="whitespace-nowrap text-xs text-blue-100/30">{timestamp}</span>
+          </div>
+          <div className="flex flex-col items-end">
+            <div className="mb-2 text-blue-300/80 text-xs">{username}</div>
+            <div className="bg-blue-900/70 text-blue-100 rounded-2xl rounded-tr-none rounded-br-xl pl-5 mt-auto mb-2 md:mb-5 py-2 px-2 md:px-4 break-words inline-flex text-left relative items-center">
+              <div className="text-white text-sm">{text}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 export const MessagingApp: FC = () => {
   const { appUser, isLoadingUser, allAccessGroups, setAllAccessGroups } =
@@ -500,12 +548,13 @@ export const MessagingApp: FC = () => {
     : usernameByPublicKeyBase58Check;
   return (
     <div className="h-full">
+      <div className="bg-gradient"></div>
       {(!conversationsReady ||
         !hasSetupMessaging(appUser) ||
         isLoadingUser ||
         loading) && (
         <div className="m-auto relative top-8">
-          <Card className="w-full md:w-[600px] m-auto p-8 bg-blue-900/10 backdrop-blur-xl">
+          <Card className="w-full lg:max-w-[1200px] m-auto bg-transparent p-0 shadow-none">
             <CardBody>
               {(autoFetchConversations || isLoadingUser || loading) && (
                 <div className="text-center">
@@ -525,63 +574,125 @@ export const MessagingApp: FC = () => {
                 !hasSetupMessaging(appUser) &&
                 !isLoadingUser &&
                 !loading && (
-                  <>
-                    <div>
-                      {appUser ? (
-                        <div>
-                          <h2 className="text-2xl font-bold mb-3 text-white">
-                            Set up your account
-                          </h2>
-                          <p className="text-lg mb-6 text-blue-300/60">
-                            It seems like your account needs more configuration
-                            to be able to send messages. Press the button below
-                            to set it up automatically
-                          </p>
-                        </div>
-                      ) : (
-                        <div>
-                          <h2 className="text-2xl font-bold mb-3 text-white">
-                            DeSo Chat Protocol
-                          </h2>
-                          <p className="text-md mb-5 text-blue-300/60">
-                            Censorship-resistant and fully on-chain messaging
-                            protocol — with end-to-end encrypted messaging
-                            support for direct messages and group chats. Message
-                            any wallet on DeSo or Ethereum.
-                          </p>
-                          <p className="mb-6 text-md text-blue-300/60">
-                            A truly{" "}
-                            <strong className="text-blue-200">
-                              first of its kind.
-                            </strong>
-                          </p>
-                        </div>
-                      )}
+                  <div className="text-left flex flex-col lg:flex-row items-center justify-between">
+                    <div className="w-full lg:w-[50%]">
+                      <div>
+                        {appUser ? (
+                          <div>
+                            <h2 className="text-2xl font-bold mb-3 text-white">
+                              Set up your account
+                            </h2>
+                            <p className="text-lg mb-6 text-blue-300/60">
+                              It seems like your account needs more configuration
+                              to be able to send messages. Press the button below
+                              to set it up automatically
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="text-left w-full md:max-w-[100%]">
+                            <h2 className="text-3xl lg:text-3xl font-semibold mb-6 text-white">
+                              Chat with anyone, on DeSo or Ethereum. Without the risk of being censored.
+                            </h2>
+                            <p className="text-md mb-5 text-blue-300/60">
+                              DeSo Chat Protocol is a censorship-resistant messaging
+                              protocol built on top of the DeSo blockchain. It enables fully decentralized cross-chain 
+                              messaging between DeSo and Ethereum wallets (and soon, Solana). This is possible due to DeSo's infinite-state & derived keys architecture.
+                            </p>
+                            <p className="text-md mb-5 text-blue-300/60">
+                              Messages are stored directly on-chain, at an average cost of ~$0.000002 (<em>basically free</em>), with end-to-end encryption, and support for DMs & group chats — including on-chain social, identity, creator coins, tokens & NFTs.
+                            </p>                            
+                          </div>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 mb-6 text-green-500">
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> E2EE messages & group chats</div>
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> 100% on-chain (fully synced)</div>
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> Sign in with DeSo & MetaMask</div>
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> Message DeSo & Ethereum wallets</div>
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> Open-source & built on DeSo</div>
+                          <div className="flex items-center gap-2"><IoCheckmarkCircle className="text-xl"/> On-chain social, identity & assets</div>
+                      </div>
+                      <MessagingSetupButton />
+                      <p className="mt-5 text-sm mb-5 text-blue-300/40">
+                        This project is fully open-sourced for developers to fork & build on top of.
+                        You can add features like ENS support, NFT profile pictures, message tipping, paid DMs, token-gated group chats and more. 
+                        Visit&nbsp;
+                        <a
+                          target="_blank"
+                          className="underline text-blue-300/40 hover:text-blue-300"
+                          href="https://github.com/deso-protocol/deso-chat-protocol"
+                          rel="noreferrer"
+                        >
+                          Github Repository &rarr;
+                        </a> or&nbsp;
+                        <a
+                          target="_blank"
+                          className="underline text-blue-300/40 hover:text-blue-300"
+                          href="https://github.com/deso-protocol/deso-chat-protocol"
+                          rel="noreferrer"
+                        >
+                          Developer Docs &rarr;
+                        </a>
+                      </p>
                     </div>
-                    <MessagingSetupButton />
-                    <p className="mt-5 text-md text-blue-300/40">
-                      This chat framework is open-sourced. It can be found{" "}
-                      <a
-                        target="_blank"
-                        className="underline hover:text-blue-300/80"
-                        href="https://github.com/deso-protocol/deso-chat-protocol"
-                        rel="noreferrer"
-                      >
-                        on Github
-                      </a>
-                    </p>
-                    <p className="mt-1 text-md text-blue-300/40">
-                      Curious about building on DeSo?{" "}
-                      <a
-                        target="_blank"
-                        className="underline hover:text-blue-300/80"
-                        href="https://docs.deso.org"
-                        rel="noreferrer"
-                      >
-                        Read our developer docs
-                      </a>
-                    </p>
-                  </>
+                    <div className="w-full lg:-mt-12 lg:w-[35%] border border-blue-400/40 iphone-container flex flex-col justify-between">
+                      <div className="w-full rounded-tr-[40px] rounded-tl-[40px] bg-blue-900/20 flex items-center text-center justify-center border-b border-b-blue-400/20 p-2">
+                        <div className="text-sm text-blue-400/40">
+                          Founding Fathers (Group Chat)
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <MockBubble
+                          username="@MrWashington.deso"
+                          text="Gents, have a taste of freedom."
+                          timestamp="9:40pm"
+                          avatar="/assets/avatar-george.png"
+                          direction="receiver"
+                        />
+                        <MockBubble
+                          username="@ThomasJefferson.eth"
+                          text="With liberty & justice for all my frens."
+                          timestamp="9:44pm"
+                          avatar="/assets/avatar-jefferson.png"
+                          direction="receiver"
+                        />
+                        <MockBubble
+                          username="@BenFranklin.eth"
+                          text="💯"
+                          timestamp="10:23pm"
+                          avatar="/assets/avatar-ben.png"
+                          direction="receiver"
+                        />
+                        <MockBubble
+                          username="@SamuelAdams.deso"
+                          text="yooo 🍺"
+                          timestamp="10:26pm"
+                          avatar="/assets/avatar-sam.png"
+                          direction="receiver"
+                        />
+                        <MockBubble
+                          username="@hamilton.deso"
+                          text="The sacred rights of mankind are not to be rummaged for among old parchments or musty records. They are written, as with a sunbeam, in the whole volume of human nature, by the hand of the divinity itself; and can never be erased or obscured by mortal power."
+                          timestamp="10:44pm"
+                          avatar="/assets/avatar-hamilton.png"
+                          direction="sender"
+                        />
+                         <MockBubble
+                          username="@BenFranklin.eth"
+                          text="1) What"
+                          timestamp="10:45pm"
+                          avatar="/assets/avatar-ben.png"
+                          direction="receiver"
+                        />
+                      </div>
+                      <div className="w-full flex items-end text-center justify-end border-t border-t-blue-400/20 py-4 px-6">
+                        <div className="text-sm text-blue-600/40 w-full relative">
+                          <input type="text" className="w-full border-0 bg-blue-900/20 rounded-full px-4 py-2 text-sm text-blue-100/70" placeholder="Send message..."/>
+                          <button className="absolute z-4 right-2 top-[6px]"><img src="/assets/send.png" className="bg-blue-400/30 rounded-full h-6 w-6 p-1"/></button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
               {!autoFetchConversations &&
@@ -817,3 +928,5 @@ export const MessagingApp: FC = () => {
     </div>
   );
 };
+
+
