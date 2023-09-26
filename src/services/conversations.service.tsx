@@ -18,6 +18,7 @@ import {
   USER_TO_SEND_MESSAGE_TO,
 } from "../utils/constants";
 import { ConversationMap } from "../utils/types";
+import { bytesToHex } from "@noble/hashes/utils";
 
 export const getConversationsNewMap = async (
   userPublicKeyBase58Check: string,
@@ -215,8 +216,7 @@ export const encryptAndSendNewMessage = async (
       messageToSend
     );
   } else {
-    // TODO: get rid of this buffer reference.
-    message = Buffer.from(messageToSend).toString("hex");
+    message = bytesToHex(new TextEncoder().encode(messageToSend));
     isUnencrypted = true;
     ExtraData["unencrypted"] = "true";
   }
