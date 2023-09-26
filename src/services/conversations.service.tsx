@@ -216,7 +216,6 @@ export const encryptAndSendNewMessage = async (
       messageToSend
     );
   } else {
-    // TODO: get rid of this buffer reference.
     message = bytesToHex(new TextEncoder().encode(messageToSend));
     isUnencrypted = true;
     ExtraData["unencrypted"] = "true";
