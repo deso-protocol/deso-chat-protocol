@@ -242,7 +242,7 @@ export const SearchUsers = ({
             {loading && (
               <div className="flex justify-center">
                 <ClipLoader
-                  color={"#6d4800"}
+                  color={"#0d3679"}
                   loading={loading}
                   size={28}
                   className="my-4"
