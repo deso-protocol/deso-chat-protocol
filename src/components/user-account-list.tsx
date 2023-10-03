@@ -1,5 +1,6 @@
 import { MenuItem } from "@material-tailwind/react";
 import { getUsersStateless, identity, User } from "deso-protocol";
+import { Identity } from "deso-protocol/src/identity/identity";
 import orderBy from "lodash/orderBy";
 import { useContext, useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
@@ -53,7 +54,7 @@ const UserAccountList = () => {
       }
     };
 
-    const snapshot = identity.snapshot();
+    const snapshot = (identity as Identity<Storage>).snapshot();
     const activeUser = snapshot.currentUser;
     const alternateUsers = Object.keys(snapshot.alternateUsers || {});
 

@@ -5,6 +5,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.7",
     "@material-tailwind/react": "^1.2.5",
+    "@noble/hashes": "^1.3.2",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -12,7 +13,7 @@
     "@types/node": "^16.18.11",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
-    "deso-protocol": "^1.1.14",
+    "deso-protocol": "^2.5.0",
     "material-color-hash": "^0.1.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
