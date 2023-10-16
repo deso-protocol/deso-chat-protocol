@@ -229,7 +229,7 @@ function App() {
         <div className="App">
           <Header />
 
-          <section className="h-[calc(100%-64px)] mt-[64px]">
+          <section className="h-[calc(100%-64px)] mt-[64px] overflow-scroll">
             <MessagingApp />
           </section>
 

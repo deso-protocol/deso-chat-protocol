@@ -24,7 +24,7 @@ export const MessagingSetupButton = () => {
     return (
       <div className="flex justify-center">
         <ClipLoader
-          color={"#6d4800"}
+          color={"#0d3679"}
           loading={true}
           size={44}
           className="mt-4"
@@ -40,7 +40,7 @@ export const MessagingSetupButton = () => {
         className="bg-[#ffda59] text-[#6d4800] rounded-full hover:shadow-none normal-case text-lg"
         onClick={() => identity.login()}
       >
-        Secure Login
+        Login with DeSo or Ethereum
       </Button>
     );
   }

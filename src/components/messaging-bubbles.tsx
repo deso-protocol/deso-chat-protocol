@@ -212,7 +212,7 @@ export const MessagingBubblesAndAvatar: FC<MessagingBubblesProps> = ({
         loader={
           <h4 className="my-4 flex items-center justify-center">
             <ClipLoader
-              color={"#6d4800"}
+              color={"#0d3679"}
               loading={true}
               size={16}
               className="mr-2"

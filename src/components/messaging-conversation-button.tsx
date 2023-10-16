@@ -33,7 +33,7 @@ export const MessagingConversationButton: FC<{
         <div className="flex justify-center">
           {isSending ? (
             <ClipLoader
-              color={"#6d4800"}
+              color={"#0d3679"}
               loading={true}
               size={28}
               className="mx-2"

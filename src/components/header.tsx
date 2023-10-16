@@ -13,6 +13,8 @@ import {
   IoExitOutline,
   IoHappyOutline,
   IoLogoGithub,
+  IoPersonOutline,
+  IoWalletOutline,
 } from "react-icons/io5";
 import { toast } from "react-toastify";
 import { RefreshContext } from "../contexts/RefreshContext";
@@ -26,10 +28,10 @@ export const Header = () => {
   const { setLockRefresh } = useContext(RefreshContext);
 
   return (
-    <header className="flex justify-between py-3 px-4 h-[64px] fixed top-0 z-50 bg-black/40 w-full backdrop-blur-md">
+    <header className="flex justify-between py-3 px-4 h-[64px] fixed top-0 z-50 w-full">
       <a href="/" className="flex items-center">
         <div className="text-left flex items-center">
-          <img src="/assets/logo-white.svg" width={80} alt="deso-logo" />
+          <img src="/assets/logo-white.svg" width={100} alt="deso-logo" />
           <span className="text-blue-300/60 ml-3 text-sm md:text-base">
             Chat Protocol
           </span>
@@ -47,7 +49,7 @@ export const Header = () => {
               </div>
               <a
                 className="block text-blue-200/80 text-sm"
-                href="https://signup.deso.com/wallet"
+                href={"https://wallet.deso.com/?user=" + formatDisplayName(appUser)}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -69,7 +71,7 @@ export const Header = () => {
 
             <MenuList className="max-w-[230px] w-[230px] p-2">
               <div>
-                <div className="block px-2 pt-1 pb-2 flex justify-between items-center border-b">
+                <div className="px-2 pt-1 pb-2 flex justify-between text-black items-center border-b">
                   <span className="font-bold text-lg md:text-base">
                     Profiles
                   </span>
@@ -110,35 +112,48 @@ export const Header = () => {
                   </a>
                 </MenuItem>
               )}
-
               {appUser && (
-                <MenuItem className="flex items-center pt-[9px] pb-2 px-3">
+                <MenuItem className="flex items-center pt-[9px] pb-2 text-black px-3">
                   <SaveToClipboard
                     text={appUser.PublicKeyBase58Check}
                     copyIcon={<IoCopyOutline className="text-xl mr-2" />}
                     copiedIcon={<IoCopy className="text-xl mr-2" />}
                     className=""
                   >
-                    <span className="text-base">Copy public key</span>
+                    <span className="text-base">Copy Public Key</span>
                   </SaveToClipboard>
                 </MenuItem>
               )}
-
+               <MenuItem className="flex items-center p-0">
+                <a
+                  href="https://wallet.deso.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full outline-0 text-black"
+                >
+                  <div className="w-full flex items-center pt-[9px] pb-2 px-3">
+                    <IoWalletOutline className="mr-3 text-xl" />
+                    <span className="text-base">DeSo Wallet</span>
+                  </div>
+                  
+                </a>
+              </MenuItem>
               <MenuItem className="flex items-center p-0">
                 <a
                   href="https://github.com/deso-protocol/deso-chat-protocol"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-full outline-0"
+                  className="w-full outline-0 text-black"
                 >
                   <div className="w-full flex items-center pt-[9px] pb-2 px-3">
                     <IoLogoGithub className="mr-3 text-xl" />
-                    <span className="text-base">Github code</span>
+                    <span className="text-base">Fork This Project</span>
                   </div>
+                  
                 </a>
               </MenuItem>
               <MenuItem
-                className="flex items-center"
+                className="flex items-center text-black"
                 onClick={async () => {
                   if (!appUser) return;
 

@@ -261,7 +261,7 @@ export const ManageMembersDialog = ({
             <span>
               All Members (
               {loading ? (
-                <ClipLoader color={"#6d4800"} loading={true} size={16} />
+                <ClipLoader color={"#0d3679"} loading={true} size={16} />
               ) : (
                 currentMemberKeys.length
               )}
@@ -310,7 +310,7 @@ export const ManageMembersDialog = ({
                 {loading ? (
                   <div className="text-center">
                     <ClipLoader
-                      color={"#6d4800"}
+                      color={"#0d3679"}
                       loading={true}
                       size={44}
                       className="mt-4"
